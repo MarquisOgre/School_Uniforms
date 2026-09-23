@@ -58,8 +58,8 @@ function App(){
         <button className="text-button">Forgot Password?</button>
         <button className="admin-link" onClick={()=>{setShowLogin(false);setMode('admin')}}>Administrator Portal</button>
       </section>
-    </div>
     </div>}
+  </>
 }
 
 function Landing({onLogin}:{onLogin:()=>void}){
