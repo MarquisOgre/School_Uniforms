@@ -1,66 +1,185 @@
-import { useMemo, useState } from 'react'
-import { Building2, LockKeyhole, UserRound, ChevronDown, Eye, EyeOff, MapPin } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Building2, LockKeyhole, UserRound, ChevronDown, Eye, EyeOff, MapPin, LoaderCircle } from 'lucide-react'
 import type { PortalMode } from './types'
+import { supabase } from './lib/supabase'
 
-const demoSchools = [
-  {
-    id: 'demo-1',
-    name: 'ABC International School',
-    branches: [
-      { id: 'branch-1', name: 'Main Campus' },
-      { id: 'branch-2', name: 'Jubilee Hills Branch' },
-      { id: 'branch-3', name: 'Gachibowli Branch' },
-    ],
-  },
-  {
-    id: 'demo-2',
-    name: 'Delhi Public School',
-    branches: [
-      { id: 'branch-4', name: 'North Campus' },
-      { id: 'branch-5', name: 'South Campus' },
-    ],
-  },
-  {
-    id: 'demo-3',
-    name: 'Oakridge International School',
-    branches: [{ id: 'branch-6', name: 'Main Campus' }],
-  },
-]
+type SchoolOption = {
+  id: string
+  name: string
+}
+
+type BranchOption = {
+  id: string
+  name: string
+}
+
+type LoginUser = {
+  id: string
+  full_name: string | null
+  role: string
+  school_id: string | null
+  branch_id: string | null
+  login_id: string
+}
 
 function App() {
   const [mode, setMode] = useState<PortalMode>('login')
+  const [schools, setSchools] = useState<SchoolOption[]>([])
+  const [branches, setBranches] = useState<BranchOption[]>([])
   const [school, setSchool] = useState('')
   const [branch, setBranch] = useState('')
   const [studentId, setStudentId] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [loadingSchools, setLoadingSchools] = useState(true)
+  const [loadingBranches, setLoadingBranches] = useState(false)
+  const [loggingIn, setLoggingIn] = useState(false)
+  const [error, setError] = useState('')
 
-  const selectedSchool = useMemo(() => demoSchools.find(s => s.id === school), [school])
-  const branches = selectedSchool?.branches ?? []
-  const canLogin = Boolean(school && branch && studentId.trim() && password)
+  const selectedSchoolName = useMemo(
+    () => schools.find(item => item.id === school)?.name ?? 'Your School',
+    [schools, school],
+  )
+  const selectedBranchName = useMemo(
+    () => branches.find(item => item.id === branch)?.name ?? 'Your Branch',
+    [branches, branch],
+  )
 
-  function handleSchoolChange(value: string) {
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadSchools() {
+      setLoadingSchools(true)
+      setError('')
+
+      if (!supabase) {
+        setError('Supabase is not configured. Add the VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment variables.')
+        setLoadingSchools(false)
+        return
+      }
+
+      const { data, error: queryError } = await supabase
+        .from('schools')
+        .select('id, name')
+        .eq('status', 'active')
+        .order('name')
+
+      if (cancelled) return
+
+      if (queryError) {
+        setError('Unable to load schools. Please try again.')
+        setSchools([])
+      } else {
+        setSchools(data ?? [])
+      }
+
+      setLoadingSchools(false)
+    }
+
+    void loadSchools()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function handleSchoolChange(value: string) {
     setSchool(value)
     setBranch('')
+    setBranches([])
     setStudentId('')
     setPassword('')
+    setError('')
+
+    if (!value || !supabase) return
+
+    setLoadingBranches(true)
+
+    const { data, error: queryError } = await supabase
+      .from('branches')
+      .select('id, name')
+      .eq('school_id', value)
+      .eq('status', 'active')
+      .order('name')
+
+    if (queryError) {
+      setError('Unable to load branches for this school.')
+      setBranches([])
+      setLoadingBranches(false)
+      return
+    }
+
+    const nextBranches = data ?? []
+    setBranches(nextBranches)
+
+    if (nextBranches.length === 1) {
+      setBranch(nextBranches[0].id)
+    }
+
+    setLoadingBranches(false)
   }
 
   function handleBranchChange(value: string) {
     setBranch(value)
     setStudentId('')
     setPassword('')
+    setError('')
   }
 
-  function handleLogin() {
-    if (!canLogin) return
+  async function handleLogin() {
+    if (!supabase || !school || !branch || !studentId.trim() || !password || loggingIn) return
+
+    setLoggingIn(true)
+    setError('')
+
+    const { data, error: loginError } = await supabase.functions.invoke('student-parent-login', {
+      body: {
+        school_id: school,
+        branch_id: branch,
+        login_id: studentId.trim(),
+        password,
+      },
+    })
+
+    if (loginError || !data?.session) {
+      setError(data?.error ?? 'Invalid school, branch, ID, or password.')
+      setLoggingIn(false)
+      return
+    }
+
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    })
+
+    if (sessionError) {
+      setError('Login succeeded, but the session could not be created. Please try again.')
+      setLoggingIn(false)
+      return
+    }
+
     setMode('store')
+    setLoggingIn(false)
+  }
+
+  const canLogin = Boolean(school && branch && studentId.trim() && password && !loggingIn)
+
+  if (mode === 'store') {
+    return (
+      <StorePlaceholder
+        schoolName={selectedSchoolName}
+        branchName={selectedBranchName}
+        studentId={studentId}
+        onLogout={async () => {
+          await supabase?.auth.signOut({ scope: 'local' })
+          setMode('login')
+          setStudentId('')
+          setPassword('')
+        }}
+      />
+    )
   }
 
   if (mode === 'admin') return <AdminPlaceholder onBack={() => setMode('login')} />
-  if (mode === 'store') {
-    return <StorePlaceholder school={school} branch={branch} studentId={studentId} onLogout={() => setMode('login')} />
-  }
 
   return (
     <main className="login-page">
@@ -71,28 +190,35 @@ function App() {
         <p className="subtitle">Select your school and branch, then sign in with the credentials provided to you.</p>
 
         <label htmlFor="school">School</label>
-        <div className="input-wrap select-wrap">
+        <div className={`input-wrap select-wrap ${loadingSchools ? 'is-disabled' : ''}`}>
           <Building2 size={18} />
-          <select id="school" value={school} onChange={e => handleSchoolChange(e.target.value)}>
-            <option value="">Select your school</option>
-            {demoSchools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          <select
+            id="school"
+            value={school}
+            disabled={loadingSchools}
+            onChange={e => void handleSchoolChange(e.target.value)}
+          >
+            <option value="">{loadingSchools ? 'Loading schools...' : 'Select your school'}</option>
+            {schools.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
-          <ChevronDown size={17} />
+          {loadingSchools ? <LoaderCircle className="spin" size={17} /> : <ChevronDown size={17} />}
         </div>
 
         <label htmlFor="branch">Branch</label>
-        <div className={`input-wrap select-wrap ${!school ? 'is-disabled' : ''}`}>
+        <div className={`input-wrap select-wrap ${!school || loadingBranches ? 'is-disabled' : ''}`}>
           <MapPin size={18} />
           <select
             id="branch"
             value={branch}
-            disabled={!school}
+            disabled={!school || loadingBranches}
             onChange={e => handleBranchChange(e.target.value)}
           >
-            <option value="">{school ? 'Select your branch' : 'Select school first'}</option>
-            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            <option value="">
+              {!school ? 'Select school first' : loadingBranches ? 'Loading branches...' : branches.length === 0 ? 'No active branches' : 'Select your branch'}
+            </option>
+            {branches.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
-          <ChevronDown size={17} />
+          {loadingBranches ? <LoaderCircle className="spin" size={17} /> : <ChevronDown size={17} />}
         </div>
 
         <label htmlFor="student-id">Student / Parent ID</label>
@@ -104,6 +230,7 @@ function App() {
             disabled={!branch}
             onChange={e => setStudentId(e.target.value)}
             placeholder={branch ? 'Enter your ID' : 'Select branch first'}
+            autoComplete="username"
           />
         </div>
 
@@ -116,14 +243,22 @@ function App() {
             value={password}
             disabled={!branch}
             onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') void handleLogin()
+            }}
             placeholder={branch ? 'Enter your password' : 'Select branch first'}
+            autoComplete="current-password"
           />
           <button className="icon-button" type="button" onClick={() => setShowPassword(v => !v)} aria-label="Toggle password visibility" disabled={!branch}>
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
 
-        <button className="primary-button" disabled={!canLogin} onClick={handleLogin}>LOGIN</button>
+        {error && <p className="login-error" role="alert">{error}</p>}
+
+        <button className="primary-button" disabled={!canLogin} onClick={() => void handleLogin()}>
+          {loggingIn ? <><LoaderCircle className="spin" size={18} /> SIGNING IN...</> : 'LOGIN'}
+        </button>
         <button className="text-button" type="button">Forgot Password?</button>
         <button className="admin-link" type="button" onClick={() => setMode('admin')}>Admin Portal</button>
       </section>
@@ -131,11 +266,7 @@ function App() {
   )
 }
 
-function StorePlaceholder({ school, branch, studentId, onLogout }: { school: string; branch: string; studentId: string; onLogout: () => void }) {
-  const selectedSchool = demoSchools.find(s => s.id === school)
-  const branchName = selectedSchool?.branches.find(b => b.id === branch)?.name ?? 'Your Branch'
-  const schoolName = selectedSchool?.name ?? 'Your School'
-
+function StorePlaceholder({ schoolName, branchName, studentId, onLogout }: { schoolName: string; branchName: string; studentId: string; onLogout: () => void | Promise<void> }) {
   return (
     <div className="app-shell">
       <header>
@@ -143,12 +274,12 @@ function StorePlaceholder({ school, branch, studentId, onLogout }: { school: str
           <strong>{schoolName}</strong>
           <span className="header-branch">{branchName}</span>
         </div>
-        <button onClick={onLogout}>Logout</button>
+        <button onClick={() => void onLogout()}>Logout</button>
       </header>
       <div className="content">
         <p className="eyebrow">STUDENT / PARENT PORTAL</p>
         <h1>Welcome, {studentId}</h1>
-        <p>Your school and branch-specific uniform store will appear here. Access is restricted by the authenticated account.</p>
+        <p>Your school and branch-specific uniform store will appear here. Access is restricted by the authenticated account and database RLS.</p>
       </div>
     </div>
   )
@@ -161,7 +292,7 @@ function AdminPlaceholder({ onBack }: { onBack: () => void }) {
       <div className="content">
         <p className="eyebrow">ADMIN PORTAL</p>
         <h1>Foundation ready</h1>
-        <p>Next we will connect Supabase authentication, schools, student/parent accounts, catalog, packages, inventory and RLS.</p>
+        <p>The customer authentication foundation is now connected. Admin authentication and management will remain separate from the student/parent portal.</p>
       </div>
     </div>
   )
