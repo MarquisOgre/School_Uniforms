@@ -3,6 +3,7 @@ import { Building2, LockKeyhole, UserRound, ChevronDown, Eye, EyeOff, MapPin, Lo
 import type { PortalMode } from './types'
 import { supabase } from './lib/supabase'
 import StudentImport from './components/StudentImport'
+import ParentCreate from './components/ParentCreate'
 
 type SchoolOption = {
   id: string
@@ -311,11 +312,18 @@ function AdminPlaceholder({ onBack }: { onBack: () => void }) {
 
   async function selectSchool(value:string){setSchool(value);setBranch('');if(!value||!supabase){setBranches([]);return}const {data}=await supabase.from('branches').select('id,name').eq('school_id',value).eq('status','active').order('name');setBranches(data??[])}
 
-  if(admin&&school&&branch)return <StudentImport schoolId={school} branchId={branch} onBack={()=>setBranch('')}/>
+  if(admin&&school&&branch)return <AdminBranchTools schoolId={school} branchId={branch} onBack={()=>setBranch('')}/>
 
   if(admin)return <div className="app-shell"><header><strong>School Uniform Admin</strong><button onClick={()=>{void supabase?.auth.signOut({scope:'local'});setAdmin(false)}}>Logout</button></header><div className="content admin-panel"><p className="eyebrow">ADMIN PORTAL</p><h1>Student Management</h1><p>Choose the school and branch, then import students and parent accounts from Excel or CSV.</p><div className="admin-selector-grid"><label>School<select value={school} onChange={e=>void selectSchool(e.target.value)}><option value="">Select school</option>{schools.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Branch<select value={branch} disabled={!school} onChange={e=>setBranch(e.target.value)}><option value="">Select branch</option>{branches.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label></div></div></div>
 
   return <div className="app-shell"><header><strong>School Uniform Admin</strong><button onClick={onBack}>Back</button></header><div className="content admin-login"><p className="eyebrow">ADMIN PORTAL</p><h1>Administrator Sign In</h1><p>Use an authorized administrator account.</p><label>Email</label><input value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username" placeholder="admin@example.com"/><label>Password</label><input value={password} onChange={e=>setPassword(e.target.value)} type="password" onKeyDown={e=>{if(e.key==='Enter')void login()}} autoComplete="current-password"/>{error&&<p className="login-error">{error}</p>}<button className="primary-button" disabled={!email.trim()||!password||loading} onClick={()=>void login()}>{loading?'SIGNING IN...':'ADMIN LOGIN'}</button></div></div>
+}
+
+function AdminBranchTools({schoolId,branchId,onBack}:{schoolId:string;branchId:string;onBack:()=>void}) {
+  const [tool,setTool]=useState<'menu'|'parent'|'import'>('menu')
+  if(tool==='parent') return <ParentCreate schoolId={schoolId} branchId={branchId} onBack={()=>setTool('menu')} />
+  if(tool==='import') return <StudentImport schoolId={schoolId} branchId={branchId} onBack={()=>setTool('menu')} />
+  return <div className="app-shell"><header><strong>School Uniform Admin</strong><button onClick={onBack}>Back</button></header><div className="content admin-panel"><p className="eyebrow">ADMIN • STUDENTS</p><h1>Student Management</h1><p>Create an individual Parent Login for testing, or import many students and parents from Excel / CSV.</p><div className="admin-selector-grid"><button className="primary-button" onClick={()=>setTool('parent')}>Create Parent Login</button><button className="secondary-button" onClick={()=>setTool('import')}>Bulk Student Import</button></div></div></div>
 }
 
 export default App
