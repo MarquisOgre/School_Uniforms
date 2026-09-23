@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ArrowRight, Building2, CheckCircle2, ChevronDown, ClipboardList, CreditCard, Eye, EyeOff, FileSpreadsheet, Home, LockKeyhole, LogOut, MapPin, Menu, Package, Search, ShoppingBag, ShoppingCart, Sparkles, UserRound, X, Minus, Plus, Trash2, ChevronLeft
+  ArrowRight, BookOpen, Building2, CheckCircle2, ChevronDown, ClipboardList, CreditCard, Eye, EyeOff, FileSpreadsheet, Home, LockKeyhole, LogOut, MapPin, Menu, Package, Search, ShoppingBag, ShoppingCart, Sparkles, UserRound, X, Minus, Plus, Trash2, ChevronLeft
 } from 'lucide-react'
 import type { PortalMode } from './types'
 import { supabase } from './lib/supabase'
