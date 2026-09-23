@@ -287,43 +287,35 @@ function StorePlaceholder({ schoolName, branchName, studentId, onLogout }: { sch
 }
 
 function AdminPlaceholder({ onBack }: { onBack: () => void }) {
-  const [schools, setSchools] = useState<SchoolOption[]>([])
-  const [branches, setBranches] = useState<BranchOption[]>([])
-  const [school, setSchool] = useState('')
-  const [branch, setBranch] = useState('')
+  const [email,setEmail]=useState('')
+  const [password,setPassword]=useState('')
+  const [admin,setAdmin]=useState(false)
+  const [loading,setLoading]=useState(false)
+  const [error,setError]=useState('')
+  const [schools,setSchools]=useState<SchoolOption[]>([])
+  const [branches,setBranches]=useState<BranchOption[]>([])
+  const [school,setSchool]=useState('')
+  const [branch,setBranch]=useState('')
 
-  useEffect(() => {
-    async function load() {
-      if (!supabase) return
-      const { data } = await supabase.from('schools').select('id, name').eq('status', 'active').order('name')
-      setSchools(data ?? [])
-    }
-    void load()
-  }, [])
-
-  async function selectSchool(value: string) {
-    setSchool(value); setBranch('')
-    if (!value || !supabase) { setBranches([]); return }
-    const { data } = await supabase.from('branches').select('id, name').eq('school_id', value).eq('status', 'active').order('name')
-    setBranches(data ?? [])
+  async function login() {
+    if(!supabase||!email.trim()||!password||loading)return
+    setLoading(true);setError('')
+    const {data,error:e}=await supabase.auth.signInWithPassword({email:email.trim(),password})
+    if(e||!data.user){setError('Invalid admin email or password.');setLoading(false);return}
+    const {data:p,error:pe}=await supabase.from('profiles').select('role').eq('id',data.user.id).single()
+    if(pe||!p||!['admin','super_admin'].includes(p.role)){await supabase.auth.signOut({scope:'local'});setError('This account is not authorized for the Admin Portal.');setLoading(false);return}
+    setAdmin(true);setLoading(false)
   }
 
-  if (school && branch) return <StudentImport schoolId={school} branchId={branch} onBack={() => setBranch('')} />
+  useEffect(()=>{if(!admin)return;async function load(){if(!supabase)return;const {data}=await supabase.from('schools').select('id,name').eq('status','active').order('name');setSchools(data??[])}void load()},[admin])
 
-  return (
-    <div className="app-shell">
-      <header><strong>School Uniform Admin</strong><button onClick={onBack}>Back to Login</button></header>
-      <div className="content admin-panel">
-        <p className="eyebrow">ADMIN PORTAL</p>
-        <h1>Student Management</h1>
-        <p>Bulk-import students and parent accounts from Excel or CSV.</p>
-        <div className="admin-selector-grid">
-          <label>School<select value={school} onChange={e => void selectSchool(e.target.value)}><option value="">Select school</option>{schools.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <label>Branch<select value={branch} disabled={!school} onChange={e => setBranch(e.target.value)}><option value="">Select branch</option>{branches.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-        </div>
-      </div>
-    </div>
-  )
+  async function selectSchool(value:string){setSchool(value);setBranch('');if(!value||!supabase){setBranches([]);return}const {data}=await supabase.from('branches').select('id,name').eq('school_id',value).eq('status','active').order('name');setBranches(data??[])}
+
+  if(admin&&school&&branch)return <StudentImport schoolId={school} branchId={branch} onBack={()=>setBranch('')}/>
+
+  if(admin)return <div className="app-shell"><header><strong>School Uniform Admin</strong><button onClick={()=>{void supabase?.auth.signOut({scope:'local'});setAdmin(false)}}>Logout</button></header><div className="content admin-panel"><p className="eyebrow">ADMIN PORTAL</p><h1>Student Management</h1><p>Choose the school and branch, then import students and parent accounts from Excel or CSV.</p><div className="admin-selector-grid"><label>School<select value={school} onChange={e=>void selectSchool(e.target.value)}><option value="">Select school</option>{schools.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Branch<select value={branch} disabled={!school} onChange={e=>setBranch(e.target.value)}><option value="">Select branch</option>{branches.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label></div></div></div>
+
+  return <div className="app-shell"><header><strong>School Uniform Admin</strong><button onClick={onBack}>Back</button></header><div className="content admin-login"><p className="eyebrow">ADMIN PORTAL</p><h1>Administrator Sign In</h1><p>Use an authorized administrator account.</p><label>Email</label><input value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username" placeholder="admin@example.com"/><label>Password</label><input value={password} onChange={e=>setPassword(e.target.value)} type="password" onKeyDown={e=>{if(e.key==='Enter')void login()}} autoComplete="current-password"/>{error&&<p className="login-error">{error}</p>}<button className="primary-button" disabled={!email.trim()||!password||loading} onClick={()=>void login()}>{loading?'SIGNING IN...':'ADMIN LOGIN'}</button></div></div>
 }
 
 export default App
