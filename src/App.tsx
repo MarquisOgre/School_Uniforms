@@ -15,6 +15,7 @@ type CustomerPage='dashboard'|'packages'|'products'|'orders'|'profile'
 
 function App(){
   const [mode,setMode]=useState<PortalMode>('login')
+  const [showLogin,setShowLogin]=useState(false)
   const [schools,setSchools]=useState<SchoolOption[]>([])
   const [branches,setBranches]=useState<BranchOption[]>([])
   const [school,setSchool]=useState('')
@@ -34,17 +35,17 @@ function App(){
 
   async function selectSchool(value:string){setSchool(value);setBranch('');setBranches([]);setStudentId('');setPassword('');setError('');if(!value||!supabase)return;setLoadingBranches(true);const {data,e}=await supabase.from('branches').select('id,name').eq('school_id',value).eq('status','active').order('name');if(e)setError('Unable to load branches.');else{const list=data??[];setBranches(list);if(list.length===1)setBranch(list[0].id)}setLoadingBranches(false)}
   function selectBranch(value:string){setBranch(value);setStudentId('');setPassword('');setError('')}
-  async function login(){if(!supabase||!school||!branch||!studentId.trim()||!password||loggingIn)return;setLoggingIn(true);setError('');const {data,e}=await supabase.functions.invoke('student-parent-login',{body:{school_id:school,branch_id:branch,login_id:studentId.trim(),password}});if(e||!data?.session){setError(data?.error??'Invalid school, branch, ID, or password.');setLoggingIn(false);return}const {error:se}=await supabase.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});if(se){setError('Login succeeded, but the session could not be created.');setLoggingIn(false);return}setMode('store');setCustomerPage('dashboard');setLoggingIn(false)}
+  async function login(){if(!supabase||!school||!branch||!studentId.trim()||!password||loggingIn)return;setLoggingIn(true);setError('');const {data,e}=await supabase.functions.invoke('student-parent-login',{body:{school_id:school,branch_id:branch,login_id:studentId.trim(),password}});if(e||!data?.session){setError(data?.error??'Invalid school, branch, ID, or password.');setLoggingIn(false);return}const {error:se}=await supabase.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});if(se){setError('Login succeeded, but the session could not be created.');setLoggingIn(false);return}setMode('store');setCustomerPage('dashboard');setShowLogin(false);setLoggingIn(false)}
   async function logout(){await supabase?.auth.signOut({scope:'local'});setMode('login');setStudentId('');setPassword('')}
 
   if(mode==='store')return <CustomerPortal schoolName={selectedSchoolName} branchName={selectedBranchName} studentId={studentId} page={customerPage} setPage={setCustomerPage} onLogout={()=>void logout()}/>
   if(mode==='admin')return <AdminPortal onBack={()=>setMode('login')}/>
 
   return <>
-    <Landing onLogin={()=>setMode('login')} />
-    <div className="login-overlay">
+    <Landing onLogin={()=>setShowLogin(true)} />
+    {showLogin&&<div className="login-overlay">
       <section className="login-card login-card-large">
-        <button className="modal-close" onClick={()=>setMode('login')} aria-label="Close"><X size={20}/></button>
+        <button className="modal-close" onClick={()=>setShowLogin(false)} aria-label="Close"><X size={20}/></button>
         <div className="brand-mark"><ShoppingBag size={27}/></div>
         <p className="eyebrow">SECURE SCHOOL PORTAL</p><h1>Welcome back</h1>
         <p className="subtitle">Select your school and branch, then sign in with the credentials provided by your school.</p>
@@ -55,7 +56,7 @@ function App(){
         {error&&<p className="login-error">{error}</p>}
         <button className="primary-button" disabled={!school||!branch||!studentId.trim()||!password||loggingIn} onClick={()=>void login()}>{loggingIn?'SIGNING IN...':'SIGN IN TO PORTAL'}<ArrowRight size={18}/></button>
         <button className="text-button">Forgot Password?</button>
-        <button className="admin-link" onClick={()=>setMode('admin')}>Administrator Portal</button>
+        <button className="admin-link" onClick={()=>{setShowLogin(false);setMode('admin')}}>Administrator Portal</button>
       </section>
     </div>
   </>
