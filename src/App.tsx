@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Building2, LockKeyhole, UserRound, ChevronDown, Eye, EyeOff, MapPin, LoaderCircle } from 'lucide-react'
 import type { PortalMode } from './types'
 import { supabase } from './lib/supabase'
+import StudentImport from './components/StudentImport'
 
 type SchoolOption = {
   id: string
@@ -286,13 +287,40 @@ function StorePlaceholder({ schoolName, branchName, studentId, onLogout }: { sch
 }
 
 function AdminPlaceholder({ onBack }: { onBack: () => void }) {
+  const [schools, setSchools] = useState<SchoolOption[]>([])
+  const [branches, setBranches] = useState<BranchOption[]>([])
+  const [school, setSchool] = useState('')
+  const [branch, setBranch] = useState('')
+
+  useEffect(() => {
+    async function load() {
+      if (!supabase) return
+      const { data } = await supabase.from('schools').select('id, name').eq('status', 'active').order('name')
+      setSchools(data ?? [])
+    }
+    void load()
+  }, [])
+
+  async function selectSchool(value: string) {
+    setSchool(value); setBranch('')
+    if (!value || !supabase) { setBranches([]); return }
+    const { data } = await supabase.from('branches').select('id, name').eq('school_id', value).eq('status', 'active').order('name')
+    setBranches(data ?? [])
+  }
+
+  if (school && branch) return <StudentImport schoolId={school} branchId={branch} onBack={() => setBranch('')} />
+
   return (
     <div className="app-shell">
       <header><strong>School Uniform Admin</strong><button onClick={onBack}>Back to Login</button></header>
-      <div className="content">
+      <div className="content admin-panel">
         <p className="eyebrow">ADMIN PORTAL</p>
-        <h1>Foundation ready</h1>
-        <p>The customer authentication foundation is now connected. Admin authentication and management will remain separate from the student/parent portal.</p>
+        <h1>Student Management</h1>
+        <p>Bulk-import students and parent accounts from Excel or CSV.</p>
+        <div className="admin-selector-grid">
+          <label>School<select value={school} onChange={e => void selectSchool(e.target.value)}><option value="">Select school</option>{schools.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <label>Branch<select value={branch} disabled={!school} onChange={e => setBranch(e.target.value)}><option value="">Select branch</option>{branches.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        </div>
       </div>
     </div>
   )
