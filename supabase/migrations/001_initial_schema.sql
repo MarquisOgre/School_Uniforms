@@ -387,7 +387,7 @@ alter default privileges for role postgres in schema public revoke usage, select
 alter default privileges for role postgres in schema public revoke execute on functions from public, anon, authenticated, service_role;
 
 revoke all on all tables in schema public from anon, authenticated;
-grant select on public.schools to anon, authenticated;
+grant select on public.schools, public.branches to anon, authenticated;
 grant select, insert, update, delete on all tables in schema public to authenticated;
 
 alter table public.schools enable row level security;
@@ -419,6 +419,9 @@ using (status = 'active' or (select app_private.current_user_role()) in ('admin'
 create policy schools_admin_manage on public.schools for all to authenticated
 using ((select app_private.current_user_role()) = 'admin')
 with check ((select app_private.current_user_role()) = 'admin');
+
+create policy branches_public_read on public.branches for select to anon, authenticated
+using (status = 'active');
 
 create policy branches_scoped_read on public.branches for select to authenticated
 using ((select app_private.current_user_role()) = 'admin' or school_id = (select app_private.current_user_school_id()));
