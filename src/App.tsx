@@ -1,329 +1,104 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Building2, LockKeyhole, UserRound, ChevronDown, Eye, EyeOff, MapPin, LoaderCircle } from 'lucide-react'
+import {
+  ArrowRight, BookOpen, Building2, CheckCircle2, ChevronDown, ClipboardList,
+  CreditCard, Eye, EyeOff, FileSpreadsheet, Home, LockKeyhole, LogOut,
+  MapPin, Menu, Package, Search, ShoppingBag, Sparkles, UserRound, X
+} from 'lucide-react'
 import type { PortalMode } from './types'
 import { supabase } from './lib/supabase'
 import StudentImport from './components/StudentImport'
 import ParentCreate from './components/ParentCreate'
 
-type SchoolOption = {
-  id: string
-  name: string
-}
+type SchoolOption={id:string;name:string}
+type BranchOption={id:string;name:string}
+type CustomerPage='dashboard'|'packages'|'products'|'orders'|'profile'
 
-type BranchOption = {
-  id: string
-  name: string
-}
-
-type LoginUser = {
-  id: string
-  full_name: string | null
-  role: string
-  school_id: string | null
-  branch_id: string | null
-  login_id: string
-}
-
-function App() {
-  const [mode, setMode] = useState<PortalMode>('login')
-  const [schools, setSchools] = useState<SchoolOption[]>([])
-  const [branches, setBranches] = useState<BranchOption[]>([])
-  const [school, setSchool] = useState('')
-  const [branch, setBranch] = useState('')
-  const [studentId, setStudentId] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loadingSchools, setLoadingSchools] = useState(true)
-  const [loadingBranches, setLoadingBranches] = useState(false)
-  const [loggingIn, setLoggingIn] = useState(false)
-  const [error, setError] = useState('')
-
-  const selectedSchoolName = useMemo(
-    () => schools.find(item => item.id === school)?.name ?? 'Your School',
-    [schools, school],
-  )
-  const selectedBranchName = useMemo(
-    () => branches.find(item => item.id === branch)?.name ?? 'Your Branch',
-    [branches, branch],
-  )
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadSchools() {
-      setLoadingSchools(true)
-      setError('')
-
-      if (!supabase) {
-        setError('Supabase is not configured. Add the VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment variables.')
-        setLoadingSchools(false)
-        return
-      }
-
-      const { data, error: queryError } = await supabase
-        .from('schools')
-        .select('id, name')
-        .eq('status', 'active')
-        .order('name')
-
-      if (cancelled) return
-
-      if (queryError) {
-        setError('Unable to load schools. Please try again.')
-        setSchools([])
-      } else {
-        setSchools(data ?? [])
-      }
-
-      setLoadingSchools(false)
-    }
-
-    void loadSchools()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  async function handleSchoolChange(value: string) {
-    setSchool(value)
-    setBranch('')
-    setBranches([])
-    setStudentId('')
-    setPassword('')
-    setError('')
-
-    if (!value || !supabase) return
-
-    setLoadingBranches(true)
-
-    const { data, error: queryError } = await supabase
-      .from('branches')
-      .select('id, name')
-      .eq('school_id', value)
-      .eq('status', 'active')
-      .order('name')
-
-    if (queryError) {
-      setError('Unable to load branches for this school.')
-      setBranches([])
-      setLoadingBranches(false)
-      return
-    }
-
-    const nextBranches = data ?? []
-    setBranches(nextBranches)
-
-    if (nextBranches.length === 1) {
-      setBranch(nextBranches[0].id)
-    }
-
-    setLoadingBranches(false)
-  }
-
-  function handleBranchChange(value: string) {
-    setBranch(value)
-    setStudentId('')
-    setPassword('')
-    setError('')
-  }
-
-  async function handleLogin() {
-    if (!supabase || !school || !branch || !studentId.trim() || !password || loggingIn) return
-
-    setLoggingIn(true)
-    setError('')
-
-    const { data, error: loginError } = await supabase.functions.invoke('student-parent-login', {
-      body: {
-        school_id: school,
-        branch_id: branch,
-        login_id: studentId.trim(),
-        password,
-      },
-    })
-
-    if (loginError || !data?.session) {
-      setError(data?.error ?? 'Invalid school, branch, ID, or password.')
-      setLoggingIn(false)
-      return
-    }
-
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token: data.session.access_token,
-      refresh_token: data.session.refresh_token,
-    })
-
-    if (sessionError) {
-      setError('Login succeeded, but the session could not be created. Please try again.')
-      setLoggingIn(false)
-      return
-    }
-
-    setMode('store')
-    setLoggingIn(false)
-  }
-
-  const canLogin = Boolean(school && branch && studentId.trim() && password && !loggingIn)
-
-  if (mode === 'store') {
-    return (
-      <StorePlaceholder
-        schoolName={selectedSchoolName}
-        branchName={selectedBranchName}
-        studentId={studentId}
-        onLogout={async () => {
-          await supabase?.auth.signOut({ scope: 'local' })
-          setMode('login')
-          setStudentId('')
-          setPassword('')
-        }}
-      />
-    )
-  }
-
-  if (mode === 'admin') return <AdminPlaceholder onBack={() => setMode('login')} />
-
-  return (
-    <main className="login-page">
-      <section className="login-card">
-        <div className="brand-mark"><Building2 size={28} /></div>
-        <p className="eyebrow">SCHOOL UNIFORM PORTAL</p>
-        <h1>Welcome back</h1>
-        <p className="subtitle">Select your school and branch, then sign in with the credentials provided to you.</p>
-
-        <label htmlFor="school">School</label>
-        <div className={`input-wrap select-wrap ${loadingSchools ? 'is-disabled' : ''}`}>
-          <Building2 size={18} />
-          <select
-            id="school"
-            value={school}
-            disabled={loadingSchools}
-            onChange={e => void handleSchoolChange(e.target.value)}
-          >
-            <option value="">{loadingSchools ? 'Loading schools...' : 'Select your school'}</option>
-            {schools.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>
-          {loadingSchools ? <LoaderCircle className="spin" size={17} /> : <ChevronDown size={17} />}
-        </div>
-
-        <label htmlFor="branch">Branch</label>
-        <div className={`input-wrap select-wrap ${!school || loadingBranches ? 'is-disabled' : ''}`}>
-          <MapPin size={18} />
-          <select
-            id="branch"
-            value={branch}
-            disabled={!school || loadingBranches}
-            onChange={e => handleBranchChange(e.target.value)}
-          >
-            <option value="">
-              {!school ? 'Select school first' : loadingBranches ? 'Loading branches...' : branches.length === 0 ? 'No active branches' : 'Select your branch'}
-            </option>
-            {branches.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>
-          {loadingBranches ? <LoaderCircle className="spin" size={17} /> : <ChevronDown size={17} />}
-        </div>
-
-        <label htmlFor="student-id">Student / Parent ID</label>
-        <div className={`input-wrap ${!branch ? 'is-disabled' : ''}`}>
-          <UserRound size={18} />
-          <input
-            id="student-id"
-            value={studentId}
-            disabled={!branch}
-            onChange={e => setStudentId(e.target.value)}
-            placeholder={branch ? 'Enter your ID' : 'Select branch first'}
-            autoComplete="username"
-          />
-        </div>
-
-        <label htmlFor="password">Password</label>
-        <div className={`input-wrap ${!branch ? 'is-disabled' : ''}`}>
-          <LockKeyhole size={18} />
-          <input
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            disabled={!branch}
-            onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') void handleLogin()
-            }}
-            placeholder={branch ? 'Enter your password' : 'Select branch first'}
-            autoComplete="current-password"
-          />
-          <button className="icon-button" type="button" onClick={() => setShowPassword(v => !v)} aria-label="Toggle password visibility" disabled={!branch}>
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
-
-        {error && <p className="login-error" role="alert">{error}</p>}
-
-        <button className="primary-button" disabled={!canLogin} onClick={() => void handleLogin()}>
-          {loggingIn ? <><LoaderCircle className="spin" size={18} /> SIGNING IN...</> : 'LOGIN'}
-        </button>
-        <button className="text-button" type="button">Forgot Password?</button>
-        <button className="admin-link" type="button" onClick={() => setMode('admin')}>Admin Portal</button>
-      </section>
-    </main>
-  )
-}
-
-function StorePlaceholder({ schoolName, branchName, studentId, onLogout }: { schoolName: string; branchName: string; studentId: string; onLogout: () => void | Promise<void> }) {
-  return (
-    <div className="app-shell">
-      <header>
-        <div>
-          <strong>{schoolName}</strong>
-          <span className="header-branch">{branchName}</span>
-        </div>
-        <button onClick={() => void onLogout()}>Logout</button>
-      </header>
-      <div className="content">
-        <p className="eyebrow">STUDENT / PARENT PORTAL</p>
-        <h1>Welcome, {studentId}</h1>
-        <p>Your school and branch-specific uniform store will appear here. Access is restricted by the authenticated account and database RLS.</p>
-      </div>
-    </div>
-  )
-}
-
-function AdminPlaceholder({ onBack }: { onBack: () => void }) {
-  const [email,setEmail]=useState('')
-  const [password,setPassword]=useState('')
-  const [admin,setAdmin]=useState(false)
-  const [loading,setLoading]=useState(false)
-  const [error,setError]=useState('')
+function App(){
+  const [mode,setMode]=useState<PortalMode>('login')
   const [schools,setSchools]=useState<SchoolOption[]>([])
   const [branches,setBranches]=useState<BranchOption[]>([])
   const [school,setSchool]=useState('')
   const [branch,setBranch]=useState('')
+  const [studentId,setStudentId]=useState('')
+  const [password,setPassword]=useState('')
+  const [showPassword,setShowPassword]=useState(false)
+  const [loadingSchools,setLoadingSchools]=useState(true)
+  const [loadingBranches,setLoadingBranches]=useState(false)
+  const [loggingIn,setLoggingIn]=useState(false)
+  const [error,setError]=useState('')
+  const [customerPage,setCustomerPage]=useState<CustomerPage>('dashboard')
 
-  async function login() {
-    if(!supabase||!email.trim()||!password||loading)return
-    setLoading(true);setError('')
-    const {data,error:e}=await supabase.auth.signInWithPassword({email:email.trim(),password})
-    if(e||!data.user){setError('Invalid admin email or password.');setLoading(false);return}
-    const {data:p,error:pe}=await supabase.from('profiles').select('role').eq('id',data.user.id).single()
-    if(pe||!p||!['admin','super_admin'].includes(p.role)){await supabase.auth.signOut({scope:'local'});setError('This account is not authorized for the Admin Portal.');setLoading(false);return}
-    setAdmin(true);setLoading(false)
-  }
+  useEffect(()=>{let cancelled=false;async function load(){if(!supabase){setError('Supabase is not configured.');setLoadingSchools(false);return}const {data,e}=await supabase.from('schools').select('id,name').eq('status','active').order('name');if(cancelled)return;if(e)setError('Unable to load schools.');else setSchools(data??[]);setLoadingSchools(false)}void load();return()=>{cancelled=true}},[])
+  const selectedSchoolName=useMemo(()=>schools.find(x=>x.id===school)?.name??'Your School',[schools,school])
+  const selectedBranchName=useMemo(()=>branches.find(x=>x.id===branch)?.name??'Your Branch',[branches,branch])
 
-  useEffect(()=>{if(!admin)return;async function load(){if(!supabase)return;const {data}=await supabase.from('schools').select('id,name').eq('status','active').order('name');setSchools(data??[])}void load()},[admin])
+  async function selectSchool(value:string){setSchool(value);setBranch('');setBranches([]);setStudentId('');setPassword('');setError('');if(!value||!supabase)return;setLoadingBranches(true);const {data,e}=await supabase.from('branches').select('id,name').eq('school_id',value).eq('status','active').order('name');if(e)setError('Unable to load branches.');else{const list=data??[];setBranches(list);if(list.length===1)setBranch(list[0].id)}setLoadingBranches(false)}
+  function selectBranch(value:string){setBranch(value);setStudentId('');setPassword('');setError('')}
+  async function login(){if(!supabase||!school||!branch||!studentId.trim()||!password||loggingIn)return;setLoggingIn(true);setError('');const {data,e}=await supabase.functions.invoke('student-parent-login',{body:{school_id:school,branch_id:branch,login_id:studentId.trim(),password}});if(e||!data?.session){setError(data?.error??'Invalid school, branch, ID, or password.');setLoggingIn(false);return}const {error:se}=await supabase.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});if(se){setError('Login succeeded, but the session could not be created.');setLoggingIn(false);return}setMode('store');setCustomerPage('dashboard');setLoggingIn(false)}
+  async function logout(){await supabase?.auth.signOut({scope:'local'});setMode('login');setStudentId('');setPassword('')}
 
-  async function selectSchool(value:string){setSchool(value);setBranch('');if(!value||!supabase){setBranches([]);return}const {data}=await supabase.from('branches').select('id,name').eq('school_id',value).eq('status','active').order('name');setBranches(data??[])}
+  if(mode==='store')return <CustomerPortal schoolName={selectedSchoolName} branchName={selectedBranchName} studentId={studentId} page={customerPage} setPage={setCustomerPage} onLogout={()=>void logout()}/>
+  if(mode==='admin')return <AdminPortal onBack={()=>setMode('login')}/>
 
-  if(admin&&school&&branch)return <AdminBranchTools schoolId={school} branchId={branch} onBack={()=>setBranch('')}/>
-
-  if(admin)return <div className="app-shell"><header><strong>School Uniform Admin</strong><button onClick={()=>{void supabase?.auth.signOut({scope:'local'});setAdmin(false)}}>Logout</button></header><div className="content admin-panel"><p className="eyebrow">ADMIN PORTAL</p><h1>Student Management</h1><p>Choose the school and branch, then import students and parent accounts from Excel or CSV.</p><div className="admin-selector-grid"><label>School<select value={school} onChange={e=>void selectSchool(e.target.value)}><option value="">Select school</option>{schools.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Branch<select value={branch} disabled={!school} onChange={e=>setBranch(e.target.value)}><option value="">Select branch</option>{branches.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label></div></div></div>
-
-  return <div className="app-shell"><header><strong>School Uniform Admin</strong><button onClick={onBack}>Back</button></header><div className="content admin-login"><p className="eyebrow">ADMIN PORTAL</p><h1>Administrator Sign In</h1><p>Use an authorized administrator account.</p><label>Email</label><input value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username" placeholder="admin@example.com"/><label>Password</label><input value={password} onChange={e=>setPassword(e.target.value)} type="password" onKeyDown={e=>{if(e.key==='Enter')void login()}} autoComplete="current-password"/>{error&&<p className="login-error">{error}</p>}<button className="primary-button" disabled={!email.trim()||!password||loading} onClick={()=>void login()}>{loading?'SIGNING IN...':'ADMIN LOGIN'}</button></div></div>
+  return <>
+    <Landing onLogin={()=>setMode('login')} />
+    <div className="login-overlay">
+      <section className="login-card login-card-large">
+        <button className="modal-close" onClick={()=>setMode('login')} aria-label="Close"><X size={20}/></button>
+        <div className="brand-mark"><ShoppingBag size={27}/></div>
+        <p className="eyebrow">SECURE SCHOOL PORTAL</p><h1>Welcome back</h1>
+        <p className="subtitle">Select your school and branch, then sign in with the credentials provided by your school.</p>
+        <label>School</label><div className="input-wrap select-wrap"><Building2 size={18}/><select value={school} disabled={loadingSchools} onChange={e=>void selectSchool(e.target.value)}><option value="">{loadingSchools?'Loading schools...':'Select your school'}</option>{schools.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><ChevronDown size={17}/></div>
+        <label>Branch</label><div className="input-wrap select-wrap"><MapPin size={18}/><select value={branch} disabled={!school||loadingBranches} onChange={e=>selectBranch(e.target.value)}><option value="">{!school?'Select school first':loadingBranches?'Loading branches...':branches.length?'Select your branch':'No active branches'}</option>{branches.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><ChevronDown size={17}/></div>
+        <label>Student / Parent ID</label><div className="input-wrap"><UserRound size={18}/><input value={studentId} disabled={!branch} onChange={e=>setStudentId(e.target.value)} placeholder="Enter your ID" autoComplete="username"/></div>
+        <label>Password</label><div className="input-wrap"><LockKeyhole size={18}/><input type={showPassword?'text':'password'} value={password} disabled={!branch} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void login()}} placeholder="Enter your password" autoComplete="current-password"/><button className="icon-button" onClick={()=>setShowPassword(v=>!v)} disabled={!branch}>{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></div>
+        {error&&<p className="login-error">{error}</p>}
+        <button className="primary-button" disabled={!school||!branch||!studentId.trim()||!password||loggingIn} onClick={()=>void login()}>{loggingIn?'SIGNING IN...':'SIGN IN TO PORTAL'}<ArrowRight size={18}/></button>
+        <button className="text-button">Forgot Password?</button>
+        <button className="admin-link" onClick={()=>setMode('admin')}>Administrator Portal</button>
+      </section>
+    </div>
+  </>
 }
 
-function AdminBranchTools({schoolId,branchId,onBack}:{schoolId:string;branchId:string;onBack:()=>void}) {
-  const [tool,setTool]=useState<'menu'|'parent'|'import'>('menu')
-  if(tool==='parent') return <ParentCreate schoolId={schoolId} branchId={branchId} onBack={()=>setTool('menu')} />
-  if(tool==='import') return <StudentImport schoolId={schoolId} branchId={branchId} onBack={()=>setTool('menu')} />
-  return <div className="app-shell"><header><strong>School Uniform Admin</strong><button onClick={onBack}>Back</button></header><div className="content admin-panel"><p className="eyebrow">ADMIN • STUDENTS</p><h1>Student Management</h1><p>Create an individual Parent Login for testing, or import many students and parents from Excel / CSV.</p><div className="admin-selector-grid"><button className="primary-button" onClick={()=>setTool('parent')}>Create Parent Login</button><button className="secondary-button" onClick={()=>setTool('import')}>Bulk Student Import</button></div></div></div>
+function Landing({onLogin}:{onLogin:()=>void}){
+  const [menu,setMenu]=useState(false)
+  return <main className="landing">
+    <header className="site-header"><div className="site-brand"><div className="site-logo"><ShoppingBag size={20}/></div><div><strong>School Uniforms</strong><span>Smart school shopping</span></div></div><nav className={menu?'nav-open':''}><a href="#how">How It Works</a><a href="#benefits">Why Us</a><a href="#schools">Schools</a><a href="#support">Support</a><button onClick={onLogin}>Parent / Student Login <ArrowRight size={16}/></button></nav><button className="mobile-menu" onClick={()=>setMenu(v=>!v)}>{menu?<X/>:<Menu/>}</button></header>
+    <section className="hero"><div className="hero-copy"><div className="hero-pill"><Sparkles size={15}/> School-specific uniform shopping</div><h1>Everything your student needs.<br/><em>One simple place.</em></h1><p>Shop approved school uniforms, packages and individual items with the right branch, sizes and pricing already organized for you.</p><div className="hero-actions"><button className="hero-primary" onClick={onLogin}>Access Your School Store <ArrowRight size={18}/></button><a href="#how" className="hero-secondary">See how it works</a></div><div className="trust-row"><span><CheckCircle2 size={16}/> School verified access</span><span><CheckCircle2 size={16}/> Branch-specific catalog</span><span><CheckCircle2 size={16}/> Easy reordering</span></div></div><div className="hero-visual"><div className="uniform-card"><div className="uniform-art"><div className="shirt-art"/><div className="pants-art"/></div><div className="uniform-card-copy"><span>UNIFORM STORE</span><strong>Ready for the new term?</strong><p>Packages • Individual items • Easy checkout</p></div></div><div className="floating-card"><Package size={18}/><div><strong>Complete packages</strong><span>Everything in one order</span></div></div></div></section>
+    <section id="benefits" className="feature-strip"><Feature icon={<Building2/>} title="School specific" text="Only approved products and pricing for your school."/><Feature icon={<Package/>} title="Complete packages" text="Shop ready-made boys and girls uniform packages."/><Feature icon={<Search/>} title="Individual items" text="Replace one shirt, pair of socks or any item."/><Feature icon={<CreditCard/>} title="Simple checkout" text="Review your order and complete payment securely." /></section>
+    <section id="how" className="how-section"><div className="section-heading"><p className="eyebrow">HOW IT WORKS</p><h2>From login to doorstep in a few simple steps.</h2></div><div className="steps"><Step n="01" title="Select your school" text="Choose your school and the correct branch."/><Step n="02" title="Sign in" text="Use the Student / Parent ID and password provided by your school."/><Step n="03" title="Choose uniforms" text="Pick a complete package or shop individual products."/><Step n="04" title="Checkout" text="Confirm sizes, quantities, address and payment." /></div></section>
+    <section id="schools" className="school-callout"><div><p className="eyebrow">FOR SCHOOLS</p><h2>A cleaner way to manage uniform sales.</h2><p>School administrators can manage branches, students, catalogs, packages, inventory and orders from one secure dashboard.</p></div><button onClick={onLogin}>Parent / Student Login <ArrowRight size={17}/></button></section>
+    <footer id="support" className="site-footer"><div><div className="site-brand"><div className="site-logo"><ShoppingBag size={19}/></div><strong>School Uniforms</strong></div><p>School-specific uniform shopping made simple.</p></div><div className="footer-links"><a>How It Works</a><a>Support</a><a>Terms & Conditions</a><a>Privacy Policy</a></div><span>© 2026 School Uniforms. All rights reserved.</span></footer>
+  </main>
+}
+function Feature({icon,title,text}:{icon:React.ReactNode;title:string;text:string}){return <div className="feature"><div className="feature-icon">{icon}</div><div><strong>{title}</strong><p>{text}</p></div></div>}
+function Step({n,title,text}:{n:string;title:string;text:string}){return <div className="step"><span>{n}</span><h3>{title}</h3><p>{text}</p></div>}
+
+function CustomerPortal({schoolName,branchName,studentId,page,setPage,onLogout}:{schoolName:string;branchName:string;studentId:string;page:CustomerPage;setPage:(p:CustomerPage)=>void;onLogout:()=>void}){
+  const nav=[['dashboard','Dashboard',Home],['packages','Uniform Packages',Package],['products','Individual Products',ShoppingBag],['orders','My Orders',ClipboardList],['profile','Profile',UserRound]] as const
+  return <div className="portal"><aside className="sidebar"><div className="portal-brand"><div className="site-logo"><ShoppingBag size={19}/></div><div><strong>School Uniforms</strong><span>Parent Portal</span></div></div><div className="school-scope"><Building2 size={16}/><div><strong>{schoolName}</strong><span>{branchName}</span></div></div><nav>{nav.map(([key,label,Icon])=><button className={page===key?'active':''} onClick={()=>setPage(key)} key={key}><Icon size={18}/>{label}</button>)}</nav><button className="sidebar-logout" onClick={onLogout}><LogOut size={17}/> Logout</button></aside><main className="portal-main"><header className="portal-header"><div><p className="eyebrow">{branchName}</p><h1>{page==='dashboard'?'Good morning':page==='packages'?'Uniform Packages':page==='products'?'Individual Products':page==='orders'?'My Orders':'My Profile'}{page==='dashboard'&&<span>, {studentId}</span>}</h1></div><div className="header-user"><div className="avatar">{studentId.slice(0,1).toUpperCase()}</div><div><strong>{studentId}</strong><span>Parent / Student</span></div></div></header>{page==='dashboard'?<Dashboard setPage={setPage}/>:page==='packages'?<Packages/>:page==='products'?<Products/>:page==='orders'?<Orders/>:<Profile studentId={studentId}/>}</main></div>
+}
+function Dashboard({setPage}:{setPage:(p:CustomerPage)=>void}){return <div className="portal-content"><div className="welcome-banner"><div><p className="eyebrow">YOUR SCHOOL STORE</p><h2>Uniform shopping, organized for you.</h2><p>Choose a complete package for the term or replace individual items as needed.</p><button className="hero-primary" onClick={()=>setPage('packages')}>Explore Uniform Packages <ArrowRight size={17}/></button></div><div className="banner-icon"><ShoppingBag size={58}/></div></div><div className="portal-grid"><Stat title="Active orders" value="0" icon={<ClipboardList/>}/><Stat title="Saved items" value="0" icon={<Package/>}/><Stat title="School branch" value="Active" icon={<Building2/>}/></div><div className="section-row"><div><p className="eyebrow">SHOP</p><h2>Start with what you need</h2></div></div><div className="shop-cards"><ShopCard icon={<Package/>} title="Uniform Packages" text="Complete boys and girls packages assembled from approved school products." action="View packages" onClick={()=>setPage('packages')}/><ShopCard icon={<ShoppingBag/>} title="Individual Products" text="Buy or replace individual shirts, pants, shoes, socks, belts and more." action="Browse products" onClick={()=>setPage('products')}/></div></div>}
+function Stat({title,value,icon}:{title:string;value:string;icon:React.ReactNode}){return <div className="stat"><div>{icon}</div><span>{title}</span><strong>{value}</strong></div>}
+function ShopCard({icon,title,text,action,onClick}:{icon:React.ReactNode;title:string;text:string;action:string;onClick:()=>void}){return <div className="shop-card"><div className="feature-icon">{icon}</div><h3>{title}</h3><p>{text}</p><button onClick={onClick}>{action}<ArrowRight size={16}/></button></div>}
+function Packages(){return <div className="portal-content"><CatalogHeading eyebrow="PACKAGES" title="Uniform Packages" text="Complete school-approved sets, built from the same individual products available in the store."/><div className="catalog-grid"><ProductCard badge="BOYS" title="Boys Uniform Package" text="Complete daily uniform essentials" price="₹ —"/><ProductCard badge="GIRLS" title="Girls Uniform Package" text="Complete daily uniform essentials" price="₹ —"/><ProductCard badge="SPORTS" title="Sports Uniform Package" text="Sports and activity essentials" price="₹ —"/></div></div>}
+function Products(){return <div className="portal-content"><CatalogHeading eyebrow="PRODUCTS" title="Individual Products" text="Find a single item, select the right size and add it to your order."/><div className="catalog-toolbar"><div className="search-box"><Search size={17}/><input placeholder="Search products"/></div><select><option>All categories</option><option>Shirts</option><option>Pants</option><option>Shoes</option><option>Accessories</option></select></div><div className="catalog-grid"><ProductCard title="School Shirt" text="Approved daily uniform shirt" price="₹ —"/><ProductCard title="School Trousers" text="Approved daily uniform trousers" price="₹ —"/><ProductCard title="School Belt" text="Approved uniform belt" price="₹ —"/><ProductCard title="School Tie" text="Approved school tie" price="₹ —"/></div></div>}
+function ProductCard({badge,title,text,price}:{badge?:string;title:string;text:string;price:string}){return <article className="product-card"><div className="product-image"><ShoppingBag size={35}/>{badge&&<span>{badge}</span>}</div><div className="product-copy"><p>{text}</p><h3>{title}</h3><strong>{price}</strong><button>Add to cart <ArrowRight size={15}/></button></div></article>}
+function CatalogHeading({eyebrow,title,text}:{eyebrow:string;title:string;text:string}){return <div className="section-heading portal-heading"><p className="eyebrow">{eyebrow}</p><h2>{title}</h2><p>{text}</p></div>}
+function Orders(){return <div className="portal-content"><CatalogHeading eyebrow="ORDERS" title="My Orders" text="Track your school uniform orders and view previous purchases."/><div className="empty-state"><ClipboardList size={42}/><h3>No orders yet</h3><p>Your completed orders will appear here.</p></div></div>}
+function Profile({studentId}:{studentId:string}){return <div className="portal-content"><CatalogHeading eyebrow="ACCOUNT" title="My Profile" text="Your school account information."/><div className="profile-card"><div className="profile-avatar">{studentId.slice(0,1).toUpperCase()}</div><div><span>Login ID</span><strong>{studentId}</strong></div><div><span>Account type</span><strong>Parent / Student</strong></div><div><span>Access</span><strong>School Store</strong></div></div></div>}
+
+function AdminPortal({onBack}:{onBack:()=>void}){
+  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[admin,setAdmin]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState('')
+  const [schools,setSchools]=useState<SchoolOption[]>([]),[branches,setBranches]=useState<BranchOption[]>([]),[school,setSchool]=useState(''),[branch,setBranch]=useState(''),[tool,setTool]=useState<'menu'|'parent'|'import'>('menu')
+  async function login(){if(!supabase||!email.trim()||!password)return;setLoading(true);setError('');const {data,e}=await supabase.auth.signInWithPassword({email:email.trim(),password});if(e||!data.user){setError('Invalid admin email or password.');setLoading(false);return}const {data:p,error:pe}=await supabase.from('profiles').select('role').eq('id',data.user.id).single();if(pe||!p||!['admin','super_admin'].includes(p.role)){await supabase.auth.signOut({scope:'local'});setError('This account is not authorized for the Admin Portal.');setLoading(false);return}setAdmin(true);setLoading(false)}
+  useEffect(()=>{if(!admin||!supabase)return;void supabase.from('schools').select('id,name').eq('status','active').order('name').then(({data})=>setSchools(data??[]))},[admin])
+  async function chooseSchool(v:string){setSchool(v);setBranch('');setBranches([]);if(!v||!supabase)return;const {data}=await supabase.from('branches').select('id,name').eq('school_id',v).eq('status','active').order('name');setBranches(data??[])}
+  if(!admin)return <div className="admin-login-page"><div className="admin-login-card"><button className="modal-close" onClick={onBack}><X size={20}/></button><div className="brand-mark"><LockKeyhole/></div><p className="eyebrow">ADMINISTRATION</p><h1>Administrator Sign In</h1><p>Manage schools, students, catalogs and orders from the secure admin portal.</p><label>Email</label><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="admin@gmail.com" autoComplete="username"/><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void login()}} autoComplete="current-password"/>{error&&<p className="login-error">{error}</p>}<button className="primary-button" onClick={()=>void login()} disabled={loading||!email||!password}>{loading?'SIGNING IN...':'ADMIN LOGIN'}</button></div></div>
+  if(tool==='parent'&&school&&branch)return <ParentCreate schoolId={school} branchId={branch} onBack={()=>setTool('menu')}/>
+  if(tool==='import'&&school&&branch)return <StudentImport schoolId={school} branchId={branch} onBack={()=>setTool('menu')}/>
+  return <div className="admin-shell"><header className="admin-topbar"><div className="site-brand"><div className="site-logo"><ShoppingBag size={19}/></div><div><strong>School Uniforms</strong><span>Administration</span></div></div><button onClick={()=>{void supabase?.auth.signOut({scope:'local'});setAdmin(false)}}><LogOut size={17}/> Logout</button></header><div className="admin-content"><div className="admin-title"><div><p className="eyebrow">ADMIN DASHBOARD</p><h1>Student & Parent Management</h1><p>Create test accounts individually or import your student register in bulk.</p></div></div><div className="admin-scope-card"><div><span>School</span><strong>{schools.find(x=>x.id===school)?.name??'Select school'}</strong></div><div><span>Branch</span><strong>{branches.find(x=>x.id===branch)?.name??'Select branch'}</strong></div></div><div className="admin-selector-grid"><label>School<select value={school} onChange={e=>void chooseSchool(e.target.value)}><option value="">Select school</option>{schools.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Branch<select value={branch} disabled={!school} onChange={e=>{setBranch(e.target.value);setTool('menu')}}><option value="">Select branch</option>{branches.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label></div><div className="admin-action-grid"><button disabled={!school||!branch} onClick={()=>setTool('parent')}><UserRound/><div><strong>Create Parent Login</strong><span>Create one parent + student account for testing.</span></div><ArrowRight/></button><button disabled={!school||!branch} onClick={()=>setTool('import')}><FileSpreadsheet/><div><strong>Bulk Student Import</strong><span>Upload Excel or CSV student records.</span></div><ArrowRight/></button></div></div></div>
 }
 
 export default App
