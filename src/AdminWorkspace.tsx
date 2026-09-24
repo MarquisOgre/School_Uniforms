@@ -21,7 +21,7 @@ const META:Record<ModuleKey,{title:string;description:string}>={
 
 export default function AdminWorkspace({module,onBack}:{module:ModuleKey;onBack:()=>void}){
  const m=META[module]
- return <div className="admin-workspace"><header className="admin-topbar"><div><button className="admin-back" onClick={onBack}><ArrowLeft size={17}/> Admin Dashboard</button><div className="workspace-heading"><span className="eyebrow">ADMINISTRATION</span><h1>{m.title}</h1><p>{m.description}</p></div></div></header><main className="workspace-body"><ModuleBody module={module}/></main></div>
+ return <div className="admin-workspace"><header className="admin-topbar"><div className="site-brand"><img className="brand-logo admin-brand-logo" src="/logo.png" alt="Artisan"/><div><span>Administration</span></div></div><button className="admin-back" onClick={onBack}><ArrowLeft size={17}/> Back to Admin</button></header><main className="workspace-body"><div className="workspace-heading"><span className="eyebrow">ADMINISTRATION</span><h1>{m.title}</h1><p>{m.description}</p></div><ModuleBody module={module}/></main></div>
 }
 
 function ModuleBody({module}:{module:ModuleKey}){
