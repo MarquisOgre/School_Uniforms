@@ -697,7 +697,7 @@ function Packages() {
         <Panel>
           <div className="workspace-table">
             {rows.map((x) => (
-              <div className="workspace-row" key={x.id}>
+              <div className="workspace-row package-row" key={x.id}>
                 <strong>{x.name}</strong>
                 <span>{x.gender}</span>
                 <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
