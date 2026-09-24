@@ -1280,6 +1280,17 @@ function ParentStudents() {
     void load()
   }, [])
 
+  const toggleStatus = async (student: any) => {
+    if (!supabase || !student?.id) return
+    const nextStatus = String(student.status || '').toLowerCase() === 'active' ? 'inactive' : 'active'
+    const r = await dbFrom('students').update({ status: nextStatus }).eq('id', student.id)
+    if (r.error) {
+      setError(r.error.message)
+      return
+    }
+    await load()
+  }
+
   const filtered = rows.filter((r) => {
     const fatherName =
       r.parent_student_links
@@ -1339,6 +1350,7 @@ function ParentStudents() {
                   <th>Gender</th>
                   <th>Date of Birth</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1358,6 +1370,14 @@ function ParentStudents() {
                       <td>{r.gender || '—'}</td>
                       <td>{r.date_of_birth || '—'}</td>
                       <td>{r.status || '—'}</td>
+                      <td>
+                        <button
+                          className="table-action-button"
+                          onClick={() => void toggleStatus(r)}
+                        >
+                          {String(r.status || '').toLowerCase() === 'active' ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </td>
                     </tr>
                   )
                 })}
