@@ -1258,7 +1258,6 @@ function InventoryAdmin() {
 
 function ParentStudents() {
   const [rows, setRows] = useState<any[]>([]),
-    [parents, setParents] = useState<any[]>([]),
     [branches, setBranches] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
@@ -1268,25 +1267,14 @@ function ParentStudents() {
   const load = async () => {
     if (!supabase) return
     setLoading(true)
-    const [studentsResult, parentsResult, branchesResult] = await Promise.all([
-      dbFrom('students')
-        .select(
-          '*, parent_student_links(parent_user_id,relationship,is_primary,profiles:parent_user_id(full_name))',
-        )
-        .order('created_at', { ascending: false })
-        .limit(200),
-      dbFrom('profiles')
-        .select('id,full_name,school_id,branch_id')
-        .eq('role', 'customer')
-        .order('full_name'),
+    const [studentsResult, branchesResult] = await Promise.all([
+      dbFrom('students').select('*').order('created_at', { ascending: false }).limit(200),
       dbFrom('branches').select('id,name,school_id').order('name'),
     ])
     setRows(studentsResult.data ?? [])
-    setParents(parentsResult.data ?? [])
     setBranches(branchesResult.data ?? [])
     setError(
       studentsResult.error?.message ||
-        parentsResult.error?.message ||
         branchesResult.error?.message ||
         '',
     )
@@ -1310,17 +1298,14 @@ function ParentStudents() {
       status: 'active',
       school_id: firstBranch?.school_id || '',
       branch_id: firstBranch?.id || '',
-      father_id: parents[0]?.id || '',
+      father_name: '',
     })
   }
 
   const openEdit = (student: any) => {
-    const father = student.parent_student_links
-      ?.filter((p: any) => ['father', 'parent'].includes(p.relationship?.toLowerCase()))
-      ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
     setEditing({
       ...student,
-      father_id: father?.parent_user_id || '',
+      father_name: student.father_name || '',
       date_of_birth: student.date_of_birth || '',
     })
   }
@@ -1341,6 +1326,7 @@ function ParentStudents() {
       branch_id: editing.branch_id,
       student_code: editing.student_code.trim(),
       full_name: editing.full_name.trim(),
+      father_name: editing.father_name?.trim() || null,
       class_name: editing.class_name || null,
       section: editing.section || null,
       gender: editing.gender || null,
@@ -1361,21 +1347,6 @@ function ParentStudents() {
     if (!studentId) {
       setError('Student was not saved.')
       return
-    }
-
-    await dbFrom('parent_student_links').delete().eq('student_id', studentId)
-
-    if (editing.father_id) {
-      const link = await dbFrom('parent_student_links').insert({
-        parent_user_id: editing.father_id,
-        student_id: studentId,
-        relationship: 'father',
-        is_primary: true,
-      })
-      if (link.error) {
-        setError(link.error.message)
-        return
-      }
     }
 
     setEditing(null)
@@ -1412,11 +1383,7 @@ function ParentStudents() {
   }
 
   const filtered = rows.filter((r) => {
-    const fatherName =
-      r.parent_student_links
-        ?.filter((p: any) => ['father', 'parent'].includes(p.relationship?.toLowerCase()))
-        ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]?.profiles
-        ?.full_name || ''
+    const fatherName = r.father_name || ''
     return [
       r.student_code,
       r.full_name,
@@ -1470,11 +1437,7 @@ function ParentStudents() {
               </thead>
               <tbody>
                 {filtered.map((r, i) => {
-                  const father =
-                    r.parent_student_links
-                      ?.filter((p: any) => p.relationship?.toLowerCase() === 'father')
-                      ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
-                      ?.profiles?.full_name || '—'
+                  const father = r.father_name || '—'
                   return (
                     <tr key={r.id || i}>
                       <td>{r.student_code || '—'}</td>
@@ -1514,12 +1477,10 @@ function ParentStudents() {
             value={editing.full_name || ''}
             onChange={(v) => setEditing({ ...editing, full_name: v })}
           />
-          <Select
-            label="Father"
-            value={editing.father_id || ''}
-            options={parents.map((p) => p.id)}
-            labels={Object.fromEntries(parents.map((p) => [p.id, p.full_name || 'Unnamed Parent']))}
-            onChange={(v) => setEditing({ ...editing, father_id: v })}
+          <Field
+            label="Father's Name"
+            value={editing.father_name || ''}
+            onChange={(v) => setEditing({ ...editing, father_name: v })}
           />
           <Select
             label="Branch"
