@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type React from 'react'
-import { ArrowRight, Building2, FileSpreadsheet, Home, Package, ShoppingBag, UserRound, ClipboardList, CreditCard } from 'lucide-react'
+import { ArrowRight, BookOpen, Building2, CreditCard, FileSpreadsheet, Home, Package, ShoppingBag, Sparkles, UserRound, ClipboardList } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import AdminWorkspace from './AdminWorkspace'
 import ParentCreate from './components/ParentCreate'
