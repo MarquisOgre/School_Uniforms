@@ -1296,7 +1296,9 @@ function ParentStudents() {
     }
 
     if (!r.data) {
-      setError('Student status was not changed. Your account may not have permission to update this student.')
+      setError(
+        'Student status was not changed. Your account may not have permission to update this student.',
+      )
       return
     }
 
