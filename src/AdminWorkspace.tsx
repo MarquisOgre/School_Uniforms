@@ -1275,7 +1275,10 @@ function ParentStudents() {
         )
         .order('created_at', { ascending: false })
         .limit(200),
-      dbFrom('profiles').select('id,full_name,school_id,branch_id').eq('role', 'customer').order('full_name'),
+      dbFrom('profiles')
+        .select('id,full_name,school_id,branch_id')
+        .eq('role', 'customer')
+        .order('full_name'),
       dbFrom('branches').select('id,name,school_id').order('name'),
     ])
     setRows(studentsResult.data ?? [])
@@ -1312,10 +1315,9 @@ function ParentStudents() {
   }
 
   const openEdit = (student: any) => {
-    const father =
-      student.parent_student_links
-        ?.filter((p: any) => ['father', 'parent'].includes(p.relationship?.toLowerCase()))
-        ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
+    const father = student.parent_student_links
+      ?.filter((p: any) => ['father', 'parent'].includes(p.relationship?.toLowerCase()))
+      ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
     setEditing({
       ...student,
       father_id: father?.parent_user_id || '',
@@ -1396,12 +1398,16 @@ function ParentStudents() {
     }
 
     if (!result.data) {
-      setError('Student status was not changed. Your account may not have permission to update this student.')
+      setError(
+        'Student status was not changed. Your account may not have permission to update this student.',
+      )
       return
     }
 
     setRows((current) =>
-      current.map((item) => (item.id === student.id ? { ...item, status: result.data.status } : item)),
+      current.map((item) =>
+        item.id === student.id ? { ...item, status: result.data.status } : item,
+      ),
     )
   }
 
@@ -1420,7 +1426,11 @@ function ParentStudents() {
       r.gender,
       r.date_of_birth,
       r.status,
-    ].some((v) => String(v ?? '').toLowerCase().includes(search.toLowerCase()))
+    ].some((v) =>
+      String(v ?? '')
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+    )
   })
 
   return (
@@ -1479,8 +1489,13 @@ function ParentStudents() {
                         <button className="table-action-button" onClick={() => openEdit(r)}>
                           Edit
                         </button>
-                        <button className="table-action-button" onClick={() => void toggleStatus(r)}>
-                          {String(r.status || '').toLowerCase() === 'active' ? 'Inactive' : 'Active'}
+                        <button
+                          className="table-action-button"
+                          onClick={() => void toggleStatus(r)}
+                        >
+                          {String(r.status || '').toLowerCase() === 'active'
+                            ? 'Inactive'
+                            : 'Active'}
                         </button>
                       </td>
                     </tr>
@@ -1521,7 +1536,11 @@ function ParentStudents() {
             labels={Object.fromEntries(branches.map((b) => [b.id, b.name]))}
             onChange={(v) => {
               const branch = branches.find((b) => b.id === v)
-              setEditing({ ...editing, branch_id: v, school_id: branch?.school_id || editing.school_id })
+              setEditing({
+                ...editing,
+                branch_id: v,
+                school_id: branch?.school_id || editing.school_id,
+              })
             }}
           />
           <Field
