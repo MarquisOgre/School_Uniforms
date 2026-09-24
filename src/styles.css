@@ -6849,7 +6849,6 @@ a {
   min-width: 92px;
 }
 
-
 /* Parents & Students — separate row actions with consistent spacing. */
 .admin-workspace .workspace-students .workspace-scroll td:last-child {
   white-space: nowrap;
@@ -6859,10 +6858,18 @@ a {
   margin: 0 4px;
 }
 
-.admin-workspace .workspace-students .workspace-scroll td:last-child .table-action-button:first-child {
+.admin-workspace
+  .workspace-students
+  .workspace-scroll
+  td:last-child
+  .table-action-button:first-child {
   margin-left: 0;
 }
 
-.admin-workspace .workspace-students .workspace-scroll td:last-child .table-action-button:last-child {
+.admin-workspace
+  .workspace-students
+  .workspace-scroll
+  td:last-child
+  .table-action-button:last-child {
   margin-right: 0;
 }
