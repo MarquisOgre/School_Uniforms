@@ -218,6 +218,9 @@ function Schools() {
           <Panel>
             <h2>Schools</h2>
             <div className="workspace-table">
+              <div className="workspace-row admin-table-header school-row">
+                <strong>School</strong><span>Code</span><span>Status</span><span>Actions</span>
+              </div>
               {schools.map((x) => (
                 <div className="workspace-row" key={x.id}>
                   <strong>{x.name}</strong>
@@ -246,6 +249,9 @@ function Schools() {
               </button>
             </div>
             <div className="workspace-table">
+              <div className="workspace-row admin-table-header branch-row">
+                <strong>Branch</strong><span>School</span><span>Code</span><span>Actions</span>
+              </div>
               {branches.map((x) => (
                 <div className="workspace-row" key={x.id}>
                   <strong>{x.name}</strong>
@@ -549,6 +555,9 @@ function Products() {
                 </button>
               </div>
               <div className="workspace-table">
+                <div className="workspace-row product-row variant-row admin-table-header">
+                  <strong>SKU</strong><span>Size</span><span>Color</span><span>Price</span><span>Actions</span>
+                </div>
                 {variants.map((v) => (
                   <div className="workspace-row product-row variant-row" key={v.id}>
                     <strong>{v.sku}</strong>
@@ -702,6 +711,9 @@ function Packages() {
       ) : (
         <Panel>
           <div className="workspace-table">
+            <div className="workspace-row package-row admin-table-header">
+              <strong>Package</strong><span>Gender</span><span>Base Price</span><span>Items</span><span>Actions</span>
+            </div>
             {rows.map((x) => (
               <div className="workspace-row package-row" key={x.id}>
                 <strong>{x.name}</strong>
@@ -786,6 +798,9 @@ function Packages() {
                 </button>
               </div>
               <div className="workspace-table">
+                <div className="workspace-row admin-table-header package-item-row">
+                  <strong>Product</strong><span>Quantity</span><span>Requirement</span><span>Size</span><span>Actions</span>
+                </div>
                 {items.map((i) => (
                   <div className="workspace-row" key={i.id}>
                     <strong>
@@ -1010,6 +1025,9 @@ function PaymentsAdmin() {
               </span>
             </div>
             <div className="workspace-table">
+              <div className="workspace-row payment-settings-row admin-table-header">
+                <strong>Branch</strong><span>Pay at School</span><span>UPI</span><span>UPI ID</span><span>Payee Name</span><span>Shipping</span><span>Free Above</span><span>Actions</span>
+              </div>
               {branches.map((b) => {
                 const row = value(b.id)
                 return (
@@ -1399,6 +1417,9 @@ function Catalog() {
       <ErrorBox text={error} />
       <Panel>
         <div className="workspace-table">
+          <div className="workspace-row admin-table-header catalog-row">
+            <strong>Branch</strong><span>Product</span><span>Branch Price</span><span>Visibility</span><span>Actions</span>
+          </div>
           {rows.map((x) => (
             <div className="workspace-row" key={x.branch_id + x.product_id}>
               <strong>{branches.find((b) => b.id === x.branch_id)?.name || x.branch_id}</strong>
@@ -1469,8 +1490,11 @@ function Coupons() {
       <ErrorBox text={error} />
       <Panel>
         <div className="workspace-table">
+          <div className="workspace-row admin-table-header coupon-row">
+            <strong>Coupon</strong><span>Discount Type</span><span>Value</span><span>Status</span><span>Actions</span>
+          </div>
           {rows.map((x) => (
-            <div className="workspace-row" key={x.id}>
+            <div className="workspace-row coupon-row" key={x.id}>
               <strong>{x.code}</strong>
               <span>{x.discount_type}</span>
               <span>{x.discount_value}</span>
