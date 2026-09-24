@@ -45,7 +45,7 @@ export default function ParentCreate({schoolId,branchId,onBack}:{schoolId:string
     {error&&<p className="login-error"><AlertCircle size={16}/>{error}</p>}
     {done&&<div className="result-card"><CheckCircle2 size={18}/><strong>Parent Login created successfully.</strong><span>Login ID: {loginId}</span><span>The parent is linked to student {studentCode}.</span></div>}
     <button className="primary-button import-button" disabled={busy||!parentName||!loginId||!password||!studentCode||!studentName||!dob} onClick={()=>void create()}>{busy?<><LoaderCircle className="spin" size={18}/> CREATING...</>:'CREATE PARENT LOGIN'}</button>
-    </div></div>
+    </div>
     <GlobalFooter portal="admin"/>
   </div>
 }
