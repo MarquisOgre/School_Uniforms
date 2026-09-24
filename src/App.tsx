@@ -239,25 +239,25 @@ function Packages({branchId,onView,onAdd}:{branchId:string;onView:(x:CartItem)=>
       setLoading(true);setError('')
       const bp=await client.from('branch_packages').select('package_id,branch_price,is_visible').eq('branch_id',branchId).eq('is_visible',true)
       if(bp.error){setError(bp.error.message);setLoading(false);return}
-      const branchPackages=bp.data??[],ids=branchPackages.map(x=>x.package_id)
+      const branchPackages=(bp.data??[]) as Array<{package_id:string;branch_price:number|null;is_visible:boolean}>,ids=branchPackages.map((x)=>x.package_id)
       if(!ids.length){setItems([]);setLoading(false);return}
       const [p,pi]=await Promise.all([
         client.from('uniform_packages').select('id,name,description,gender,image_url,base_price').in('id',ids).eq('status','active').order('name'),
         client.from('package_items').select('id,package_id,product_id,quantity,is_required,requires_size,selection_group,sort_order').in('package_id',ids).order('sort_order')
       ])
       if(p.error||pi.error){setError(p.error?.message||pi.error?.message||'Unable to load packages');setLoading(false);return}
-      const packages=p.data??[],packageItems=pi.data??[],productIds=[...new Set(packageItems.map(x=>x.product_id))]
+      const packages=(p.data??[]) as Array<{id:string;name:string;description:string|null;gender:string|null;image_url:string|null;base_price:number|null}>,packageItems=(pi.data??[]) as Array<{id:string;package_id:string;product_id:string;quantity:number;is_required:boolean;requires_size:boolean;selection_group:string|null;sort_order:number}>,productIds=[...new Set(packageItems.map((x)=>x.product_id))]
       const [pr,pv]=await Promise.all([
         productIds.length?client.from('products').select('id,name').in('id',productIds):Promise.resolve({data:[],error:null}),
         productIds.length?client.from('product_variants').select('id,product_id,size_label,variant_name').in('product_id',productIds).eq('status','active').order('size_label'):Promise.resolve({data:[],error:null})
       ])
-      const names=Object.fromEntries((pr.data??[]).map(x=>[x.id,x.name]))
+      const names=Object.fromEntries((pr.data??[] as Array<{id:string;name:string}>).map((x)=>[x.id,x.name]))
       const variantsByProduct:Record<string,{id:string;label:string}[]>=Object.fromEntries(productIds.map(id=>[id,[]]))
-      ;(pv.data??[]).forEach(x=>{if(x.size_label&&variantsByProduct[x.product_id])variantsByProduct[x.product_id].push({id:x.id,label:x.size_label})})
-      const priceMap=Object.fromEntries(branchPackages.map(x=>[x.package_id,x.branch_price]))
+      ;(pv.data??[] as Array<{id:string;product_id:string;size_label:string|null;variant_name:string|null}>).forEach((x)=>{if(x.size_label&&variantsByProduct[x.product_id])variantsByProduct[x.product_id].push({id:x.id,label:x.size_label})})
+      const priceMap=Object.fromEntries(branchPackages.map((x)=>[x.package_id,x.branch_price]))
       if(!cancelled)setItems(packages.map(x=>{
-        const components=packageItems.filter(i=>i.package_id===x.id).map(i=>({packageItemId:i.id,productId:i.product_id,title:names[i.product_id]||'Product',quantity:i.quantity,requiresSize:i.requires_size,required:i.is_required,variants:variantsByProduct[i.product_id]||[]}))
-        return {id:x.id,title:x.name,type:'package' as const,price:Number(priceMap[x.id]??x.base_price??0),quantity:1,text:x.description||'Complete school-approved package',sourceId:x.id,image:x.image_url||'/category-packages.jpg',bundleItems:components.map(i=>i.quantity+' × '+i.title),bundleComponents:components}
+        const components=packageItems.filter((i)=>i.package_id===x.id).map((i)=>({packageItemId:i.id,productId:i.product_id,title:names[i.product_id]||'Product',quantity:i.quantity,requiresSize:i.requires_size,required:i.is_required,variants:variantsByProduct[i.product_id]||[]}))
+        return {id:x.id,title:x.name,type:'package' as const,price:Number(priceMap[x.id]??x.base_price??0),quantity:1,text:x.description||'Complete school-approved package',sourceId:x.id,image:x.image_url||'/category-packages.jpg',bundleItems:components.map((i)=>i.quantity+' × '+i.title),bundleComponents:components}
       }))
       setLoading(false)
     }
@@ -333,12 +333,12 @@ function Orders(){
       setLoading(true);setError('')
       const r=await client.from('orders').select('id,order_number,status,subtotal,shipping_total,grand_total,currency,created_at,student_id').order('created_at',{ascending:false})
       if(r.error){setError(r.error.message);setLoading(false);return}
-      const orders=r.data??[],ids=orders.map(x=>x.id)
+      const orders=(r.data??[]) as Array<{id:string;order_number:string;status:string;subtotal:number;shipping_total:number;grand_total:number;currency:string;created_at:string;student_id:string|null}>,ids=orders.map((x)=>x.id)
       const ir=ids.length?await client.from('order_items').select('order_id,item_name_snapshot,quantity,unit_price').in('order_id',ids):{data:[],error:null}
       if(ir.error){setError(ir.error.message);setLoading(false);return}
       const itemMap:Record<string,any[]>=Object.fromEntries(ids.map(id=>[id,[]]))
-      ;(ir.data??[]).forEach(x=>{if(itemMap[x.order_id])itemMap[x.order_id].push(x)})
-      if(!cancelled)setRows(orders.map(x=>({...x,items:itemMap[x.id]||[]})))
+      ;(ir.data??[] as Array<{order_id:string;item_name_snapshot:string;quantity:number;unit_price:number}>).forEach((x)=>{if(itemMap[x.order_id])itemMap[x.order_id].push(x)})
+      if(!cancelled)setRows(orders.map((x)=>({...x,items:itemMap[x.id]||[]})))
       setLoading(false)
     }
     void load();return()=>{cancelled=true}
