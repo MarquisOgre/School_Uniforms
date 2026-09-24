@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
-import { FileSpreadsheet, Upload, CheckCircle2, AlertCircle, LoaderCircle } from 'lucide-react'
+import { FileSpreadsheet, Upload, CheckCircle2, AlertCircle, LoaderCircle, ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 type ImportRow = { student_code:string; student_name:string; dob:string; class_name:string; section:string; gender:string; parent_name:string; parent_login_id:string; parent_phone:string }
@@ -17,7 +17,7 @@ export default function StudentImport({schoolId,branchId,onBack}:{schoolId:strin
   const errors=useMemo(()=>rows.flatMap((r,i)=>[!r.student_code?`Row ${i+2}: Student ID is required`:'',!r.student_name?`Row ${i+2}: Student Name is required`:'',!r.dob?`Row ${i+2}: DOB is required`:'',!r.parent_login_id?`Row ${i+2}: Parent Login ID is required`:'' ].filter(Boolean)),[rows])
   async function readFile(file?:File){if(!file)return;setFileName(file.name);setError('');setResult(null);try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const data=XLSX.utils.sheet_to_json<Record<string,unknown>>(ws,{defval:''});setRows(data.map(normalize).map(r=>({...r,dob:parseDate(r.dob)})))}catch{setRows([]);setError('Could not read the file. Please upload a valid Excel or CSV file.')}}
   async function importRows(){if(!supabase||!rows.length||errors.length||busy)return;setBusy(true);setError('');setResult(null);const {data,error:e}=await supabase.functions.invoke('bulk-import-students',{body:{school_id:schoolId,branch_id:branchId,rows}});if(e||!data)setError(data?.error??e?.message??'Import failed.');else setResult(data);setBusy(false)}
-  return <div className='admin-import-page'><div className='import-header'><div><p className='eyebrow'>ADMIN • STUDENTS</p><h1>Bulk Student Import</h1><p>Upload Excel or CSV data to create students, parent accounts and parent-child links.</p></div><button className='secondary-button' onClick={onBack}>Back</button></div>
+  return <div className='admin-import-page'><header className='admin-subpage-header'><div className="site-brand"><img className="brand-logo admin-brand-logo" src="/logo.png" alt="Artisan"/><div><span>Administration</span></div></div><button className="admin-back" onClick={onBack}><ArrowLeft size={17}/> Back to Admin</button></header><div className='import-header'><div><p className='eyebrow'>ADMIN • STUDENTS</p><h1>Bulk Student Import</h1><p>Upload Excel or CSV data to create students, parent accounts and parent-child links.</p></div></div>
     <div className='import-card'><div className='upload-zone'><FileSpreadsheet size={34}/><h2>Upload Student File</h2><p>Supported: .xlsx, .xls, .csv</p><label className='upload-button'><Upload size={17}/> Choose File<input hidden type='file' accept='.xlsx,.xls,.csv' onChange={e=>void readFile(e.target.files?.[0])}/></label>{fileName&&<span className='file-name'>{fileName}</span>}</div>
     <div className='template-box'><strong>Required columns</strong><code>student_code, student_name, dob, class_name, section, gender, parent_name, parent_login_id, parent_phone</code><small>New parent passwords are generated from DOB as DDMMYYYY. Passwords are securely handled by Supabase Auth.</small></div>
     {error&&<p className='login-error'><AlertCircle size={16}/>{error}</p>}
