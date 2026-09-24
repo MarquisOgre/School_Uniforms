@@ -6838,3 +6838,14 @@ a {
 .admin-workspace .workspace-students .workspace-scroll td:first-child {
   text-align: left;
 }
+
+
+.admin-workspace .workspace-students .workspace-scroll th:last-child,
+.admin-workspace .workspace-students .workspace-scroll td:last-child {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.admin-workspace .workspace-students .table-action-button {
+  min-width: 92px;
+}
