@@ -32,8 +32,8 @@ function App(){
   const [sessionRestoring,setSessionRestoring]=useState(true)
 
   useEffect(()=>{
-    const client=supabase
-    if(!client){setSessionRestoring(false);return}
+    if(!supabase){setSessionRestoring(false);return}
+    const client=supabase as NonNullable<typeof supabase>
     let cancelled=false
     async function restore(){
       const {data}=await client.auth.getSession()
