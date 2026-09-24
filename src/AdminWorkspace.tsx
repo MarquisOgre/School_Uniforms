@@ -449,6 +449,13 @@ function Products() {
       ) : (
         <Panel>
           <div className="workspace-table">
+            <div className="workspace-row product-row product-table-header" role="row">
+              <strong>Product</strong>
+              <span>Category</span>
+              <span>Gender</span>
+              <span>Base Price</span>
+              <span>Actions</span>
+            </div>
             {visible.map((x) => (
               <div className="workspace-row product-row" key={x.id}>
                 <strong>{x.name}</strong>
