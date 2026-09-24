@@ -6494,3 +6494,59 @@ a {
     flex-wrap: wrap;
   }
 }
+
+
+/* Products workspace — full-width table with explicit column headers */
+.admin-workspace .workspace-products {
+  grid-template-areas:
+    'title toolbar'
+    'description toolbar'
+    'error error'
+    'body body';
+}
+
+.admin-workspace .workspace-products > .workspace-error {
+  grid-area: error;
+}
+
+.admin-workspace .workspace-products > .workspace-panel {
+  grid-area: body;
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-workspace .workspace-products .product-table-header {
+  background: #faf6ef;
+  border-bottom: 1px solid #ded5c8;
+  border-radius: 8px 8px 0 0;
+  padding-top: 11px;
+  padding-bottom: 11px;
+  color: #526066;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.admin-workspace .workspace-products .product-table-header span,
+.admin-workspace .workspace-products .product-table-header strong {
+  color: #526066;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.admin-workspace .workspace-products .product-table-header span:last-of-type {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .admin-workspace .workspace-products .product-table-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .admin-workspace .workspace-products .product-table-header span:last-of-type {
+    text-align: left;
+  }
+}
