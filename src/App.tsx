@@ -32,27 +32,28 @@ function App(){
   const [sessionRestoring,setSessionRestoring]=useState(true)
 
   useEffect(()=>{
-    if(!supabase){setSessionRestoring(false);return}
+    const client=supabase
+    if(!client){setSessionRestoring(false);return}
     let cancelled=false
     async function restore(){
-      const {data}=await supabase.auth.getSession()
+      const {data}=await client.auth.getSession()
       if(cancelled)return
       if(!data.session){localStorage.removeItem('school_uniform_portal_context');setSessionRestoring(false);return}
       const stored=localStorage.getItem('school_uniform_portal_context')
       if(stored){
-        try{const ctx=JSON.parse(stored);if(ctx?.mode==='store'&&ctx.school&&ctx.branch){setSchool(ctx.school);setBranch(ctx.branch);setStudentId(ctx.studentId||'');setCustomerPage(ctx.customerPage||'dashboard');setMode('store');if(supabase){const {data:branchRows}=await supabase.from('branches').select('id,name').eq('school_id',ctx.school).eq('status','active').order('name');if(!cancelled)setBranches(branchRows??[])}}}catch{localStorage.removeItem('school_uniform_portal_context')}}
-      const {data:profile}=await supabase.from('profiles').select('role').eq('id',data.session.user.id).maybeSingle()
+        try{const ctx=JSON.parse(stored);if(ctx?.mode==='store'&&ctx.school&&ctx.branch){setSchool(ctx.school);setBranch(ctx.branch);setStudentId(ctx.studentId||'');setCustomerPage(ctx.customerPage||'dashboard');setMode('store');const {data:branchRows}=await client.from('branches').select('id,name').eq('school_id',ctx.school).eq('status','active').order('name');if(!cancelled)setBranches(branchRows??[])}}catch{localStorage.removeItem('school_uniform_portal_context')}}
+      const {data:profile}=await client.from('profiles').select('role').eq('id',data.session.user.id).maybeSingle()
       if(profile&&['admin','super_admin'].includes(profile.role))setMode('admin')
       setSessionRestoring(false)
     }
     void restore();return()=>{cancelled=true}
   },[])
 
-  useEffect(()=>{let cancelled=false;async function load(){if(!supabase){setError('Supabase is not configured.');setLoadingSchools(false);return}const {data,error}=await supabase.from('schools').select('id,name').eq('status','active').order('name');if(cancelled)return;if(error){console.error('School loading error:',error);setError(`Unable to load schools (${error.code??'unknown'}): ${error.message}`)}else setSchools(data??[]);setLoadingSchools(false)}void load();return()=>{cancelled=true}},[])
+  useEffect(()=>{let cancelled=false;async function load(){const client=supabase;if(!client){setError('Supabase is not configured.');setLoadingSchools(false);return}const {data,error}=await client.from('schools').select('id,name').eq('status','active').order('name');if(cancelled)return;if(error){console.error('School loading error:',error);setError(`Unable to load schools (${error.code??'unknown'}): ${error.message}`)}else setSchools(data??[]);setLoadingSchools(false)}void load();return()=>{cancelled=true}},[])
   const selectedSchoolName=useMemo(()=>schools.find(x=>x.id===school)?.name??'Your School',[schools,school])
   const selectedBranchName=useMemo(()=>branches.find(x=>x.id===branch)?.name??'Your Branch',[branches,branch])
 
-  async function selectSchool(value:string){setSchool(value);setBranch('');setBranches([]);setStudentId('');setPassword('');setError('');if(!value||!supabase)return;setLoadingBranches(true);const {data,error}=await supabase.from('branches').select('id,name').eq('school_id',value).eq('status','active').order('name');if(error){console.error('Branch loading error:',error);setError(`Unable to load branches (${error.code??'unknown'}): ${error.message}`)}else{const list=data??[];setBranches(list);if(list.length===1)setBranch(list[0].id)}setLoadingBranches(false)}
+  async function selectSchool(value:string){setSchool(value);setBranch('');setBranches([]);setStudentId('');setPassword('');setError('');const client=supabase;if(!value||!client)return;setLoadingBranches(true);const {data,error}=await client.from('branches').select('id,name').eq('school_id',value).eq('status','active').order('name');if(error){console.error('Branch loading error:',error);setError(`Unable to load branches (${error.code??'unknown'}): ${error.message}`)}else{const list=data??[];setBranches(list);if(list.length===1)setBranch(list[0].id)}setLoadingBranches(false)}
   function selectBranch(value:string){setBranch(value);setStudentId('');setPassword('');setError('')}
   async function login(){if(!supabase||!school||!branch||!studentId.trim()||!password||loggingIn)return;setLoggingIn(true);setError('');const {data,error}=await supabase.functions.invoke('student-parent-login',{body:{school_id:school,branch_id:branch,login_id:studentId.trim(),password}});if(error||!data?.session){setError(data?.error??'Invalid school, branch, ID, or password.');setLoggingIn(false);return}const {error:se}=await supabase.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});if(se){setError('Login succeeded, but the session could not be created.');setLoggingIn(false);return}setMode('store');setCustomerPage('dashboard');localStorage.setItem('school_uniform_portal_context',JSON.stringify({mode:'store',school,branch,studentId:studentId.trim(),schoolName:selectedSchoolName,branchName:selectedBranchName,customerPage:'dashboard'}));setShowLogin(false);setLoggingIn(false)}
   async function logout(){await supabase?.auth.signOut({scope:'local'});localStorage.removeItem('school_uniform_portal_context');setMode('login');setStudentId('');setPassword('')}
