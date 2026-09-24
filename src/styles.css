@@ -6417,3 +6417,25 @@ a {
     width: 100%;
   }
 }
+
+/* Keep uniform package columns aligned with the Edit action on the same row. */
+.workspace-row.package-row {
+  grid-template-columns: minmax(260px, 2fr) minmax(100px, 0.8fr) minmax(120px, 0.9fr) minmax(180px, 1.25fr) auto;
+}
+
+.workspace-row.package-row button {
+  justify-self: end;
+  min-width: 82px;
+}
+
+@media (max-width: 760px) {
+  .workspace-row.package-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .workspace-row.package-row button {
+    justify-self: stretch;
+    width: 100%;
+  }
+}
