@@ -6672,3 +6672,57 @@ a {
     justify-self: stretch;
   }
 }
+
+
+/* Coupons workspace: keep page title/description on the left and actions on the right. */
+.admin-workspace .workspace-coupons {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'title toolbar'
+    'description toolbar'
+    'error error'
+    'body body';
+  align-content: start;
+  column-gap: 24px;
+}
+
+.admin-workspace .workspace-coupons > .workspace-heading {
+  display: contents;
+}
+
+.admin-workspace .workspace-coupons > .workspace-heading h1 {
+  grid-area: title;
+  margin: 4px 0 8px;
+}
+
+.admin-workspace .workspace-coupons > .workspace-heading p {
+  grid-area: description;
+  margin: 0 0 18px;
+}
+
+.admin-workspace .workspace-coupons > .workspace-toolbar {
+  grid-area: toolbar;
+  margin: 0 0 18px;
+  align-self: center;
+}
+
+.admin-workspace .workspace-coupons > .workspace-error {
+  grid-area: error;
+}
+
+.admin-workspace .workspace-coupons > .workspace-panel {
+  grid-area: body;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .admin-workspace .workspace-coupons {
+    display: block;
+  }
+
+  .admin-workspace .workspace-coupons > .workspace-toolbar {
+    margin-top: 16px;
+  }
+}
