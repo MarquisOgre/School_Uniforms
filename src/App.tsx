@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ArrowRight, ArrowLeft, BookOpen, Building2, CheckCircle2, ChevronDown, ClipboardList, CreditCard, Eye, EyeOff, FileSpreadsheet, Home, LockKeyhole, LogOut, MapPin, Menu, Package, Search, ShoppingBag, ShoppingCart, Sparkles, UserRound, X, Minus, Plus, Trash2, ChevronLeft
+  ArrowRight, BookOpen, Building2, CheckCircle2, ChevronDown, ClipboardList, CreditCard, Eye, EyeOff, FileSpreadsheet, Home, LockKeyhole, LogOut, MapPin, Menu, Package, Search, ShoppingBag, ShoppingCart, Sparkles, UserRound, X, Minus, Plus, Trash2, ChevronLeft
 } from 'lucide-react'
 import type { PortalMode } from './types'
 import { supabase } from './lib/supabase'
 import StudentImport from './components/StudentImport'
 import ParentCreate from './components/ParentCreate'
 import AdminWorkspace from './AdminWorkspace'
+import CheckoutFlow, { type CheckoutCartItem } from './CheckoutFlow'
+import { CustomerPageFrame, GlobalFooter, GlobalHeader } from './components/GlobalChrome'
 
 type SchoolOption={id:string;name:string}
 type BranchOption={id:string;name:string}
 type CustomerPage='dashboard'|'packages'|'products'|'orders'|'profile'
-type CartItem={id:string;title:string;type:'package'|'product';price:number;size?:string;quantity:number;sourceId?:string;image?:string;text?:string;bundleItems?:string[];sizeOptions?:string[]}
+type CartItem=CheckoutCartItem
 type CheckoutStep='cart'|'details'|'payment'|'success'
 
 function App(){
@@ -60,7 +62,7 @@ function App(){
 
   if(sessionRestoring)return <div className="session-loading"><img src="/logo.png" alt="Artisan"/><span>Restoring your session...</span></div>
 
-  if(mode==='store')return <CustomerPortal schoolName={selectedSchoolName} branchName={selectedBranchName} branchId={branch} studentId={studentId} page={customerPage} setPage={setCustomerPage} onLogout={()=>void logout()}/>
+  if(mode==='store')return <CustomerPortal schoolId={school} schoolName={selectedSchoolName} branchName={selectedBranchName} branchId={branch} studentId={studentId} page={customerPage} setPage={setCustomerPage} onLogout={()=>void logout()}/>
   if(mode==='admin')return <AdminPortal onBack={()=>setMode('login')}/>
 
   return <>
@@ -163,16 +165,43 @@ function ExactFeature({image,title,text,onClick}:{image:string;title:string;text
 function Feature({icon,title,text}:{icon:React.ReactNode;title:string;text:string}){return <div className="feature"><div className="feature-icon">{icon}</div><div><strong>{title}</strong><p>{text}</p></div></div>}
 function Step({n,title,text}:{n:string;title:string;text:string}){return <div className="step"><span>{n}</span><h3>{title}</h3><p>{text}</p></div>}
 
-function CustomerPortal({schoolName,branchName,branchId,studentId,page,setPage,onLogout}:{schoolName:string;branchName:string;branchId:string;studentId:string;page:CustomerPage;setPage:(p:CustomerPage)=>void;onLogout:()=>void}){
-  const [cart,setCart]=useState<CartItem[]>([]),[checkout,setCheckout]=useState<CheckoutStep|null>(null),[selected,setSelected]=useState<CartItem|null>(null)
-  const add=(item:CartItem)=>setCart(items=>{const f=items.find(x=>x.id===item.id&&x.size===item.size);return f?items.map(x=>x.id===item.id&&x.size===item.size?{...x,quantity:x.quantity+item.quantity}:x):[...items,item]})
+function CustomerPortal({schoolId,schoolName,branchName,branchId,studentId,page,setPage,onLogout}:{schoolId:string;schoolName:string;branchName:string;branchId:string;studentId:string;page:CustomerPage;setPage:(p:CustomerPage)=>void;onLogout:()=>void}){
+  const [cart,setCart]=useState<CartItem[]>([]),[checkout,setCheckout]=useState<CheckoutStep|null>(null),[selected,setSelected]=useState<CartItem|null>(null),[students,setStudents]=useState<any[]>([])
+  const screen=checkout?('checkout:'+checkout):(selected?'detail':'page:'+page)
+  useEffect(()=>{
+    const onPopState=(event:PopStateEvent)=>{
+      const state=event.state
+      if(state?.schoolUniformApp==='customer'){
+        setPage(state.page||'dashboard')
+        setCheckout(state.checkout||null)
+        if(state.screen!=='detail')setSelected(null)
+        return
+      }
+      setSelected(null);setCheckout(null);setPage('dashboard')
+      window.history.replaceState({schoolUniformApp:'customer',screen:'page:dashboard',page:'dashboard'},'',window.location.href)
+    }
+    window.addEventListener('popstate',onPopState)
+    return()=>window.removeEventListener('popstate',onPopState)
+  },[setPage])
+  useEffect(()=>{
+    if(window.history.state?.schoolUniformApp==='customer'&&window.history.state?.screen===screen)return
+    window.history.pushState({schoolUniformApp:'customer',screen,page,checkout:checkout||null},'',window.location.href)
+  },[screen,page,checkout])
+  useEffect(()=>{
+    const client=supabase as any
+    if(!client||!branchId)return
+    let cancelled=false
+    void client.from('students').select('id,student_code,full_name,class_name,section').eq('school_id',schoolId).eq('branch_id',branchId).eq('status','active').order('full_name').then(({data}:{data:any[]|null})=>{if(!cancelled)setStudents(data??[])})
+    return()=>{cancelled=true}
+  },[schoolId,branchId])
+  const add=(item:CartItem)=>setCart(items=>{const cartKey=item.id+'|'+JSON.stringify(item.selectedVariants||[]);const normalized={...item,id:cartKey};const f=items.find(x=>x.id===cartKey);return f?items.map(x=>x.id===cartKey?{...x,quantity:x.quantity+item.quantity}:x):[...items,normalized]})
   const update=(id:string,d:number)=>setCart(items=>items.map(x=>x.id===id?{...x,quantity:Math.max(1,x.quantity+d)}:x))
   const remove=(id:string)=>setCart(items=>items.filter(x=>x.id!==id))
   const total=cart.reduce((s,x)=>s+x.price*x.quantity,0)
-  if(checkout)return <CheckoutFlow cart={cart} total={total} step={checkout} setStep={setCheckout} update={update} remove={remove} onComplete={()=>{setCart([]);setCheckout('success')}}/>
-  if(selected)return <ProductDetail item={selected} onBack={()=>setSelected(null)} onAdd={x=>{add(x);setSelected(null)}}/>
+  if(checkout)return <CustomerPageFrame title="Parent / Student Portal" subtitle={schoolName+` • `+branchName} onBack={()=>setPage('dashboard')} onLogout={onLogout} cartCount={cart.reduce((s,x)=>s+x.quantity,0)} onCart={()=>setCheckout('cart')}><CheckoutFlow schoolId={schoolId} branchId={branchId} cart={cart} total={total} step={checkout} setStep={setCheckout} update={update} remove={remove} students={students} onComplete={()=>{setCart([]);setCheckout('success')}}/></CustomerPageFrame>
+  if(selected)return <CustomerPageFrame title="Parent / Student Portal" subtitle={schoolName+` • `+branchName} onBack={()=>setPage('dashboard')} onLogout={onLogout} cartCount={cart.reduce((s,x)=>s+x.quantity,0)} onCart={()=>setCheckout('cart')}><ProductDetail item={selected} onBack={()=>setPage('dashboard')} onAdd={x=>{add(x);setSelected(null)}}/></CustomerPageFrame>
   const nav=[['dashboard','Dashboard',Home],['packages','Uniform Packages',Package],['products','Individual Products',ShoppingBag],['orders','My Orders',ClipboardList],['profile','Profile',UserRound]] as const
-  return <div className="portal"><aside className="sidebar"><div className="portal-brand"><img className="brand-logo" src="/logo.png" alt="Artisan" /><div><span>Parent Portal</span></div></div><div className="school-scope"><Building2 size={16}/><div><strong>{schoolName}</strong><span>{branchName}</span></div></div><nav>{nav.map(([key,label,Icon])=><button className={page===key?'active':''} onClick={()=>setPage(key)} key={key}><Icon size={18}/>{label}</button>)}</nav><button className="sidebar-logout" onClick={onLogout}><LogOut size={17}/> Logout</button></aside><main className="portal-main"><header className="portal-header"><div><p className="eyebrow">{branchName}</p><h1>{page==='dashboard'?'Good morning':page==='packages'?'Uniform Packages':page==='products'?'Individual Products':page==='orders'?'My Orders':'My Profile'}{page==='dashboard'&&<span>, {studentId}</span>}</h1></div><div className="portal-header-actions"><button className="cart-button" onClick={()=>setCheckout('cart')}><ShoppingCart size={19}/><span>Cart</span>{cart.length>0&&<b>{cart.reduce((s,x)=>s+x.quantity,0)}</b>}</button><div className="header-user"><div className="avatar">{studentId.slice(0,1).toUpperCase()}</div><div><strong>{studentId}</strong><span>Parent / Student</span></div></div></div></header>{page==='dashboard'?<Dashboard setPage={setPage}/>:page==='packages'?<Packages branchId={branchId} onView={setSelected} onAdd={add}/>:page==='products'?<Products branchId={branchId} onView={setSelected} onAdd={add}/>:page==='orders'?<Orders/>:<Profile studentId={studentId}/>}</main></div>
+  return <div className="portal">\n    <GlobalHeader portal="customer" title="Parent / Student Portal" subtitle={schoolName+" • "+branchName} onBack={()=>setPage('dashboard')} backLabel="Dashboard" onLogout={onLogout} cartCount={cart.reduce((s,x)=>s+x.quantity,0)} onCart={()=>setCheckout('cart')}/>\n    <div className="portal-layout">\n      <aside className="sidebar"><div className="portal-brand"><img className="brand-logo" src="/logo.png" alt="Artisan" /><div><span>Parent Portal</span></div></div><div className="school-scope"><Building2 size={16}/><div><strong>{schoolName}</strong><span>{branchName}</span></div></div><nav>{nav.map(([key,label,Icon])=><button className={page===key?'active':''} onClick={()=>setPage(key)} key={key}><Icon size={18}/>{label}</button>)}</nav><button className="sidebar-logout" onClick={onLogout}><LogOut size={17}/> Logout</button></aside>\n      <main className="portal-main">\n        <div className="portal-header"><div><p className="eyebrow">{branchName}</p><h1>{page==='dashboard'?'Good morning':page==='packages'?'Uniform Packages':page==='products'?'Individual Products':page==='orders'?'My Orders':'My Profile'}{page==='dashboard'&&<span>, {studentId}</span>}</h1></div><div className="header-user"><div className="avatar">{studentId.slice(0,1).toUpperCase()}</div><div><strong>{studentId}</strong><span>Parent / Student</span></div></div></div>\n        {page==='dashboard'?<Dashboard setPage={setPage}/>:page==='packages'?<Packages branchId={branchId} onView={setSelected} onAdd={add}/>:page==='products'?<Products branchId={branchId} onView={setSelected} onAdd={add}/>:page==='orders'?<Orders/>:<Profile studentId={studentId}/>}\n      </main>\n    </div>\n    <GlobalFooter portal="customer"/>\n  </div>
 }
 function Dashboard({setPage}:{setPage:(p:CustomerPage)=>void}){return <div className="portal-content"><div className="welcome-banner"><div><p className="eyebrow">YOUR SCHOOL STORE</p><h2>Uniform shopping, organized for you.</h2><p>Choose a complete package for the term or replace individual items as needed.</p><button className="hero-primary" onClick={()=>setPage('packages')}>Explore Uniform Packages <ArrowRight size={17}/></button></div><div className="banner-icon"><ShoppingBag size={58}/></div></div><div className="portal-grid"><Stat title="Active orders" value="0" icon={<ClipboardList/>}/><Stat title="Saved items" value="0" icon={<Package/>}/><Stat title="School branch" value="Active" icon={<Building2/>}/></div><div className="section-row"><p className="eyebrow">SHOP</p><h2>Start with what you need</h2></div><div className="shop-cards"><ShopCard icon={<Package/>} title="Uniform Packages" text="Complete boys and girls packages assembled from approved school products." action="View packages" onClick={()=>setPage('packages')}/><ShopCard icon={<ShoppingBag/>} title="Individual Products" text="Buy or replace individual shirts, pants, shoes, socks, belts and more." action="Browse products" onClick={()=>setPage('products')}/></div></div>}
 function Stat({title,value,icon}:{title:string;value:string;icon:React.ReactNode}){return <div className="stat"><div>{icon}</div><span>{title}</span><strong>{value}</strong></div>}
@@ -180,32 +209,33 @@ function ShopCard({icon,title,text,action,onClick}:{icon:React.ReactNode;title:s
 function Packages({branchId,onView,onAdd}:{branchId:string;onView:(x:CartItem)=>void;onAdd:(x:CartItem)=>void}){
   const [items,setItems]=useState<CartItem[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('')
   useEffect(()=>{
-    const client=supabase as NonNullable<typeof supabase>
+    const client=supabase as any
     if(!client||!branchId){setLoading(false);return}
     let cancelled=false
     async function load(){
       setLoading(true);setError('')
       const bp=await client.from('branch_packages').select('package_id,branch_price,is_visible').eq('branch_id',branchId).eq('is_visible',true)
       if(bp.error){setError(bp.error.message);setLoading(false);return}
-      const branchPackages=(bp.data??[]) as Array<{package_id:string;branch_price:number|null;is_visible:boolean}>
-      const ids=branchPackages.map(x=>x.package_id)
+      const branchPackages=bp.data??[],ids=branchPackages.map(x=>x.package_id)
       if(!ids.length){setItems([]);setLoading(false);return}
-      const p=await client.from('uniform_packages').select('id,name,description,gender,image_url,base_price').in('id',ids).eq('status','active').order('name')
-      if(p.error){setError(p.error.message);setLoading(false);return}
-      const packages=(p.data??[]) as Array<{id:string;name:string;description:string|null;gender:string|null;image_url:string|null;base_price:number|null}>
+      const [p,pi]=await Promise.all([
+        client.from('uniform_packages').select('id,name,description,gender,image_url,base_price').in('id',ids).eq('status','active').order('name'),
+        client.from('package_items').select('id,package_id,product_id,quantity,is_required,requires_size,selection_group,sort_order').in('package_id',ids).order('sort_order')
+      ])
+      if(p.error||pi.error){setError(p.error?.message||pi.error?.message||'Unable to load packages');setLoading(false);return}
+      const packages=p.data??[],packageItems=pi.data??[],productIds=[...new Set(packageItems.map(x=>x.product_id))]
+      const [pr,pv]=await Promise.all([
+        productIds.length?client.from('products').select('id,name').in('id',productIds):Promise.resolve({data:[],error:null}),
+        productIds.length?client.from('product_variants').select('id,product_id,size_label,variant_name').in('product_id',productIds).eq('status','active').order('size_label'):Promise.resolve({data:[],error:null})
+      ])
+      const names=Object.fromEntries((pr.data??[]).map(x=>[x.id,x.name]))
+      const variantsByProduct:Record<string,{id:string;label:string}[]>=Object.fromEntries(productIds.map(id=>[id,[]]))
+      ;(pv.data??[]).forEach(x=>{if(x.size_label&&variantsByProduct[x.product_id])variantsByProduct[x.product_id].push({id:x.id,label:x.size_label})})
       const priceMap=Object.fromEntries(branchPackages.map(x=>[x.package_id,x.branch_price]))
-      const pi=await client.from('package_items').select('package_id,product_id,quantity').in('package_id',ids).order('sort_order')
-      const packageItems=(pi.data??[]) as Array<{package_id:string;product_id:string;quantity:number}>
-      const productIds=[...new Set(packageItems.map(x=>x.product_id))]
-      const pr=productIds.length?await client.from('products').select('id,name').in('id',productIds):{data:[],error:null}
-      const productRows=(pr.data??[]) as Array<{id:string;name:string}>
-      const names=Object.fromEntries(productRows.map(x=>[x.id,x.name]))
-      if(!cancelled)setItems(packages.map(x=>({
-        id:x.id,title:x.name,type:'package' as const,price:Number(priceMap[x.id]??x.base_price??0),quantity:1,
-        text:x.description||'Complete school-approved package',sourceId:x.id,image:x.image_url||'/category-packages.jpg',
-        badge:x.gender==='boys'?'BOYS':x.gender==='girls'?'GIRLS':'SPORTS',
-        bundleItems:packageItems.filter(i=>i.package_id===x.id).map(i=>`${i.quantity} × ${names[i.product_id]||'Product'}`)
-      })))
+      if(!cancelled)setItems(packages.map(x=>{
+        const components=packageItems.filter(i=>i.package_id===x.id).map(i=>({packageItemId:i.id,productId:i.product_id,title:names[i.product_id]||'Product',quantity:i.quantity,requiresSize:i.requires_size,required:i.is_required,variants:variantsByProduct[i.product_id]||[]}))
+        return {id:x.id,title:x.name,type:'package' as const,price:Number(priceMap[x.id]??x.base_price??0),quantity:1,text:x.description||'Complete school-approved package',sourceId:x.id,image:x.image_url||'/category-packages.jpg',bundleItems:components.map(i=>i.quantity+' × '+i.title),bundleComponents:components}
+      }))
       setLoading(false)
     }
     void load();return()=>{cancelled=true}
@@ -233,14 +263,14 @@ function Products({branchId,onView,onAdd}:{branchId:string;onView:(x:CartItem)=>
       if(p.error){setError(p.error.message);setLoading(false);return}
       const products=(p.data??[]) as Array<{id:string;name:string;description:string|null;gender:string|null;image_url:string|null;base_price:number|null}>
       const priceMap=Object.fromEntries(branchProducts.map(x=>[x.product_id,x.branch_price]))
-      const pv=await client.from('product_variants').select('product_id,size_label').in('product_id',ids).eq('status','active').order('size_label')
-      const variants=(pv.data??[]) as Array<{product_id:string;size_label:string|null}>
-      const sizes:Record<string,string[]>=Object.fromEntries(ids.map(id=>[id,[]]))
-      variants.forEach(x=>{if(x.size_label&&sizes[x.product_id]&&!sizes[x.product_id].includes(x.size_label))sizes[x.product_id].push(x.size_label)})
+      const pv=await client.from('product_variants').select('id,product_id,size_label,variant_name').in('product_id',ids).eq('status','active').order('size_label')
+      const variants=(pv.data??[]) as Array<{id:string;product_id:string;size_label:string|null;variant_name:string|null}>
+      const sizes:Record<string,string[]>=Object.fromEntries(ids.map(id=>[id,[]])); const variantOptions:Record<string,{id:string;label:string}[]>=Object.fromEntries(ids.map(id=>[id,[]]))
+      variants.forEach(x=>{if(x.size_label&&sizes[x.product_id]&&!sizes[x.product_id].includes(x.size_label)){sizes[x.product_id].push(x.size_label);variantOptions[x.product_id].push({id:x.id,label:x.size_label})}})
       if(!cancelled)setItems(products.map(x=>({
         id:x.id,title:x.name,type:'product' as const,price:Number(priceMap[x.id]??x.base_price??0),quantity:1,
         text:x.description||'School-approved individual product',sourceId:x.id,image:x.image_url||'/category-accessories.jpg',
-        sizeOptions:sizes[x.id]||[]
+        sizeOptions:sizes[x.id]||[],variantOptions:variantOptions[x.id]||[]
       })))
       setLoading(false)
     }
@@ -255,19 +285,46 @@ function Products({branchId,onView,onAdd}:{branchId:string;onView:(x:CartItem)=>
 }
 function ProductCard({badge,title,text,price,onView,onAdd,id,type,image}:{badge?:string;title:string;text?:string;price:number;onView:()=>void;onAdd:()=>void;id:string;type:'package'|'product';image?:string}){
   const visual=image||(id.includes('girls')||title.toLowerCase().includes('girls')?'/category-girls.jpg':id.includes('boys')||title.toLowerCase().includes('boys')?'/category-boys.jpg':'/category-accessories.jpg')
-  return <article className="product-card"><button className="product-image product-image-button" onClick={onView}><img src={visual} alt={title} onError={e=>{e.currentTarget.src='/category-packages.jpg'}}/>{badge&&<span>{badge}</span>}<i className="quick-view">View</i></button><div className="product-copy"><p>{text||'School-approved product'}</p><h3>{title}</h3><div className="price-row"><strong>₹{price.toLocaleString('en-IN')}</strong><span>School approved</span></div><div className="product-actions"><button onClick={onView}>View details</button><button className="add-button" onClick={onAdd}>Add to cart <ArrowRight size={15}/></button></div></div></article>
+  return <article className="product-card"><button className="product-image product-image-button" onClick={onView}><img src={visual} alt={title} onError={e=>{e.currentTarget.src='/category-packages.jpg'}}/>{badge&&<span>{badge}</span>}<i className="quick-view">View</i></button><div className="product-copy"><p>{text||'School-approved product'}</p><h3>{title}</h3><div className="price-row"><strong>₹{price.toLocaleString('en-IN')}</strong><span>School approved</span></div><div className="product-actions"><button onClick={onView}>View details</button><button className="add-button" onClick={onView}>Add to cart <ArrowRight size={15}/></button></div></div></article>
 }
 function CatalogHeading({eyebrow,title,text}:{eyebrow:string;title:string;text:string}){return <div className="section-heading portal-heading"><p className="eyebrow">{eyebrow}</p><h2>{title}</h2><p>{text}</p></div>}
 function ProductDetail({item,onBack,onAdd}:{item:CartItem;onBack:()=>void;onAdd:(x:CartItem)=>void}){
-  const [size,setSize]=useState(''),[quantity,setQuantity]=useState(1)
-  const options=item.sizeOptions?.length?item.sizeOptions:['XS','S','M','L','XL','XXL']
-  return <div className="checkout-page"><div className="checkout-top"><button onClick={onBack}><ChevronLeft size={18}/> Back to store</button><strong>Product Details</strong></div><div className="detail-card"><div className="detail-image"><img src={item.image||'/category-packages.jpg'} alt={item.title} onError={e=>{e.currentTarget.src='/category-packages.jpg'}}/></div><div className="detail-copy"><p className="eyebrow">{item.type==='package'?'UNIFORM PACKAGE':'INDIVIDUAL PRODUCT'}</p><h1>{item.title}</h1><p>{item.text||'School-approved product for your selected school and branch. Final availability and pricing are controlled by the school catalog.'}</p>{item.bundleItems?.length?<div className="bundle-list"><strong>Package includes</strong>{item.bundleItems.map(x=><span key={x}>{x}</span>)}</div>:null}<strong className="detail-price">₹{item.price.toLocaleString('en-IN')}</strong><label>Size<select value={size} onChange={e=>setSize(e.target.value)}><option value="">Select size</option>{options.map(x=><option key={x}>{x}</option>)}</select></label><div className="quantity"><span>Quantity</span><button onClick={()=>setQuantity(Math.max(1,quantity-1))}><Minus/></button><b>{quantity}</b><button onClick={()=>setQuantity(quantity+1)}><Plus/></button></div><button className="primary-button" disabled={!size} onClick={()=>onAdd({...item,size,quantity})}>Add to Cart <ShoppingCart size={18}/></button></div></div></div>
+  const [size,setSize]=useState(''),[quantity,setQuantity]=useState(1),[bundleSizes,setBundleSizes]=useState<Record<string,string>>({})
+  const productOptions=item.variantOptions?.length?item.variantOptions:((item.sizeOptions||[]).map(x=>({id:x,label:x})))
+  const packageComponents=item.bundleComponents||[]
+  const requiredComponents=packageComponents.filter(x=>x.required&&x.requiresSize)
+  const ready=item.type==='product'?Boolean(size):requiredComponents.every(x=>Boolean(bundleSizes[x.packageItemId]))
+  const selectedVariants=item.type==='product'
+    ?(size?[{variantId:size,sizeLabel:productOptions.find(x=>x.id===size)?.label}]:[])
+    :packageComponents.filter(x=>x.requiresSize).map(x=>({packageItemId:x.packageItemId,variantId:bundleSizes[x.packageItemId],sizeLabel:x.variants.find(v=>v.id===bundleSizes[x.packageItemId])?.label}))
+  return <div className="checkout-page"><div className="checkout-top"><button onClick={onBack}><ChevronLeft size={18}/> Back to Dashboard</button><strong>Product Details</strong></div><div className="detail-card"><div className="detail-image"><img src={item.image||'/category-packages.jpg'} alt={item.title} onError={e=>{e.currentTarget.src='/category-packages.jpg'}}/></div><div className="detail-copy"><p className="eyebrow">{item.type==='package'?'UNIFORM PACKAGE':'INDIVIDUAL PRODUCT'}</p><h1>{item.title}</h1><p>{item.text||'School-approved product for your selected school and branch. Final availability and pricing are controlled by the school catalog.'}</p>{item.bundleItems?.length?<div className="bundle-list"><strong>Package includes</strong>{item.bundleItems.map(x=><span key={x}>{x}</span>)}</div>:null}<strong className="detail-price">₹{item.price.toLocaleString('en-IN')}</strong>{item.type==='product'?<label>Size<select value={size} onChange={e=>setSize(e.target.value)}><option value="">Select size</option>{productOptions.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select></label>:<div className="package-size-list"><strong>Select sizes for this package</strong>{packageComponents.map(x=><label key={x.packageItemId}>{x.title}{x.quantity>1?' × '+x.quantity:''}{x.requiresSize&&x.required?<span>*</span>:null}{x.requiresSize?<select value={bundleSizes[x.packageItemId]||''} onChange={e=>setBundleSizes(v=>({...v,[x.packageItemId]:e.target.value}))}><option value="">Select size</option>{x.variants.map(v=><option key={v.id} value={v.id}>{v.label}</option>)}</select>:<small>No size selection required</small>}</label>)}</div>}<div className="quantity"><span>Quantity</span><button onClick={()=>setQuantity(Math.max(1,quantity-1))}><Minus/></button><b>{quantity}</b><button onClick={()=>setQuantity(quantity+1)}><Plus/></button></div><button className="primary-button" disabled={!ready} onClick={()=>onAdd({...item,size:item.type==='package'?'Multiple':productOptions.find(x=>x.id===size)?.label,quantity,selectedVariants})}>Add to Cart <ShoppingCart size={18}/></button></div></div></div>
 }
-function CheckoutFlow({cart,total,step,setStep,update,remove,onComplete}:{cart:CartItem[];total:number;step:CheckoutStep;setStep:(x:CheckoutStep|null)=>void;update:(id:string,d:number)=>void;remove:(id:string)=>void;onComplete:()=>void}){const [address,setAddress]=useState({name:'',phone:'',line1:'',city:'',state:'Telangana',pincode:''});if(step==='success')return <div className="checkout-page"><div className="success-card"><div className="success-icon"><CheckCircle2 size={48}/></div><p className="eyebrow">ORDER CONFIRMED</p><h1>Thank you for your order.</h1><p>Your order has been recorded for the selected school branch.</p><strong>Order #SU-2026-0001</strong><button className="primary-button" onClick={()=>setStep(null)}>Back to Store</button></div></div>;if(step==='cart')return <div className="checkout-page"><div className="checkout-top"><button onClick={()=>setStep(null)}><ChevronLeft/> Continue shopping</button><strong>Your Cart</strong></div><div className="checkout-layout"><div className="cart-card"><h1>Review your items</h1>{cart.length===0?<div className="empty-state"><ShoppingCart size={40}/><h3>Your cart is empty</h3></div>:cart.map(x=><div className="cart-row" key={x.id}><div className="cart-thumb"><ShoppingBag/></div><div><strong>{x.title}</strong><span>{x.size?('Size '+x.size+' • '):''}₹{x.price.toLocaleString('en-IN')} each</span><div className="qty-controls"><button onClick={()=>update(x.id,-1)}><Minus/></button><b>{x.quantity}</b><button onClick={()=>update(x.id,1)}><Plus/></button></div></div><strong>₹{(x.price*x.quantity).toLocaleString('en-IN')}</strong><button className="remove-button" onClick={()=>remove(x.id)}><Trash2 size={17}/></button></div>)}</div><OrderSummary total={total} disabled={!cart.length} onNext={()=>setStep('details')}/></div></div>;if(step==='details')return <CheckoutDetails address={address} setAddress={setAddress} onBack={()=>setStep('cart')} onNext={()=>setStep('payment')}/>;return <PaymentStep total={total} onBack={()=>setStep('details')} onPay={onComplete}/>}
-function OrderSummary({total,disabled,onNext}:{total:number;disabled:boolean;onNext:()=>void}){return <aside className="order-summary"><h3>Order Summary</h3><div><span>Subtotal</span><strong>₹{total.toLocaleString('en-IN')}</strong></div><div><span>Delivery</span><strong>Calculated at checkout</strong></div><div className="summary-total"><span>Total</span><strong>₹{total.toLocaleString('en-IN')}</strong></div><button className="primary-button" disabled={disabled} onClick={onNext}>Checkout <ArrowRight size={17}/></button></aside>}
-function CheckoutDetails({address,setAddress,onBack,onNext}:{address:{name:string;phone:string;line1:string;city:string;state:string;pincode:string};setAddress:(x:any)=>void;onBack:()=>void;onNext:()=>void}){const ok=Object.values(address).every(Boolean);return <div className="checkout-page"><div className="checkout-top"><button onClick={onBack}><ChevronLeft/> Cart</button><strong>Delivery Details</strong></div><div className="checkout-form-card"><p className="eyebrow">STEP 1 OF 2</p><h1>Where should we deliver?</h1><div className="checkout-form-grid">{[['name','Full name'],['phone','Phone'],['line1','Address'],['city','City'],['state','State'],['pincode','PIN code']].map(([k,label])=><label key={k}>{label}<input value={(address as any)[k]} onChange={e=>setAddress({...address,[k]:e.target.value})}/></label>)}</div><button className="primary-button" disabled={!ok} onClick={onNext}>Continue to Payment <ArrowRight/></button></div></div>}
-function PaymentStep({total,onBack,onPay}:{total:number;onBack:()=>void;onPay:()=>void}){const [method,setMethod]=useState('online');return <div className="checkout-page"><div className="checkout-top"><button onClick={onBack}><ChevronLeft/> Delivery</button><strong>Payment</strong></div><div className="payment-card"><p className="eyebrow">STEP 2 OF 2</p><h1>Choose payment method</h1><label className="payment-option"><input type="radio" checked={method==='online'} onChange={()=>setMethod('online')}/><CreditCard/><div><strong>Online Payment</strong><span>Secure payment gateway</span></div></label><label className="payment-option"><input type="radio" checked={method==='cod'} onChange={()=>setMethod('cod')}/><ShoppingBag/><div><strong>Pay at School</strong><span>Available if enabled by your school</span></div></label><div className="payment-total"><span>Payable</span><strong>₹{total.toLocaleString('en-IN')}</strong></div><button className="primary-button" onClick={onPay}>Place Order <CheckCircle2 size={18}/></button></div></div>}
-function Orders(){return <div className="portal-content"><CatalogHeading eyebrow="ORDERS" title="My Orders" text="Track your school uniform orders and view previous purchases."/><div className="empty-state"><ClipboardList size={42}/><h3>No orders yet</h3><p>Your completed orders will appear here.</p></div></div>}
+
+function Orders(){
+  const [rows,setRows]=useState<any[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('')
+  useEffect(()=>{
+    const client=supabase as any
+    if(!client){setLoading(false);return}
+    let cancelled=false
+    async function load(){
+      setLoading(true);setError('')
+      const r=await client.from('orders').select('id,order_number,status,subtotal,shipping_total,grand_total,currency,created_at,student_id').order('created_at',{ascending:false})
+      if(r.error){setError(r.error.message);setLoading(false);return}
+      const orders=r.data??[],ids=orders.map(x=>x.id)
+      const ir=ids.length?await client.from('order_items').select('order_id,item_name_snapshot,quantity,unit_price').in('order_id',ids):{data:[],error:null}
+      if(ir.error){setError(ir.error.message);setLoading(false);return}
+      const itemMap:Record<string,any[]>=Object.fromEntries(ids.map(id=>[id,[]]))
+      ;(ir.data??[]).forEach(x=>{if(itemMap[x.order_id])itemMap[x.order_id].push(x)})
+      if(!cancelled)setRows(orders.map(x=>({...x,items:itemMap[x.id]||[]})))
+      setLoading(false)
+    }
+    void load();return()=>{cancelled=true}
+  },[])
+  return <div className="portal-content"><CatalogHeading eyebrow="ORDERS" title="My Orders" text="Track your school uniform orders and view previous purchases."/>
+    {error&&<p className="workspace-error">{error}</p>}
+    {loading?<div className="empty-state">Loading orders...</div>:rows.length?<div className="orders-list">{rows.map(x=><article className="order-card" key={x.id}><div className="order-card-head"><div><p className="eyebrow">{x.order_number}</p><strong>{new Date(x.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</strong></div><span className={'order-status '+x.status}>{x.status}</span></div><div className="order-card-items">{x.items.map((i:any)=><div key={i.order_id+'-'+i.item_name_snapshot}><span>{i.item_name_snapshot} × {i.quantity}</span><strong>₹{Number(i.unit_price*i.quantity).toLocaleString('en-IN')}</strong></div>)}</div><div className="order-card-total"><span>Total</span><strong>₹{Number(x.grand_total).toLocaleString('en-IN')}</strong></div></article>)}</div>:<div className="empty-state"><ClipboardList size={42}/><h3>No orders yet</h3><p>Your completed orders will appear here.</p></div>}
+  </div>
+}
 function Profile({studentId}:{studentId:string}){return <div className="portal-content"><CatalogHeading eyebrow="ACCOUNT" title="My Profile" text="Your school account information."/><div className="profile-card"><div className="profile-avatar">{studentId.slice(0,1).toUpperCase()}</div><div><span>Login ID</span><strong>{studentId}</strong></div><div><span>Account type</span><strong>Parent / Student</strong></div><div><span>Access</span><strong>School Store</strong></div></div></div>}
 
 function AdminModuleActive({icon,title,text,onClick}:{icon:React.ReactNode;title:string;text:string;onClick:()=>void}){return <button className="admin-module admin-module-active" onClick={onClick}><div className="feature-icon">{icon}</div><div><strong>{title}</strong><span>{text}</span></div><ArrowRight/></button>}
@@ -275,16 +332,32 @@ function AdminModuleActive({icon,title,text,onClick}:{icon:React.ReactNode;title
 function AdminPortal({onBack}:{onBack:()=>void}){
   const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[admin,setAdmin]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState('')
   const [schools,setSchools]=useState<SchoolOption[]>([]),[branches,setBranches]=useState<BranchOption[]>([]),[school,setSchool]=useState(''),[branch,setBranch]=useState(''),[tool,setTool]=useState<'menu'|'parent'|'import'|'home'|'schools'|'products'|'packages'|'orders'|'payments'|'inventory'|'students'|'reports'|'catalog'|'coupons'>('menu')
+  useEffect(()=>{
+    const onPopState=(event:PopStateEvent)=>{
+      const state=event.state
+      if(state?.schoolUniformApp==='admin'){setTool(state.tool||'menu');return}
+      setTool('menu')
+      window.history.replaceState({schoolUniformApp:'admin',tool:'menu'},'',window.location.href)
+    }
+    window.addEventListener('popstate',onPopState)
+    return()=>window.removeEventListener('popstate',onPopState)
+  },[])
+  useEffect(()=>{
+    if(window.history.state?.schoolUniformApp==='admin'&&window.history.state?.tool===tool)return
+    window.history.pushState({schoolUniformApp:'admin',tool},'',window.location.href)
+  },[tool])
   async function login(){const client=supabase;if(!client||!email.trim()||!password)return;setLoading(true);setError('');const {data,error}=await client.auth.signInWithPassword({email:email.trim(),password});if(error||!data.user){setError('Invalid admin email or password.');setLoading(false);return}const {data:p,error:pe}=await client.from('profiles').select('role').eq('id',data.user.id).single();if(pe||!p||!['admin','super_admin'].includes(p.role)){await client.auth.signOut({scope:'local'});setError('This account is not authorized for the Admin Portal.');setLoading(false);return}setAdmin(true);setLoading(false)}
   useEffect(()=>{const client=supabase;if(!client)return;void client.auth.getSession().then(async ({data})=>{if(!data.session)return;const {data:p}=await client.from('profiles').select('role').eq('id',data.session.user.id).maybeSingle();if(p&&['admin','super_admin'].includes(p.role))setAdmin(true)})},[])
   useEffect(()=>{const client=supabase;if(!admin||!client)return;void client.from('schools').select('id,name').eq('status','active').order('name').then(({data})=>setSchools(data??[]))},[admin])
   async function chooseSchool(v:string){setSchool(v);setBranch('');setBranches([]);const client=supabase;if(!v||!client)return;const {data}=await client.from('branches').select('id,name').eq('school_id',v).eq('status','active').order('name');setBranches(data??[])}
-  if(!admin)return <div className="admin-login-page"><div className="admin-login-card"><button className="modal-close" onClick={onBack}><X size={20}/></button><div className="admin-login-logo"><img src="/logo.png" alt="Artisan"/></div><p className="eyebrow">ADMINISTRATION</p><h1>Administrator Sign In</h1><p>Manage schools, students, catalogs and orders from the secure admin portal.</p><label>Email</label><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="admin@gmail.com" autoComplete="username"/><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void login()}} autoComplete="current-password"/>{error&&<p className="login-error">{error}</p>}<button className="primary-button" onClick={()=>void login()} disabled={loading||!email||!password}>{loading?'SIGNING IN...':'ADMIN LOGIN'}</button></div></div>
+  if(!admin)return <div className="admin-login-page"><GlobalHeader portal="admin" title="Admin Portal" subtitle="Administrator Sign In" onBack={onBack} backLabel="Back"/><div className="admin-login-card"><div className="admin-login-logo"><img src="/logo.png" alt="Artisan"/></div><p className="eyebrow">ADMINISTRATION</p><h1>Administrator Sign In</h1><p>Manage schools, students, catalogs and orders from the secure admin portal.</p><label>Email</label><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="admin@gmail.com" autoComplete="username"/><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void login()}} autoComplete="current-password"/>{error&&<p className="login-error">{error}</p>}<button className="primary-button" onClick={()=>void login()} disabled={loading||!email||!password}>{loading?'SIGNING IN...':'ADMIN LOGIN'}</button></div><GlobalFooter portal="admin"/></div>
   if(tool==='parent'&&school&&branch)return <ParentCreate schoolId={school} branchId={branch} onBack={()=>setTool('menu')}/>
   if(tool==='import'&&school&&branch)return <StudentImport schoolId={school} branchId={branch} onBack={()=>setTool('menu')}/>
   if(tool==='home')return <HomepageEditor onBack={()=>setTool('menu')}/>
   if(tool==='schools'||tool==='products'||tool==='packages'||tool==='orders'||tool==='payments'||tool==='inventory'||tool==='students'||tool==='reports'||tool==='catalog'||tool==='coupons')return <AdminWorkspace module={tool} onBack={()=>setTool('menu')}/>
-  return <div className="admin-shell"><header className="admin-topbar"><div className="site-brand"><img className="brand-logo admin-brand-logo" src="/logo.png" alt="Artisan" /></div><button className="admin-back" onClick={()=>{void supabase?.auth.signOut({scope:'local'});localStorage.removeItem('school_uniform_admin_context');setAdmin(false)}}><LogOut size={17}/> Logout</button></header><div className="admin-content"><div className="admin-title"><div><p className="eyebrow">ADMIN DASHBOARD</p><h1>Student & Parent Management</h1><p>Create test accounts individually or import your student register in bulk.</p></div></div><div className="admin-scope-card"><div><span>School</span><strong>{schools.find(x=>x.id===school)?.name??'Select school'}</strong></div><div><span>Branch</span><strong>{branches.find(x=>x.id===branch)?.name??'Select branch'}</strong></div></div><div className="admin-selector-grid"><label>School<select value={school} onChange={e=>void chooseSchool(e.target.value)}><option value="">Select school</option>{schools.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Branch<select value={branch} disabled={!school} onChange={e=>{setBranch(e.target.value);setTool('menu')}}><option value="">Select branch</option>{branches.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label></div><div className="admin-action-grid"><button onClick={()=>setTool('home')}><Home/><div><strong>Homepage Editor</strong><span>Control hero, sections, images, text and footer.</span></div><ArrowRight/></button><button disabled={!school||!branch} onClick={()=>setTool('parent')}><UserRound/><div><strong>Create Parent Login</strong><span>Create one parent + student account for testing.</span></div><ArrowRight/></button><button disabled={!school||!branch} onClick={()=>setTool('import')}><FileSpreadsheet/><div><strong>Bulk Student Import</strong><span>Upload Excel or CSV student records.</span></div><ArrowRight/></button></div><div className="admin-module-grid"><AdminModuleActive icon={<Building2/>} title="Schools & Branches" text="Manage school campuses and branch details." onClick={()=>setTool('schools')}/><AdminModuleActive icon={<ShoppingBag/>} title="Products & Variants" text="Manage shirts, pants, shoes, sizes and SKUs." onClick={()=>setTool('products')}/><AdminModuleActive icon={<Package/>} title="Uniform Packages" text="Build boys and girls packages from individual products." onClick={()=>setTool('packages')}/><AdminModuleActive icon={<ClipboardList/>} title="Orders" text="Review orders, statuses and customer details." onClick={()=>setTool('orders')}/><AdminModuleActive icon={<CreditCard/>} title="Payments" text="Track payment status and transaction references." onClick={()=>setTool('payments')}/><AdminModuleActive icon={<ClipboardList/>} title="Inventory" text="Monitor stock and inventory movements." onClick={()=>setTool('inventory')}/><AdminModuleActive icon={<UserRound/>} title="Parents & Students" text="Manage student profiles and parent relationships." onClick={()=>setTool('students')}/><AdminModuleActive icon={<FileSpreadsheet/>} title="Reports" text="Sales, inventory and school-level reporting." onClick={()=>setTool('reports')}/><AdminModuleActive icon={<BookOpen/>} title="Catalog Rules" text="Configure school-specific products and pricing." onClick={()=>setTool('catalog')}/><AdminModuleActive icon={<Sparkles/>} title="Coupons" text="Manage branch-specific promotions and discounts." onClick={()=>setTool('coupons')}/></div></div></div>
+  return <div className="admin-shell"><GlobalHeader portal="admin" title="Admin Dashboard" subtitle="School Uniform Store" onLogout={()=>{void supabase?.auth.signOut({scope:'local'});localStorage.removeItem('school_uniform_admin_context');setAdmin(false)}}/><div className="admin-content"><div className="admin-title"><div><p className="eyebrow">ADMIN DASHBOARD</p><h1>Student & Parent Management</h1><p>Create test accounts individually or import your student register in bulk.</p></div></div><div className="admin-scope-card"><div><span>School</span><strong>{schools.find(x=>x.id===school)?.name??'Select school'}</strong></div><div><span>Branch</span><strong>{branches.find(x=>x.id===branch)?.name??'Select branch'}</strong></div></div><div className="admin-selector-grid"><label>School<select value={school} onChange={e=>void chooseSchool(e.target.value)}><option value="">Select school</option>{schools.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Branch<select value={branch} disabled={!school} onChange={e=>{setBranch(e.target.value);setTool('menu')}}><option value="">Select branch</option>{branches.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label></div><div className="admin-action-grid"><button onClick={()=>setTool('home')}><Home/><div><strong>Homepage Editor</strong><span>Control hero, sections, images, text and footer.</span></div><ArrowRight/></button><button disabled={!school||!branch} onClick={()=>setTool('parent')}><UserRound/><div><strong>Create Parent Login</strong><span>Create one parent + student account for testing.</span></div><ArrowRight/></button><button disabled={!school||!branch} onClick={()=>setTool('import')}><FileSpreadsheet/><div><strong>Bulk Student Import</strong><span>Upload Excel or CSV student records.</span></div><ArrowRight/></button></div><div className="admin-module-grid"><AdminModuleActive icon={<Building2/>} title="Schools & Branches" text="Manage school campuses and branch details." onClick={()=>setTool('schools')}/><AdminModuleActive icon={<ShoppingBag/>} title="Products & Variants" text="Manage shirts, pants, shoes, sizes and SKUs." onClick={()=>setTool('products')}/><AdminModuleActive icon={<Package/>} title="Uniform Packages" text="Build boys and girls packages from individual products." onClick={()=>setTool('packages')}/><AdminModuleActive icon={<ClipboardList/>} title="Orders" text="Review orders, statuses and customer details." onClick={()=>setTool('orders')}/><AdminModuleActive icon={<CreditCard/>} title="Payments" text="Track payment status and transaction references." onClick={()=>setTool('payments')}/><AdminModuleActive icon={<ClipboardList/>} title="Inventory" text="Monitor stock and inventory movements." onClick={()=>setTool('inventory')}/><AdminModuleActive icon={<UserRound/>} title="Parents & Students" text="Manage student profiles and parent relationships." onClick={()=>setTool('students')}/><AdminModuleActive icon={<FileSpreadsheet/>} title="Reports" text="Sales, inventory and school-level reporting." onClick={()=>setTool('reports')}/><AdminModuleActive icon={<BookOpen/>} title="Catalog Rules" text="Configure school-specific products and pricing." onClick={()=>setTool('catalog')}/><AdminModuleActive icon={<Sparkles/>} title="Coupons" text="Manage branch-specific promotions and discounts." onClick={()=>setTool('coupons')}/></div></div>
+    <GlobalFooter portal="admin"/>
+  </div>
 }
 
 function CmsToggle({enabled,onChange,label='Enabled'}:{enabled?:boolean;onChange:(value:boolean)=>void;label?:string}){
@@ -301,10 +374,7 @@ function HomepageEditor({onBack}:{onBack:()=>void}){
   const save=async()=>{const client=supabase;if(!client)return;setSaving(true);setError('');setSaved(false);const {data:user}=await client.auth.getUser();const {error:e}=await (client as any).from('homepage_content').update({content,updated_by:user.user?.id,updated_at:new Date().toISOString()}).eq('slug','default');if(e)setError(e.message);else setSaved(true);setSaving(false)}
   const edit=(fn:(c:any)=>void)=>setContent((prev:any)=>{const n=structuredClone(prev);fn(n);return n})
   return <div className="admin-shell">
-    <header className="admin-topbar">
-      <div className="site-brand"><img className="brand-logo admin-brand-logo" src="/logo.png" alt="Artisan"/><div><span>Homepage Editor</span></div></div>
-      <button onClick={onBack}><ArrowLeft size={17}/> Back to Admin</button>
-    </header>
+    <GlobalHeader portal="admin" title="Admin Portal" subtitle="Homepage Editor" onBack={onBack} backLabel="Dashboard"/>
     <div className="admin-content">
       <div className="admin-title"><div><p className="eyebrow">HOMEPAGE CMS</p><h1>Control the entire public homepage</h1><p>All homepage copy, imagery URLs, ordering and visibility are stored in Supabase.</p></div><button className="primary-button cms-save-button" onClick={()=>void save()} disabled={saving}>{saving?'SAVING...':'SAVE HOMEPAGE'}</button></div>
       {saved&&<p className="form-success">Homepage saved successfully.</p>}{error&&<p className="login-error">{error}</p>}
@@ -367,6 +437,7 @@ function HomepageEditor({onBack}:{onBack:()=>void}){
         {['tagline','copyright','credit','secondary'].map((k:string)=><label key={k}>{k}<input value={content.footer?.[k]||''} onChange={e=>edit(c=>c.footer[k]=e.target.value)}/></label>)}
       </section>
     </div>
+    <GlobalFooter portal="admin"/>
   </div>
 }
 export default App
