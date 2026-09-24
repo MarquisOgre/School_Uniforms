@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, LogOut, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, LogOut, ShoppingCart } from 'lucide-react'
 
 type GlobalHeaderProps = {
   portal: 'customer' | 'admin'
