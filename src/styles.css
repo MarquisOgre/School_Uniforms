@@ -6442,15 +6442,19 @@ a {
 }
 
 /* Products workspace: keep title, search, add and refresh controls on one desktop row. */
-.admin-workspace .workspace-products .workspace-heading {
+.admin-workspace .workspace-products {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     'title toolbar'
-    'description toolbar';
+    'description toolbar'
+    'body body';
   align-items: center;
   column-gap: 24px;
-  margin-bottom: 18px;
+}
+
+.admin-workspace .workspace-products .workspace-heading {
+  display: contents;
 }
 
 .admin-workspace .workspace-products .workspace-heading h1 {
@@ -6460,12 +6464,12 @@ a {
 
 .admin-workspace .workspace-products .workspace-heading p {
   grid-area: description;
-  margin: 6px 0 0;
+  margin: 6px 0 18px;
 }
 
 .admin-workspace .workspace-products > .workspace-toolbar {
   grid-area: toolbar;
-  margin: 0;
+  margin: 0 0 18px;
   align-self: center;
 }
 
@@ -6478,7 +6482,7 @@ a {
 }
 
 @media (max-width: 900px) {
-  .admin-workspace .workspace-products .workspace-heading {
+  .admin-workspace .workspace-products {
     display: block;
   }
 
