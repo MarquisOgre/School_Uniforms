@@ -5845,8 +5845,6 @@ a {
   }
 }
 
-
-
 /* =========================================================
    SCHOOL UNIFORMS — Premium UI Refresh
    Homepage / Parent-Student App / Admin Portal
@@ -5865,8 +5863,7 @@ a {
 
 .landing {
   background:
-    radial-gradient(circle at 84% 12%, rgba(244, 181, 43, 0.1), transparent 28%),
-    var(--su-cream);
+    radial-gradient(circle at 84% 12%, rgba(244, 181, 43, 0.1), transparent 28%), var(--su-cream);
 }
 
 .exact-header,
@@ -5981,9 +5978,7 @@ a {
 }
 
 .portal {
-  background:
-    radial-gradient(circle at 80% 0%, rgba(244, 181, 43, 0.08), transparent 28%),
-    #f5f2eb;
+  background: radial-gradient(circle at 80% 0%, rgba(244, 181, 43, 0.08), transparent 28%), #f5f2eb;
 }
 
 .portal-layout {
@@ -6158,9 +6153,7 @@ a {
 .admin-shell,
 .admin-workspace,
 .admin-import-page {
-  background:
-    radial-gradient(circle at 88% 0%, rgba(244, 181, 43, 0.08), transparent 25%),
-    #f5f2eb;
+  background: radial-gradient(circle at 88% 0%, rgba(244, 181, 43, 0.08), transparent 25%), #f5f2eb;
 }
 
 .admin-content,
