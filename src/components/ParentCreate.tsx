@@ -28,7 +28,7 @@ export default function ParentCreate({schoolId,branchId,onBack}:{schoolId:string
     setDone(true);setBusy(false)
   }
 
-  return <div className="admin-import-page"><header className="admin-subpage-header"><div className="site-brand"><img className="brand-logo admin-brand-logo" src="/logo.png" alt="Artisan"/><div><span>Administration</span></div></div><button className="admin-back" onClick={onBack}><ArrowLeft size={17}/> Back to Admin</button></header><div className="import-header"><div><p className="eyebrow">ADMIN • CREATE PARENT</p><h1>Create Parent Login</h1><p>Create one parent account and link it to a student.</p></div></div>
+  return <div className="admin-import-page"><header className="admin-subpage-header"><div className="site-brand"><img className="brand-logo admin-brand-logo" src="/logo.png" alt="Artisan"/></div><button className="admin-back" onClick={onBack}><ArrowLeft size={17}/> Back to Menu</button></header><div className="import-header"><div><p className="eyebrow">ADMIN • CREATE PARENT</p><h1>Create Parent Login</h1><p>Create one parent account and link it to a student.</p></div></div>
     <div className="import-card"><div className="admin-form-grid">
       <label>Parent Name<input value={parentName} onChange={e=>setParentName(e.target.value)}/></label>
       <label>Parent Login ID<input value={loginId} onChange={e=>setLoginId(e.target.value.toUpperCase())}/></label>
