@@ -1171,6 +1171,7 @@ function InventoryAdmin() {
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState('')
+
   const load = async () => {
     if (!supabase) return
     setLoading(true)
@@ -1183,6 +1184,7 @@ function InventoryAdmin() {
     const pm = Object.fromEntries((p.data ?? []).map((x: any) => [x.id, x.name]))
     const vm = Object.fromEntries((v.data ?? []).map((x: any) => [x.id, x]))
     const bm = Object.fromEntries((b.data ?? []).map((x: any) => [x.id, x.name]))
+
     setRows(
       (i.data ?? []).map((x: any) => ({
         ...x,
@@ -1195,14 +1197,55 @@ function InventoryAdmin() {
     setError(i.error?.message || p.error?.message || v.error?.message || b.error?.message || '')
     setLoading(false)
   }
+
   useEffect(() => {
     void load()
   }, [])
+
+  const sizeOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
   const filtered = rows.filter((x) =>
-    [x.branch_name, x.product_name, x.sku, x.size].some((v) =>
-      String(v).toLowerCase().includes(search.toLowerCase()),
+    [x.branch_name, x.product_name, x.size, x.sku].some((v) =>
+      String(v ?? '').toLowerCase().includes(search.toLowerCase()),
     ),
   )
+
+  const grouped = Array.from(
+    filtered.reduce((map: Map<string, any>, x: any) => {
+      const key = x.branch_id + '|' + x.product_id
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          branch_id: x.branch_id,
+          product_id: x.product_id,
+          branch_name: x.branch_name,
+          product_name: x.product_name,
+          sizes: {},
+          reorder_levels: [],
+        })
+      }
+      const group = map.get(key)
+      group.sizes[x.size || '—'] = {
+        quantity: Number(x.quantity_on_hand || 0),
+        reorder: Number(x.reorder_level || 0),
+      }
+      group.reorder_levels.push(Number(x.reorder_level || 0))
+      return map
+    }, new Map()).values(),
+  )
+
+  const sizes = Array.from(
+    new Set(
+      grouped.flatMap((x: any) => Object.keys(x.sizes)),
+    ),
+  ).sort((a, b) => {
+    const ai = sizeOrder.indexOf(a)
+    const bi = sizeOrder.indexOf(b)
+    if (ai === -1 && bi === -1) return a.localeCompare(b)
+    if (ai === -1) return 1
+    if (bi === -1) return -1
+    return ai - bi
+  })
+
   return (
     <>
       <Toolbar onRefresh={load}>
@@ -1226,33 +1269,45 @@ function InventoryAdmin() {
         <Loading />
       ) : (
         <Panel>
-          <div className="workspace-scroll">
+          <div className="workspace-scroll inventory-grouped-table">
             <table>
               <thead>
                 <tr>
                   <th>Branch</th>
                   <th>Product</th>
-                  <th>SKU</th>
-                  <th>Size</th>
-                  <th>On Hand</th>
+                  {sizes.map((size) => (
+                    <th key={size}>{size}</th>
+                  ))}
                   <th>Reorder</th>
                   <th>Stock</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((x) => (
-                  <tr key={x.branch_id + x.variant_id}>
-                    <td>{x.branch_name}</td>
-                    <td>{x.product_name}</td>
-                    <td>{x.sku}</td>
-                    <td>{x.size}</td>
-                    <td>{x.quantity_on_hand}</td>
-                    <td>{x.reorder_level}</td>
-                    <td>
-                      {Number(x.quantity_on_hand) <= Number(x.reorder_level) ? 'Low' : 'Healthy'}
-                    </td>
-                  </tr>
-                ))}
+                {grouped.map((x: any) => {
+                  const lowStock = sizes.some(
+                    (size) =>
+                      x.sizes[size] &&
+                      x.sizes[size].quantity <= x.sizes[size].reorder,
+                  )
+                  const reorder =
+                    x.reorder_levels.length > 0
+                      ? Math.max(...x.reorder_levels)
+                      : 0
+
+                  return (
+                    <tr key={x.key}>
+                      <td>{x.branch_name}</td>
+                      <td>{x.product_name}</td>
+                      {sizes.map((size) => (
+                        <td key={size} className="inventory-size-cell">
+                          {x.sizes[size] ? x.sizes[size].quantity : '—'}
+                        </td>
+                      ))}
+                      <td>{reorder}</td>
+                      <td>{lowStock ? 'Low' : 'Healthy'}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -1261,7 +1316,6 @@ function InventoryAdmin() {
     </>
   )
 }
-
 function ParentStudents() {
   const [rows, setRows] = useState<any[]>([]),
     [branches, setBranches] = useState<any[]>([]),
