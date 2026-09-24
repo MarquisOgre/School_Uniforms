@@ -6779,3 +6779,62 @@ a {
     margin-top: 16px;
   }
 }
+
+
+/* Parents & Students workspace: keep heading and all controls on the left. */
+.admin-workspace .workspace-students {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'title'
+    'description'
+    'toolbar'
+    'error'
+    'body';
+  align-content: start;
+}
+
+.admin-workspace .workspace-students > .workspace-heading {
+  grid-area: title;
+}
+
+.admin-workspace .workspace-students > .workspace-heading h1 {
+  margin: 4px 0 8px;
+}
+
+.admin-workspace .workspace-students > .workspace-heading p {
+  margin: 0 0 18px;
+}
+
+.admin-workspace .workspace-students > .workspace-toolbar {
+  grid-area: toolbar;
+  justify-content: flex-start;
+  margin-bottom: 18px;
+}
+
+.admin-workspace .workspace-students > .workspace-toolbar > div {
+  justify-content: flex-start;
+}
+
+.admin-workspace .workspace-students > .workspace-error {
+  grid-area: error;
+}
+
+.admin-workspace .workspace-students > .workspace-panel {
+  grid-area: body;
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-workspace .workspace-students .workspace-scroll th {
+  text-align: center;
+}
+
+.admin-workspace .workspace-students .workspace-scroll td {
+  text-align: center;
+}
+
+.admin-workspace .workspace-students .workspace-scroll th:first-child,
+.admin-workspace .workspace-students .workspace-scroll td:first-child {
+  text-align: left;
+}
