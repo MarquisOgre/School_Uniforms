@@ -1273,11 +1273,7 @@ function ParentStudents() {
     ])
     setRows(studentsResult.data ?? [])
     setBranches(branchesResult.data ?? [])
-    setError(
-      studentsResult.error?.message ||
-        branchesResult.error?.message ||
-        '',
-    )
+    setError(studentsResult.error?.message || branchesResult.error?.message || '')
     setLoading(false)
   }
 
