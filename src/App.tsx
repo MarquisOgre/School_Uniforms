@@ -43,7 +43,16 @@ function App(){
       if(!data.session){localStorage.removeItem('school_uniform_portal_context');setSessionRestoring(false);return}
       const stored=localStorage.getItem('school_uniform_portal_context')
       if(stored){
-        try{const ctx=JSON.parse(stored);if(ctx?.mode==='store'&&ctx.school&&ctx.branch){setSchool(ctx.school);setBranch(ctx.branch);setStudentId(ctx.studentId||'');setCustomerPage(ctx.customerPage||'dashboard');window.history.replaceState({schoolUniformApp:'customer',screen:'page:dashboard',page:'dashboard'},'', '/app');setMode('store');const {data:branchRows}=await client.from('branches').select('id,name').eq('school_id',ctx.school).eq('status','active').order('name');if(!cancelled)setBranches(branchRows??[])}}catch{localStorage.removeItem('school_uniform_portal_context')}}
+        try{
+          const ctx=JSON.parse(stored)
+          if(ctx?.mode==='store'&&ctx.school&&ctx.branch){
+            const path=window.location.pathname
+            const pathPage=path==='/app/packages'?'packages':path==='/app/products'?'products':path==='/app/orders'?'orders':path==='/app/profile'?'profile':'dashboard'
+            setSchool(ctx.school);setBranch(ctx.branch);setStudentId(ctx.studentId||'');setCustomerPage(pathPage);setMode('store')
+            const {data:branchRows}=await client.from('branches').select('id,name').eq('school_id',ctx.school).eq('status','active').order('name')
+            if(!cancelled)setBranches(branchRows??[])
+          }
+        }catch{localStorage.removeItem('school_uniform_portal_context')}}
       const {data:profile}=await client.from('profiles').select('role').eq('id',data.session.user.id).maybeSingle()
       const isAdminPath=window.location.pathname==='/admin'||window.location.pathname.startsWith('/admin/')
       if(profile&&['admin','super_admin'].includes(profile.role)&&isAdminPath)setMode('admin')
@@ -195,8 +204,6 @@ function CustomerPortal({schoolId,schoolName,branchName,branchId,studentId,page,
   const update=(id:string,d:number)=>setCart(items=>items.map(x=>x.id===id?{...x,quantity:Math.max(1,x.quantity+d)}:x))
   const remove=(id:string)=>setCart(items=>items.filter(x=>x.id!==id))
   const total=cart.reduce((s,x)=>s+x.price*x.quantity,0)
-  if(checkout)return <CustomerPageFrame title="Parent / Student Portal" subtitle={schoolName+` • `+branchName} onBack={()=>setPage('dashboard')} onLogout={onLogout} cartCount={cart.reduce((s,x)=>s+x.quantity,0)} onCart={()=>setCheckout('cart')}><CheckoutFlow schoolId={schoolId} branchId={branchId} cart={cart} total={total} step={checkout} setStep={setCheckout} update={update} remove={remove} students={students} onComplete={()=>{setCart([]);setCheckout('success')}}/></CustomerPageFrame>
-  if(selected)return <CustomerPageFrame title="Parent / Student Portal" subtitle={schoolName+` • `+branchName} onBack={()=>setPage('dashboard')} onLogout={onLogout} cartCount={cart.reduce((s,x)=>s+x.quantity,0)} onCart={()=>setCheckout('cart')}><ProductDetail item={selected} onBack={()=>setPage('dashboard')} onAdd={x=>{add(x);setSelected(null)}}/></CustomerPageFrame>
   const nav=[['dashboard','Dashboard',Home],['packages','Uniform Packages',Package],['products','Individual Products',ShoppingBag],['orders','My Orders',ClipboardList],['profile','Profile',UserRound]] as const
   const appPath=checkout ? `/app/checkout/${checkout}` : selected ? '/app/product' : page==='dashboard' ? '/app' : `/app/${page}`
   useEffect(()=>{
@@ -204,6 +211,9 @@ function CustomerPortal({schoolId,schoolName,branchName,branchId,studentId,page,
     if(window.history.state?.schoolUniformApp==='customer'&&window.history.state?.screen===screen)return
     window.history.pushState({schoolUniformApp:'customer',screen,page,checkout:checkout||null},'',appPath)
   },[screen,page,checkout,appPath])
+
+  if(checkout)return <CustomerPageFrame title="Parent / Student Portal" subtitle={schoolName+` • `+branchName} onBack={()=>setPage('dashboard')} onLogout={onLogout} cartCount={cart.reduce((s,x)=>s+x.quantity,0)} onCart={()=>setCheckout('cart')}><CheckoutFlow schoolId={schoolId} branchId={branchId} cart={cart} total={total} step={checkout} setStep={setCheckout} update={update} remove={remove} students={students} onComplete={()=>{setCart([]);setCheckout('success')}}/></CustomerPageFrame>
+  if(selected)return <CustomerPageFrame title="Parent / Student Portal" subtitle={schoolName+` • `+branchName} onBack={()=>setPage('dashboard')} onLogout={onLogout} cartCount={cart.reduce((s,x)=>s+x.quantity,0)} onCart={()=>setCheckout('cart')}><ProductDetail item={selected} onBack={()=>setPage('dashboard')} onAdd={x=>{add(x);setSelected(null)}}/></CustomerPageFrame>
   return <div className="portal">
     <GlobalHeader portal="customer" title="Parent / Student Portal" subtitle={schoolName+" • "+branchName} onBack={()=>setPage('dashboard')} backLabel="Dashboard" onLogout={onLogout} cartCount={cart.reduce((s,x)=>s+x.quantity,0)} onCart={()=>setCheckout('cart')}/>
     <div className="portal-layout">
