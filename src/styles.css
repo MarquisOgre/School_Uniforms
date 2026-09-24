@@ -418,3 +418,5 @@ a{color:inherit}
 @media(max-width:720px){.full-field{grid-column:auto!important}.upi-panel{grid-template-columns:1fr}.upi-qr{justify-self:center}.checkout-actions{flex-direction:column}.checkout-actions button{width:100%}}
 
 .success-order-number{display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;max-width:320px;margin:20px auto;padding:15px;border:1px solid var(--line);border-radius:12px;background:#fbf7ef;text-align:left}.success-order-number span{font-size:9px;color:#7f8682;text-transform:uppercase;letter-spacing:.08em}.success-order-number strong{font-size:12px;text-align:right}
+.payment-settings-row{align-items:center;gap:10px;flex-wrap:wrap}.admin-inline-check{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800}.admin-inline-check input{accent-color:#e6a00c}.admin-mini-input{min-width:105px;height:34px;border:1px solid #d8d0c3;border-radius:7px;padding:0 8px;background:#fff;font-size:10px}.workspace-muted{font-size:10px;color:#7c8480}
+@media(max-width:900px){.payment-settings-row{display:grid;grid-template-columns:1fr 1fr}.payment-settings-row .admin-mini-input,.payment-settings-row .primary-button{width:100%}}
