@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import CheckoutFlow, { type CheckoutCartItem } from './CheckoutFlow'
-import { CustomerPageFrame } from './components/GlobalChrome'
+import { CustomerPageFrame, GlobalFooter, GlobalHeader } from './components/GlobalChrome'
 
 export type CustomerPage = 'dashboard' | 'packages' | 'products' | 'orders' | 'profile'
 type CartItem = CheckoutCartItem
