@@ -1489,14 +1489,6 @@ function ParentStudents() {
                         <button className="table-action-button" onClick={() => openEdit(r)}>
                           Edit
                         </button>
-                        <button
-                          className="table-action-button"
-                          onClick={() => void toggleStatus(r)}
-                        >
-                          {String(r.status || '').toLowerCase() === 'active'
-                            ? 'Inactive'
-                            : 'Active'}
-                        </button>
                       </td>
                     </tr>
                   )
