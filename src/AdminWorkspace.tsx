@@ -451,7 +451,7 @@ function Products() {
         <Panel>
           <div className="workspace-table">
             {visible.map((x) => (
-              <div className="workspace-row" key={x.id}>
+              <div className="workspace-row product-row" key={x.id}>
                 <strong>{x.name}</strong>
                 <span>
                   {categories.find((c) => c.id === x.category_id)?.name || 'Uncategorized'}
@@ -544,7 +544,7 @@ function Products() {
               </div>
               <div className="workspace-table">
                 {variants.map((v) => (
-                  <div className="workspace-row" key={v.id}>
+                  <div className="workspace-row product-row variant-row" key={v.id}>
                     <strong>{v.sku}</strong>
                     <span>{v.size_label || '—'}</span>
                     <span>{v.color || '—'}</span>
