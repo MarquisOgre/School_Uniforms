@@ -338,10 +338,7 @@ function HomepageEditor({onBack}:{onBack:()=>void}){
   const save=async()=>{const client=supabase;if(!client)return;setSaving(true);setError('');setSaved(false);const {data:user}=await client.auth.getUser();const {error:e}=await (client as any).from('homepage_content').update({content,updated_by:user.user?.id,updated_at:new Date().toISOString()}).eq('slug','default');if(e)setError(e.message);else setSaved(true);setSaving(false)}
   const edit=(fn:(c:any)=>void)=>setContent((prev:any)=>{const n=structuredClone(prev);fn(n);return n})
   return <div className="admin-shell">
-    <header className="admin-topbar">
-      <div className="site-brand"><img className="brand-logo admin-brand-logo" src="/logo.png" alt="Artisan"/><div><span>Homepage Editor</span></div></div>
-      <button onClick={onBack}><ArrowLeft size={17}/> Back to Admin</button>
-    </header>
+    <GlobalHeader portal="admin" title="Admin Portal" subtitle="Homepage Editor" onBack={onBack} backLabel="Dashboard"/>
     <div className="admin-content">
       <div className="admin-title"><div><p className="eyebrow">HOMEPAGE CMS</p><h1>Control the entire public homepage</h1><p>All homepage copy, imagery URLs, ordering and visibility are stored in Supabase.</p></div><button className="primary-button cms-save-button" onClick={()=>void save()} disabled={saving}>{saving?'SAVING...':'SAVE HOMEPAGE'}</button></div>
       {saved&&<p className="form-success">Homepage saved successfully.</p>}{error&&<p className="login-error">{error}</p>}
@@ -404,6 +401,7 @@ function HomepageEditor({onBack}:{onBack:()=>void}){
         {['tagline','copyright','credit','secondary'].map((k:string)=><label key={k}>{k}<input value={content.footer?.[k]||''} onChange={e=>edit(c=>c.footer[k]=e.target.value)}/></label>)}
       </section>
     </div>
+    <GlobalFooter portal="admin"/>
   </div>
 }
 export default App
