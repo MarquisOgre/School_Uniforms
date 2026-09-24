@@ -508,3 +508,81 @@ a{color:inherit}
 .admin-login-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;background:#eee5d6}
 .admin-login-page .global-header,.admin-login-page .global-footer{width:100%}
 .admin-login-page .admin-login-card{margin:auto;width:min(500px,calc(100% - 32px))}
+
+
+/* Final application chrome layout
+   - Header branding hugs the left edge; actions stay on the right.
+   - App/Admin pages use a viewport-height shell so the footer stays at
+     the bottom of the screen while the page body is the scrolling region.
+*/
+.global-header-inner{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding-left:12px;
+  padding-right:12px;
+}
+.global-header-actions{
+  margin-left:auto;
+  justify-content:flex-end;
+}
+.global-brand{
+  flex:0 0 auto;
+}
+
+.portal{
+  height:100vh;
+  min-height:100vh;
+  overflow:hidden;
+}
+.portal-layout{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+}
+.portal .sidebar{
+  flex:0 0 260px;
+  min-height:100%;
+}
+.portal .portal-main{
+  min-height:100%;
+}
+.portal .global-footer{
+  flex:0 0 auto;
+  margin-top:0;
+}
+
+.admin-shell,
+.admin-workspace,
+.admin-import-page{
+  height:100vh;
+  min-height:100vh;
+  overflow:hidden;
+}
+.admin-shell .admin-content,
+.admin-workspace .workspace-body,
+.admin-import-page .import-card{
+  overflow:auto;
+}
+.admin-shell .admin-content{
+  min-height:0;
+}
+.admin-workspace .workspace-body{
+  min-height:0;
+}
+.admin-import-page .import-card{
+  max-height:none;
+}
+.admin-shell .global-footer,
+.admin-workspace .global-footer,
+.admin-import-page .global-footer{
+  flex:0 0 auto;
+  margin-top:0;
+}
+
+@media(max-width:820px){
+  .global-header-inner{
+    padding-left:10px;
+    padding-right:10px;
+  }
+}
