@@ -38,6 +38,7 @@ A multi-school Indian school-uniform e-commerce platform.
 The selected school in the login form is **not** treated as a security boundary.
 
 After authentication:
+
 - the user's school and branch are stored in `public.profiles`;
 - backend operations use the authenticated user's assigned scope;
 - PostgreSQL RLS enforces school/branch isolation;
