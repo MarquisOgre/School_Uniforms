@@ -95,7 +95,7 @@ function Landing({onLogin}:{onLogin:()=>void}){
       <button className="mobile-menu" onClick={()=>setMenu(v=>!v)}>{menu?<X/>:<Menu/>}</button>
     </div></header>
 
-    <section className={`exact-hero ${current.className}`}>
+    <section className={`exact-hero ${current.className}`} hidden={home.sections?.hero===false}>
       <div className="exact-hero-copy"><p className="eyebrow">{current.eyebrow}</p><h1 key={slide}>{current.title.map((x:string,i:number)=><span key={i}>{x}{i<current.title.length-1&&<br/>}</span>)}</h1><p>{current.text}</p><div className="exact-hero-actions"><button onClick={onLogin}>{current.button} <ArrowRight size={16}/></button><a href="#packages">{current.secondary}</a></div><div className="exact-slider-controls"><button onClick={prev} aria-label="Previous"><ChevronLeft/></button><div>{slides.map((_item:any,i:number)=><button key={i} className={i===slide?'active':''} onClick={()=>setSlide(i)} aria-label={"Slide "+(i+1)}/>)}</div><button onClick={next} aria-label="Next"><ArrowRight/></button><span>0{slide+1} / 0{slides.length}</span></div></div>
       <div className="exact-hero-image"><img key={slide} src={current.image} alt="Students wearing school uniforms"/></div>
     </section>
