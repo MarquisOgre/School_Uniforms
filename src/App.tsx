@@ -47,7 +47,7 @@ function App(){
     {showLogin&&<div className="login-overlay">
       <section className="login-card login-card-large">
         <button className="modal-close" onClick={()=>setShowLogin(false)} aria-label="Close"><X size={20}/></button>
-        <div className="brand-mark"><img className="brand-mark-image" src="/favicon.png" alt="" /></div>
+        <div className="brand-mark"><img className="login-logo-image" src="/logo.png" alt="Artisan" /></div>
         <p className="eyebrow">SECURE SCHOOL PORTAL</p><h1>Welcome back</h1>
         <p className="subtitle">Select your school and branch, then sign in with the credentials provided by your school.</p>
         <div className="login-fields-grid">
