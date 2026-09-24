@@ -355,3 +355,44 @@ a{color:inherit}
 .login-card-large>.eyebrow{margin-top:0}
 .login-card-large>h1{margin-left:auto;margin-right:auto}
 .login-card-large>.subtitle{margin-left:auto;margin-right:auto;max-width:760px}
+
+/* Admin navigation standardization */
+.admin-topbar{min-height:76px;height:76px;position:sticky;top:0;z-index:30;padding:0 clamp(18px,3vw,42px)}
+.admin-topbar .site-brand{gap:12px}
+.admin-topbar .site-brand>div span{font-size:11px;color:#d7dfdc;font-weight:700}
+.admin-topbar .admin-brand-logo{width:clamp(135px,11vw,165px);max-height:46px}
+.admin-topbar .admin-back{margin-left:auto}
+.admin-subpage-header{min-height:76px;height:76px;background:var(--ink);color:#fff;border-bottom:1px solid #31444a;padding:0 clamp(18px,3vw,42px);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:30}
+.admin-subpage-header .brand-logo{filter:brightness(0) invert(1)}
+.admin-subpage-header .site-brand>div span{font-size:11px;color:#d7dfdc;font-weight:700}
+.admin-subpage-header .admin-back{margin-left:auto;border:1px solid #45575d;background:transparent;border-radius:7px;padding:8px 12px;display:flex;gap:7px;align-items:center;color:#e0e6e4;font-weight:800}
+.workspace-body{padding-top:34px}
+.workspace-heading{margin:0 0 26px}
+.workspace-heading h1{margin:4px 0 8px}
+.workspace-heading p{margin:0}
+.admin-import-page{min-height:100vh;background:#f6f1e8}
+.admin-import-page .import-header{max-width:1100px;margin:0 auto;padding:40px 28px 20px}
+.admin-import-page .import-card{max-width:1100px;margin:0 auto 60px}
+.cms-section-heading,.cms-item-heading{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.cms-section-heading{margin-bottom:18px}
+.cms-section-heading h2,.cms-item-heading h3{margin:0}
+.cms-toggle{display:inline-flex!important;align-items:center;gap:9px!important;margin:0!important;font-size:10px!important;font-weight:800!important;color:#737b79!important;cursor:pointer}
+.cms-toggle>span{display:block;white-space:nowrap}
+.cms-toggle button{position:relative;width:38px;height:21px;padding:0;border:1px solid #cfc6b8;border-radius:99px;background:#d9d3c9;transition:.18s}
+.cms-toggle button span{position:absolute;top:3px;left:3px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}
+.cms-toggle button.on{background:var(--gold);border-color:#e4a313}
+.cms-toggle button.on span{left:20px}
+.home-edit-section[hidden],.exact-home section[hidden]{display:none!important}
+.home-edit-card .cms-item-heading{margin-bottom:14px}
+.home-edit-row .cms-toggle{align-self:center}
+.cms-save-button{width:auto;min-width:190px;margin-top:0}
+@media(max-width:720px){
+ .admin-topbar,.admin-subpage-header{height:68px;min-height:68px}
+ .admin-topbar .admin-brand-logo,.admin-subpage-header .admin-brand-logo{width:130px}
+ .admin-topbar .site-brand>div,.admin-subpage-header .site-brand>div{display:none}
+ .admin-topbar .admin-back,.admin-subpage-header .admin-back{font-size:11px}
+ .admin-content{padding:30px 18px}
+ .admin-title{display:block}
+ .cms-save-button{width:100%;margin-top:18px}
+ .admin-import-page .import-header{padding:30px 18px 16px}
+}
