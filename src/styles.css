@@ -6933,3 +6933,24 @@ a {
     margin-top: 16px;
   }
 }
+
+
+/* Inventory: grouped product rows with one quantity column per size. */
+.admin-workspace .workspace-inventory .inventory-grouped-table {
+  overflow-x: auto;
+}
+
+.admin-workspace .workspace-inventory .inventory-grouped-table th,
+.admin-workspace .workspace-inventory .inventory-grouped-table td {
+  white-space: nowrap;
+}
+
+.admin-workspace .workspace-inventory .inventory-grouped-table th:nth-child(n+3),
+.admin-workspace .workspace-inventory .inventory-grouped-table td:nth-child(n+3) {
+  text-align: center;
+}
+
+.admin-workspace .workspace-inventory .inventory-size-cell {
+  min-width: 56px;
+  font-weight: 600;
+}
