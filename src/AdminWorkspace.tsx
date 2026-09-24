@@ -225,7 +225,7 @@ function Schools() {
                 <span>Actions</span>
               </div>
               {schools.map((x) => (
-                <div className="workspace-row" key={x.id}>
+                <div className="workspace-row school-row" key={x.id}>
                   <strong>{x.name}</strong>
                   <span>{x.code}</span>
                   <span>{x.status}</span>
@@ -259,7 +259,7 @@ function Schools() {
                 <span>Actions</span>
               </div>
               {branches.map((x) => (
-                <div className="workspace-row" key={x.id}>
+                <div className="workspace-row branch-row" key={x.id}>
                   <strong>{x.name}</strong>
                   <span>{schools.find((s) => s.id === x.school_id)?.name || '—'}</span>
                   <span>{x.code}</span>
@@ -820,7 +820,7 @@ function Packages() {
                   <span>Actions</span>
                 </div>
                 {items.map((i) => (
-                  <div className="workspace-row" key={i.id}>
+                  <div className="workspace-row package-item-row" key={i.id}>
                     <strong>
                       {products.find((p) => p.id === i.product_id)?.name || i.product_id}
                     </strong>
@@ -1450,7 +1450,7 @@ function Catalog() {
             <span>Actions</span>
           </div>
           {rows.map((x) => (
-            <div className="workspace-row" key={x.branch_id + x.product_id}>
+            <div className="workspace-row catalog-row" key={x.branch_id + x.product_id}>
               <strong>{branches.find((b) => b.id === x.branch_id)?.name || x.branch_id}</strong>
               <span>{products.find((p) => p.id === x.product_id)?.name || x.product_id}</span>
               <span>₹{Number(x.branch_price || 0).toLocaleString('en-IN')}</span>
