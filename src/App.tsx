@@ -71,10 +71,10 @@ function Landing({onLogin}:{onLogin:()=>void}){
 
   const [menu,setMenu]=useState(false),[slide,setSlide]=useState(0),[cartCount]=useState(0),[home,setHome]=useState<any>(DEFAULT_HOME),[searchOpen,setSearchOpen]=useState(false),[search,setSearch]=useState('')
   useEffect(()=>{if(!supabase)return;void supabase.from('homepage_content').select('content').eq('slug','default').eq('is_published',true).maybeSingle().then(({data})=>{if(data?.content)setHome({...DEFAULT_HOME,...data.content})})},[])
-  if(publicPage!=='home') return <PublicPage page={publicPage} onLogin={onLogin} onNavigate={go}/>
   const slides=(home.hero?.slides??DEFAULT_HOME.hero.slides).filter((item:any)=>item.enabled!==false).map((item:any,i:number)=>({...item,className:i===1?'hero-navy':i===2?'hero-cream':'hero-light'}))
-  const current=slides[Math.min(slide,slides.length-1)]
-  useEffect(()=>{const t=window.setInterval(()=>setSlide(s=>(s+1)%slides.length),6000);return()=>window.clearInterval(t)},[])
+  useEffect(()=>{const count=slides.length; if(!count)return; const t=window.setInterval(()=>setSlide(s=>(s+1)%count),6000);return()=>window.clearInterval(t)},[slides.length])
+  if(publicPage!=='home') return <PublicPage page={publicPage} onLogin={onLogin} onNavigate={go}/>
+  const current=slides[Math.min(slide,Math.max(0,slides.length-1))]
   const next=()=>setSlide(s=>(s+1)%slides.length),prev=()=>setSlide(s=>(s+slides.length-1)%slides.length)
   return <main className="landing exact-home">
     <header className="store-header exact-header"><div className="store-header-inner">
