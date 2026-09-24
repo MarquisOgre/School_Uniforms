@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, Building2, ChevronDown, Eye, EyeOff, LockKeyhole, MapPin, Menu, Package, ShoppingBag, Sparkles, UserRound, X } from 'lucide-react'
+import type React from 'react'
+import { ArrowRight, Building2, ChevronDown, Eye, EyeOff, ChevronLeft, LockKeyhole, MapPin, Menu, Package, ShoppingBag, Sparkles, UserRound, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
 export type SchoolOption={id:string;name:string}
