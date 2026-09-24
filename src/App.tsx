@@ -61,7 +61,7 @@ function App(){
           <div className="demo-credential-row"><span>School</span><strong>Vignan Schools</strong></div>
           <div className="demo-credential-row"><span>Branch</span><strong>Vignan's Bo Tree School — Nizampet</strong></div>
           <div className="demo-credential-row"><span>Student / Parent ID</span><strong>BHUPESHKUMAR</strong></div>
-          <div className="demo-credential-row"><span>Password</span><strong>••••••••</strong></div>
+          <div className="demo-credential-row"><span>Password</span><strong>BHUPESHKUMAR</strong></div>
         </div>
         <button className="text-button">Forgot Password?</button>
         <button className="admin-link" onClick={()=>{setShowLogin(false);setMode('admin')}}>Administrator Portal</button>
