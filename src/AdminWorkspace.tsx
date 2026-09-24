@@ -1284,10 +1284,22 @@ function ParentStudents() {
     const fatherName =
       r.parent_student_links
         ?.filter((p: any) => p.relationship?.toLowerCase() === 'father')
-        ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
-        ?.profiles?.full_name || ''
-    return [r.student_code, r.full_name, fatherName, r.class_name, r.section, r.gender, r.date_of_birth, r.status]
-      .some((v) => String(v ?? '').toLowerCase().includes(search.toLowerCase()))
+        ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]?.profiles
+        ?.full_name || ''
+    return [
+      r.student_code,
+      r.full_name,
+      fatherName,
+      r.class_name,
+      r.section,
+      r.gender,
+      r.date_of_birth,
+      r.status,
+    ].some((v) =>
+      String(v ?? '')
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+    )
   })
 
   return (
