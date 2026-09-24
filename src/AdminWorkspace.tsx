@@ -1314,7 +1314,7 @@ function ParentStudents() {
   const openEdit = (student: any) => {
     const father =
       student.parent_student_links
-        ?.filter((p: any) => p.relationship?.toLowerCase() === 'father')
+        ?.filter((p: any) => ['father', 'parent'].includes(p.relationship?.toLowerCase()))
         ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
     setEditing({
       ...student,
