@@ -21,13 +21,14 @@ function App() {
       setSessionRestoring(false)
       return
     }
+    const client = supabase
     let cancelled = false
     async function restore() {
-      const { data } = await supabase.auth.getSession()
+      const { data } = await client.auth.getSession()
       if (cancelled) return
       const path = window.location.pathname
       if (data.session && path.startsWith('/admin')) {
-        const { data: profile } = await supabase
+        const { data: profile } = await client
           .from('profiles')
           .select('role')
           .eq('id', data.session.user.id)
