@@ -301,3 +301,11 @@ a{color:inherit}
 @media(max-width:420px){
   .exact-footer .footer-nav{grid-template-columns:1fr}
 }
+
+/* Demo credentials shown below customer portal sign-in */
+.demo-credentials{margin-top:18px;padding:14px 16px;background:#fbf7ef;border:1px solid #e7dccb;border-radius:9px;color:#17272d}
+.demo-credentials-title{font-size:10px;font-weight:900;letter-spacing:.16em;color:#b47a05;margin-bottom:9px}
+.demo-credential-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:5px 0;font-size:11px;line-height:1.35}
+.demo-credential-row span{color:#747c7a;flex:0 0 auto}
+.demo-credential-row strong{text-align:right;font-weight:700;max-width:70%}
+@media(max-width:480px){.demo-credentials{padding:12px}.demo-credential-row{display:block}.demo-credential-row strong{display:block;text-align:left;margin-top:2px;max-width:none}}
