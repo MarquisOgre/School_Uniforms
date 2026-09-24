@@ -95,21 +95,7 @@ function ModuleBody({ module }: { module: ModuleKey }) {
     case 'inventory':
       return <InventoryAdmin />
     case 'students':
-      return (
-        <SimpleTable
-          title="Parents & Students"
-          table="students"
-          columns={[
-            'student_code',
-            'full_name',
-            'class_name',
-            'section',
-            'gender',
-            'date_of_birth',
-            'status',
-          ]}
-        />
-      )
+      return <ParentStudents />
     case 'reports':
       return <Reports />
     case 'catalog':
@@ -1261,6 +1247,108 @@ function InventoryAdmin() {
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
+    </>
+  )
+}
+
+function ParentStudents() {
+  const [rows, setRows] = useState<any[]>([]),
+    [error, setError] = useState(''),
+    [loading, setLoading] = useState(true),
+    [search, setSearch] = useState('')
+
+  const load = async () => {
+    if (!supabase) return
+    setLoading(true)
+    const r = await dbFrom('students')
+      .select(
+        '*, parent_student_links(parent_user_id,relationship,is_primary,profiles:parent_user_id(full_name))',
+      )
+      .order('created_at', { ascending: false })
+      .limit(200)
+    setRows(r.data ?? [])
+    setError(r.error?.message || '')
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    void load()
+  }, [])
+
+  const filtered = rows.filter((r) => {
+    const fatherName =
+      r.parent_student_links
+        ?.filter((p: any) => p.relationship?.toLowerCase() === 'father')
+        ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
+        ?.profiles?.full_name || ''
+    return [r.student_code, r.full_name, fatherName, r.class_name, r.section, r.gender, r.date_of_birth, r.status]
+      .some((v) => String(v ?? '').toLowerCase().includes(search.toLowerCase()))
+  })
+
+  return (
+    <>
+      <Toolbar onRefresh={load}>
+        <div className="toolbar-search">
+          <Search size={15} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search parents & students"
+          />
+        </div>
+        <button
+          className="primary-button"
+          onClick={() => {
+            alert('Student creation will be connected to the parent account flow.')
+          }}
+        >
+          <Plus size={15} /> Add Student
+        </button>
+      </Toolbar>
+      <ErrorBox text={error} />
+      {loading ? (
+        <Loading />
+      ) : (
+        <Panel>
+          <div className="workspace-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student Code</th>
+                  <th>Father's Name</th>
+                  <th>Full Name</th>
+                  <th>Class Name</th>
+                  <th>Section</th>
+                  <th>Gender</th>
+                  <th>Date of Birth</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((r, i) => {
+                  const father =
+                    r.parent_student_links
+                      ?.filter((p: any) => p.relationship?.toLowerCase() === 'father')
+                      ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
+                      ?.profiles?.full_name || '—'
+                  return (
+                    <tr key={r.id || i}>
+                      <td>{r.student_code || '—'}</td>
+                      <td>{father}</td>
+                      <td>{r.full_name || '—'}</td>
+                      <td>{r.class_name || '—'}</td>
+                      <td>{r.section || '—'}</td>
+                      <td>{r.gender || '—'}</td>
+                      <td>{r.date_of_birth || '—'}</td>
+                      <td>{r.status || '—'}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
