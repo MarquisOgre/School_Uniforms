@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.git
+.vercel
+coverage
+supabase/.temp
+*.min.js
+public/**/*.map
