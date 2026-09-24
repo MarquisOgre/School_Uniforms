@@ -4128,7 +4128,7 @@ a {
 }
 .workspace-row {
   display: grid;
-  grid-template-columns: 2fr 1.3fr 1fr auto;
+  grid-template-columns: 2fr 1.3fr 1fr 1fr auto;
   gap: 14px;
   align-items: center;
   padding: 15px 4px;
@@ -6515,6 +6515,7 @@ a {
 }
 
 .admin-workspace .workspace-products .product-table-header {
+  grid-template-columns: 2fr 1.3fr 1fr 1fr auto;
   background: #faf6ef;
   border-bottom: 1px solid #ded5c8;
   border-radius: 8px 8px 0 0;
