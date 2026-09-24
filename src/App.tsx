@@ -167,6 +167,26 @@ function Step({n,title,text}:{n:string;title:string;text:string}){return <div cl
 
 function CustomerPortal({schoolId,schoolName,branchName,branchId,studentId,page,setPage,onLogout}:{schoolId:string;schoolName:string;branchName:string;branchId:string;studentId:string;page:CustomerPage;setPage:(p:CustomerPage)=>void;onLogout:()=>void}){
   const [cart,setCart]=useState<CartItem[]>([]),[checkout,setCheckout]=useState<CheckoutStep|null>(null),[selected,setSelected]=useState<CartItem|null>(null),[students,setStudents]=useState<any[]>([])
+  const screen=checkout?('checkout:'+checkout):(selected?'detail':'page:'+page)
+  useEffect(()=>{
+    const onPopState=(event:PopStateEvent)=>{
+      const state=event.state
+      if(state?.schoolUniformApp==='customer'){
+        setPage(state.page||'dashboard')
+        setCheckout(state.checkout||null)
+        if(state.screen!=='detail')setSelected(null)
+        return
+      }
+      setSelected(null);setCheckout(null);setPage('dashboard')
+      window.history.replaceState({schoolUniformApp:'customer',screen:'page:dashboard',page:'dashboard'},'',window.location.href)
+    }
+    window.addEventListener('popstate',onPopState)
+    return()=>window.removeEventListener('popstate',onPopState)
+  },[setPage])
+  useEffect(()=>{
+    if(window.history.state?.schoolUniformApp==='customer'&&window.history.state?.screen===screen)return
+    window.history.pushState({schoolUniformApp:'customer',screen,page,checkout:checkout||null},'',window.location.href)
+  },[screen,page,checkout])
   useEffect(()=>{
     const client=supabase as any
     if(!client||!branchId)return
@@ -312,6 +332,20 @@ function AdminModuleActive({icon,title,text,onClick}:{icon:React.ReactNode;title
 function AdminPortal({onBack}:{onBack:()=>void}){
   const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[admin,setAdmin]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState('')
   const [schools,setSchools]=useState<SchoolOption[]>([]),[branches,setBranches]=useState<BranchOption[]>([]),[school,setSchool]=useState(''),[branch,setBranch]=useState(''),[tool,setTool]=useState<'menu'|'parent'|'import'|'home'|'schools'|'products'|'packages'|'orders'|'payments'|'inventory'|'students'|'reports'|'catalog'|'coupons'>('menu')
+  useEffect(()=>{
+    const onPopState=(event:PopStateEvent)=>{
+      const state=event.state
+      if(state?.schoolUniformApp==='admin'){setTool(state.tool||'menu');return}
+      setTool('menu')
+      window.history.replaceState({schoolUniformApp:'admin',tool:'menu'},'',window.location.href)
+    }
+    window.addEventListener('popstate',onPopState)
+    return()=>window.removeEventListener('popstate',onPopState)
+  },[])
+  useEffect(()=>{
+    if(window.history.state?.schoolUniformApp==='admin'&&window.history.state?.tool===tool)return
+    window.history.pushState({schoolUniformApp:'admin',tool},'',window.location.href)
+  },[tool])
   async function login(){const client=supabase;if(!client||!email.trim()||!password)return;setLoading(true);setError('');const {data,error}=await client.auth.signInWithPassword({email:email.trim(),password});if(error||!data.user){setError('Invalid admin email or password.');setLoading(false);return}const {data:p,error:pe}=await client.from('profiles').select('role').eq('id',data.user.id).single();if(pe||!p||!['admin','super_admin'].includes(p.role)){await client.auth.signOut({scope:'local'});setError('This account is not authorized for the Admin Portal.');setLoading(false);return}setAdmin(true);setLoading(false)}
   useEffect(()=>{const client=supabase;if(!client)return;void client.auth.getSession().then(async ({data})=>{if(!data.session)return;const {data:p}=await client.from('profiles').select('role').eq('id',data.session.user.id).maybeSingle();if(p&&['admin','super_admin'].includes(p.role))setAdmin(true)})},[])
   useEffect(()=>{const client=supabase;if(!admin||!client)return;void client.from('schools').select('id,name').eq('status','active').order('name').then(({data})=>setSchools(data??[]))},[admin])
