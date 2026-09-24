@@ -1214,6 +1214,12 @@ function InventoryAdmin() {
             placeholder="Search inventory"
           />
         </div>
+        <button
+          className="primary-button"
+          onClick={() => window.dispatchEvent(new CustomEvent('admin:add-product'))}
+        >
+          <Plus size={15} /> Add Product
+        </button>
       </Toolbar>
       <ErrorBox text={error} />
       {loading ? (
