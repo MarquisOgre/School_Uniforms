@@ -1258,21 +1258,35 @@ function InventoryAdmin() {
 
 function ParentStudents() {
   const [rows, setRows] = useState<any[]>([]),
+    [parents, setParents] = useState<any[]>([]),
+    [branches, setBranches] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
-    [search, setSearch] = useState('')
+    [search, setSearch] = useState(''),
+    [editing, setEditing] = useState<any>(null)
 
   const load = async () => {
     if (!supabase) return
     setLoading(true)
-    const r = await dbFrom('students')
-      .select(
-        '*, parent_student_links(parent_user_id,relationship,is_primary,profiles:parent_user_id(full_name))',
-      )
-      .order('created_at', { ascending: false })
-      .limit(200)
-    setRows(r.data ?? [])
-    setError(r.error?.message || '')
+    const [studentsResult, parentsResult, branchesResult] = await Promise.all([
+      dbFrom('students')
+        .select(
+          '*, parent_student_links(parent_user_id,relationship,is_primary,profiles:parent_user_id(full_name))',
+        )
+        .order('created_at', { ascending: false })
+        .limit(200),
+      dbFrom('profiles').select('id,full_name,school_id,branch_id').eq('role', 'customer').order('full_name'),
+      dbFrom('branches').select('id,name,school_id').order('name'),
+    ])
+    setRows(studentsResult.data ?? [])
+    setParents(parentsResult.data ?? [])
+    setBranches(branchesResult.data ?? [])
+    setError(
+      studentsResult.error?.message ||
+        parentsResult.error?.message ||
+        branchesResult.error?.message ||
+        '',
+    )
     setLoading(false)
   }
 
@@ -1280,30 +1294,114 @@ function ParentStudents() {
     void load()
   }, [])
 
+  const openNew = () => {
+    const firstBranch = branches[0]
+    setEditing({
+      id: '',
+      student_code: '',
+      full_name: '',
+      class_name: '',
+      section: '',
+      gender: '',
+      date_of_birth: '',
+      status: 'active',
+      school_id: firstBranch?.school_id || '',
+      branch_id: firstBranch?.id || '',
+      father_id: parents[0]?.id || '',
+    })
+  }
+
+  const openEdit = (student: any) => {
+    const father =
+      student.parent_student_links
+        ?.filter((p: any) => p.relationship?.toLowerCase() === 'father')
+        ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]
+    setEditing({
+      ...student,
+      father_id: father?.parent_user_id || '',
+      date_of_birth: student.date_of_birth || '',
+    })
+  }
+
+  const save = async () => {
+    if (!supabase || !editing) return
+    if (!editing.student_code?.trim() || !editing.full_name?.trim()) {
+      setError('Student Code and Full Name are required.')
+      return
+    }
+    if (!editing.school_id || !editing.branch_id) {
+      setError('School and Branch are required.')
+      return
+    }
+
+    const payload = {
+      school_id: editing.school_id,
+      branch_id: editing.branch_id,
+      student_code: editing.student_code.trim(),
+      full_name: editing.full_name.trim(),
+      class_name: editing.class_name || null,
+      section: editing.section || null,
+      gender: editing.gender || null,
+      date_of_birth: editing.date_of_birth || null,
+      status: editing.status || 'active',
+    }
+
+    const result = editing.id
+      ? await dbFrom('students').update(payload).eq('id', editing.id).select('id').maybeSingle()
+      : await dbFrom('students').insert(payload).select('id').single()
+
+    if (result.error) {
+      setError(result.error.message)
+      return
+    }
+
+    const studentId = editing.id || result.data?.id
+    if (!studentId) {
+      setError('Student was not saved.')
+      return
+    }
+
+    await dbFrom('parent_student_links').delete().eq('student_id', studentId)
+
+    if (editing.father_id) {
+      const link = await dbFrom('parent_student_links').insert({
+        parent_user_id: editing.father_id,
+        student_id: studentId,
+        relationship: 'father',
+        is_primary: true,
+      })
+      if (link.error) {
+        setError(link.error.message)
+        return
+      }
+    }
+
+    setEditing(null)
+    await load()
+  }
+
   const toggleStatus = async (student: any) => {
     if (!supabase || !student?.id) return
     const nextStatus =
       String(student.status || '').toLowerCase() === 'active' ? 'inactive' : 'active'
-    const r = await dbFrom('students')
+    const result = await dbFrom('students')
       .update({ status: nextStatus })
       .eq('id', student.id)
       .select('id,status')
       .maybeSingle()
 
-    if (r.error) {
-      setError(r.error.message)
+    if (result.error) {
+      setError(result.error.message)
       return
     }
 
-    if (!r.data) {
-      setError(
-        'Student status was not changed. Your account may not have permission to update this student.',
-      )
+    if (!result.data) {
+      setError('Student status was not changed. Your account may not have permission to update this student.')
       return
     }
 
     setRows((current) =>
-      current.map((item) => (item.id === student.id ? { ...item, status: r.data.status } : item)),
+      current.map((item) => (item.id === student.id ? { ...item, status: result.data.status } : item)),
     )
   }
 
@@ -1322,11 +1420,7 @@ function ParentStudents() {
       r.gender,
       r.date_of_birth,
       r.status,
-    ].some((v) =>
-      String(v ?? '')
-        .toLowerCase()
-        .includes(search.toLowerCase()),
-    )
+    ].some((v) => String(v ?? '').toLowerCase().includes(search.toLowerCase()))
   })
 
   return (
@@ -1340,12 +1434,7 @@ function ParentStudents() {
             placeholder="Search parents & students"
           />
         </div>
-        <button
-          className="primary-button"
-          onClick={() => {
-            alert('Student creation will be connected to the parent account flow.')
-          }}
-        >
+        <button className="primary-button" onClick={openNew}>
           <Plus size={15} /> Add Student
         </button>
       </Toolbar>
@@ -1387,13 +1476,11 @@ function ParentStudents() {
                       <td>{r.date_of_birth || '—'}</td>
                       <td>{r.status || '—'}</td>
                       <td>
-                        <button
-                          className="table-action-button"
-                          onClick={() => void toggleStatus(r)}
-                        >
-                          {String(r.status || '').toLowerCase() === 'active'
-                            ? 'Inactive'
-                            : 'Active'}
+                        <button className="table-action-button" onClick={() => openEdit(r)}>
+                          Edit
+                        </button>
+                        <button className="table-action-button" onClick={() => void toggleStatus(r)}>
+                          {String(r.status || '').toLowerCase() === 'active' ? 'Inactive' : 'Active'}
                         </button>
                       </td>
                     </tr>
@@ -1404,10 +1491,72 @@ function ParentStudents() {
           </div>
         </Panel>
       )}
+      {editing && (
+        <EditModal
+          title={editing.id ? 'Edit Student' : 'Add Student'}
+          onClose={() => setEditing(null)}
+          onSave={save}
+        >
+          <Field
+            label="Student Code"
+            value={editing.student_code || ''}
+            onChange={(v) => setEditing({ ...editing, student_code: v })}
+          />
+          <Field
+            label="Full Name"
+            value={editing.full_name || ''}
+            onChange={(v) => setEditing({ ...editing, full_name: v })}
+          />
+          <Select
+            label="Father"
+            value={editing.father_id || ''}
+            options={parents.map((p) => p.id)}
+            labels={Object.fromEntries(parents.map((p) => [p.id, p.full_name || 'Unnamed Parent']))}
+            onChange={(v) => setEditing({ ...editing, father_id: v })}
+          />
+          <Select
+            label="Branch"
+            value={editing.branch_id || ''}
+            options={branches.map((b) => b.id)}
+            labels={Object.fromEntries(branches.map((b) => [b.id, b.name]))}
+            onChange={(v) => {
+              const branch = branches.find((b) => b.id === v)
+              setEditing({ ...editing, branch_id: v, school_id: branch?.school_id || editing.school_id })
+            }}
+          />
+          <Field
+            label="Class Name"
+            value={editing.class_name || ''}
+            onChange={(v) => setEditing({ ...editing, class_name: v })}
+          />
+          <Field
+            label="Section"
+            value={editing.section || ''}
+            onChange={(v) => setEditing({ ...editing, section: v })}
+          />
+          <Select
+            label="Gender"
+            value={editing.gender || ''}
+            options={['boys', 'girls', 'unisex']}
+            onChange={(v) => setEditing({ ...editing, gender: v })}
+          />
+          <Field
+            label="Date of Birth"
+            type="date"
+            value={editing.date_of_birth || ''}
+            onChange={(v) => setEditing({ ...editing, date_of_birth: v })}
+          />
+          <Select
+            label="Status"
+            value={editing.status || 'active'}
+            options={['active', 'inactive']}
+            onChange={(v) => setEditing({ ...editing, status: v })}
+          />
+        </EditModal>
+      )}
     </>
   )
 }
-
 function SimpleTable({
   title,
   table,
