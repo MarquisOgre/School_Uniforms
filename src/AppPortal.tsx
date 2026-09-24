@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type React from 'react'
-import { ArrowRight, Building2, ChevronLeft, ClipboardList, Home, Minus, Package, Plus, Search, ShoppingBag, ShoppingCart, UserRound } from 'lucide-react'
+import { ArrowRight, Building2, ChevronLeft, LogOut, ClipboardList, Home, Minus, Package, Plus, Search, ShoppingBag, ShoppingCart, UserRound } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import CheckoutFlow, { type CheckoutCartItem } from './CheckoutFlow'
 import { CustomerPageFrame } from './components/GlobalChrome'
