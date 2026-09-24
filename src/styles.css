@@ -6729,10 +6729,10 @@ a {
 /* Catalog Rules workspace: title on left, Add Rule + Refresh together on the right. */
 .admin-workspace .workspace-catalog {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     'title toolbar'
-    'description description'
+    'description toolbar'
     'error error'
     'body body';
   align-content: start;
@@ -6755,7 +6755,7 @@ a {
 
 .admin-workspace .workspace-catalog > .workspace-toolbar {
   grid-area: toolbar;
-  justify-self: start;
+  justify-self: end;
   margin: 0 0 18px;
   align-self: center;
 }
