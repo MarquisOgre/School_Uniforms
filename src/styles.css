@@ -6395,7 +6395,10 @@ a {
 
 /* Keep product pricing and Edit action on one desktop row. */
 .workspace-row.product-row {
-  grid-template-columns: minmax(240px, 2fr) minmax(150px, 1.2fr) minmax(100px, 0.8fr) minmax(120px, 0.9fr) auto;
+  grid-template-columns: minmax(240px, 2fr) minmax(150px, 1.2fr) minmax(100px, 0.8fr) minmax(
+      120px,
+      0.9fr
+    ) auto;
 }
 
 .workspace-row.product-row button {
