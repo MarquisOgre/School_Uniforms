@@ -63,76 +63,29 @@ function App(){
 }
 
 function Landing({onLogin}:{onLogin:()=>void}){
-  const [menu,setMenu]=useState(false)
+  const [menu,setMenu]=useState(false),[slide,setSlide]=useState(0)
+  const slides=[
+    {eyebrow:'PREMIUM SCHOOL UNIFORMS',title:<>Dress for<br/><em>Brighter</em><br/>Tomorrows.</>,text:'Quality uniforms for confident learners. Shop school-approved uniforms, packages and accessories — all in one place.',image:'/boys-uniform.svg',accent:'blue',tag:'LEARN • PLAY • GROW'},
+    {eyebrow:'THE COMPLETE SCHOOL LOOK',title:<>Ready for<br/><em>Every</em><br/>School Day.</>,text:'From everyday essentials to complete uniform packages, find everything your student needs in one simple store.',image:'/girls-uniform.svg',accent:'rose',tag:'CONFIDENCE • COMFORT • STYLE'},
+    {eyebrow:'EVERYTHING IN ONE PLACE',title:<>One Store.<br/><em>Every</em><br/>School Essential.</>,text:'Shop uniforms, shoes, socks and accessories with school-specific products, sizing and pricing already organized.',image:'/accessories.svg',accent:'gold',tag:'UNIFORMS • PACKAGES • ACCESSORIES'}
+  ]
+  const current=slides[slide]
+  useEffect(()=>{const t=window.setInterval(()=>setSlide(s=>(s+1)%slides.length),6000);return()=>window.clearInterval(t)},[])
   return <main className="landing">
-    <header className="store-header">
-      <div className="store-header-inner">
-        <div className="site-brand"><img className="brand-logo" src="/logo.png" alt="Artisan" /></div>
-        <nav className={menu?'nav-open':''}>
-          <a className="active" href="#">Home</a><a href="#collections">Uniforms</a><a href="#packages">Packages</a><a href="#accessories">Accessories</a><a href="#size-guide">Size Guide</a><a href="#support">Help</a>
-        </nav>
-        <div className="store-actions"><button className="header-link" onClick={onLogin}>Orders</button><button className="login-top" onClick={onLogin}>Parent / Student Login <ArrowRight size={15}/></button></div>
-        <button className="mobile-menu" onClick={()=>setMenu(v=>!v)}>{menu?<X/>:<Menu/>}</button>
-      </div>
-    </header>
-
-    <section className="store-hero">
-      <div className="hero-panel">
-        <div className="hero-copy-store">
-          <p className="eyebrow">PREMIUM SCHOOL UNIFORMS</p>
-          <h1>Dress for<br/><em>Brighter</em><br/>Tomorrows.</h1>
-          <p>Quality uniforms for confident learners. Shop school-approved uniforms, packages and accessories — all in one place.</p>
-          <div className="hero-actions"><button className="hero-primary" onClick={onLogin}>Shop Uniforms <ArrowRight size={17}/></button><a className="hero-secondary" href="#packages">View Packages</a></div>
-        </div>
-        <div className="hero-student-stage">
-          <div className="sun-disc"/><div className="stage-ring"/>
-          <img src="/boys-uniform.svg" alt="Boys school uniform"/>
-          <img className="stage-girls" src="/girls-uniform.svg" alt="Girls school uniform"/>
-          <div className="approval-seal"><span>ARTISAN</span><strong>100%</strong><small>SCHOOL<br/>APPROVED</small></div>
-        </div>
+    <header className="store-header"><div className="store-header-inner"><div className="site-brand"><img className="brand-logo" src="/logo.png" alt="Artisan" /></div><nav className={menu?'nav-open':''}><a className="active" href="#">Home</a><a href="#collections">Uniforms</a><a href="#packages">Packages</a><a href="#accessories">Accessories</a><a href="#size-guide">Size Guide</a><a href="#support">Help</a></nav><div className="store-actions"><button className="header-link" onClick={onLogin}>Orders</button><button className="login-top" onClick={onLogin}>Parent / Student Login <ArrowRight size={15}/></button></div><button className="mobile-menu" onClick={()=>setMenu(v=>!v)}>{menu?<X/>:<Menu/>}</button></div></header>
+    <section className={"store-hero slider-"+current.accent}>
+      <div className="hero-panel slider-panel">
+        <div className="hero-copy-store"><p className="eyebrow">{current.eyebrow}</p><h1 key={slide}>{current.title}</h1><p key={"copy-"+slide}>{current.text}</p><div className="hero-actions"><button className="hero-primary" onClick={onLogin}>Shop Uniforms <ArrowRight size={17}/></button><a className="hero-secondary" href="#packages">View Packages</a></div><div className="slider-controls"><button onClick={()=>setSlide((slide+slides.length-1)%slides.length)} aria-label="Previous slide"><ChevronLeft size={17}/></button><div>{slides.map((_,i)=><button key={i} className={i===slide?'dot active':'dot'} onClick={()=>setSlide(i)} aria-label={"Slide "+(i+1)}/>)}</div><button onClick={()=>setSlide((slide+1)%slides.length)} aria-label="Next slide"><ArrowRight size={17}/></button><span>{"0"+(slide+1)} / 0{slides.length}</span></div></div>
+        <div className="hero-student-stage slider-stage"><div className="sun-disc"/><div className="stage-ring"/><div className="stage-glow"/><img key={slide} className="main-slide-image" src={current.image} alt="" /><div className="stage-caption">{current.tag}</div><div className="approval-seal"><span>ARTISAN</span><strong>100%</strong><small>SCHOOL<br/>APPROVED</small></div></div>
       </div>
     </section>
-
-    <section className="trust-strip">
-      <TrustItem icon={<Building2/>} title="School Approved" text="Official school catalogues"/>
-      <TrustItem icon={<Sparkles/>} title="Premium Quality" text="Comfortable fabrics"/>
-      <TrustItem icon={<ShoppingBag/>} title="Easy Online Ordering" text="Simple from start to finish"/>
-      <TrustItem icon={<Package/>} title="Fast & Reliable Delivery" text="To your selected address"/>
-    </section>
-
-    <section id="collections" className="store-section category-section">
-      <div className="store-section-head"><div><p className="eyebrow">SHOP YOUR SCHOOL STORE</p><h2>Shop by Category</h2></div><button onClick={onLogin}>View All <ArrowRight size={15}/></button></div>
-      <div className="category-grid">
-        <CategoryCard image="/boys-uniform.svg" title="Boys Uniforms" text="Shirts, trousers & essentials" onClick={onLogin}/>
-        <CategoryCard image="/girls-uniform.svg" title="Girls Uniforms" text="Blouses, skirts & essentials" onClick={onLogin}/>
-        <CategoryCard image="/accessories.svg" title="Packages" text="Complete school-ready sets" onClick={onLogin}/>
-        <CategoryCard image="/accessories.svg" title="Accessories" text="Shoes, belts, ties & socks" onClick={onLogin}/>
-      </div>
-    </section>
-
-    <section id="packages" className="store-section featured-section">
-      <div className="store-section-head"><div><p className="eyebrow">CURATED FOR THE SCHOOL YEAR</p><h2>Featured Collections</h2></div><button onClick={onLogin}>View All <ArrowRight size={15}/></button></div>
-      <div className="featured-grid">
-        <CollectionCard image="/boys-uniform.svg" title="Boys Uniforms" text="The everyday essentials, ready to order." onClick={onLogin}/>
-        <CollectionCard image="/girls-uniform.svg" title="Girls Uniforms" text="Comfort, fit and school-approved style." onClick={onLogin}/>
-        <CollectionCard image="/accessories.svg" title="Complete Packages" text="Everything you need in one package." onClick={onLogin}/>
-      </div>
-    </section>
-
-    <section id="size-guide" className="story-section">
-      <div className="story-image"><img src="/girls-uniform.svg" alt="School uniform collection"/><div className="story-tag">QUALITY<br/><strong>YOU CAN SEE</strong></div></div>
-      <div className="story-copy"><p className="eyebrow">MADE FOR EVERY SCHOOL DAY</p><h2>Uniforms that look right.<br/><em>Feel right too.</em></h2><p>From the first day of term to the final school bell, Artisan makes it easier to get the right uniform, the right size and the right school-approved products.</p><div className="story-points"><span><CheckCircle2/> School-approved collections</span><span><CheckCircle2/> Easy size selection</span><span><CheckCircle2/> Complete packages available</span></div><button className="hero-primary" onClick={onLogin}>Explore the Store <ArrowRight size={17}/></button></div>
-    </section>
-
-    <section id="accessories" className="lifestyle-section">
-      <div className="lifestyle-heading"><p className="eyebrow">MORE THAN UNIFORMS</p><h2>Everything for<br/><em>their school journey.</em></h2><p>Uniforms, accessories and complete packages designed around the real school day.</p></div>
-      <div className="lifestyle-cards"><LifeCard image="/boys-uniform.svg" title="In the Classroom" /><LifeCard image="/girls-uniform.svg" title="Ready for the Day" /><LifeCard image="/accessories.svg" title="Every Detail" /><LifeCard image="/boys-uniform.svg" title="Built to Belong" /></div>
-    </section>
-
+    <section className="trust-strip"><TrustItem icon={<Building2/>} title="School Approved" text="Official school catalogues"/><TrustItem icon={<Sparkles/>} title="Premium Quality" text="Comfortable fabrics"/><TrustItem icon={<ShoppingBag/>} title="Easy Online Ordering" text="Simple from start to finish"/><TrustItem icon={<Package/>} title="Fast & Reliable Delivery" text="To your selected address"/></section>
+    <section id="collections" className="store-section category-section"><div className="store-section-head"><div><p className="eyebrow">SHOP YOUR SCHOOL STORE</p><h2>Shop by Category</h2></div><button onClick={onLogin}>View All <ArrowRight size={15}/></button></div><div className="category-grid"><CategoryCard image="/boys-uniform.svg" title="Boys Uniforms" text="Shirts, trousers & essentials" onClick={onLogin}/><CategoryCard image="/girls-uniform.svg" title="Girls Uniforms" text="Blouses, skirts & essentials" onClick={onLogin}/><CategoryCard image="/accessories.svg" title="Packages" text="Complete school-ready sets" onClick={onLogin}/><CategoryCard image="/accessories.svg" title="Accessories" text="Shoes, belts, ties & socks" onClick={onLogin}/></div></section>
+    <section id="packages" className="store-section featured-section"><div className="store-section-head"><div><p className="eyebrow">CURATED FOR THE SCHOOL YEAR</p><h2>Featured Collections</h2></div><button onClick={onLogin}>View All <ArrowRight size={15}/></button></div><div className="featured-grid"><CollectionCard image="/boys-uniform.svg" title="Boys Uniforms" text="The everyday essentials, ready to order." onClick={onLogin}/><CollectionCard image="/girls-uniform.svg" title="Girls Uniforms" text="Comfort, fit and school-approved style." onClick={onLogin}/><CollectionCard image="/accessories.svg" title="Complete Packages" text="Everything you need in one package." onClick={onLogin}/></div></section>
+    <section id="size-guide" className="story-section"><div className="story-image"><img src="/girls-uniform.svg" alt="School uniform collection"/><div className="story-tag">QUALITY<br/><strong>YOU CAN SEE</strong></div></div><div className="story-copy"><p className="eyebrow">MADE FOR EVERY SCHOOL DAY</p><h2>Uniforms that look right.<br/><em>Feel right too.</em></h2><p>From the first day of term to the final school bell, Artisan makes it easier to get the right uniform, the right size and the right school-approved products.</p><div className="story-points"><span><CheckCircle2/> School-approved collections</span><span><CheckCircle2/> Easy size selection</span><span><CheckCircle2/> Complete packages available</span></div><button className="hero-primary" onClick={onLogin}>Explore the Store <ArrowRight size={17}/></button></div></section>
+    <section id="accessories" className="lifestyle-section"><div className="lifestyle-heading"><p className="eyebrow">MORE THAN UNIFORMS</p><h2>Everything for<br/><em>their school journey.</em></h2><p>Uniforms, accessories and complete packages designed around the real school day.</p></div><div className="lifestyle-cards"><LifeCard image="/boys-uniform.svg" title="In the Classroom"/><LifeCard image="/girls-uniform.svg" title="Ready for the Day"/><LifeCard image="/accessories.svg" title="Every Detail"/><LifeCard image="/boys-uniform.svg" title="Built to Belong"/></div></section>
     <section className="benefit-band"><Benefit icon={<CheckCircle2/>} title="School Approved" text="Official products"/><Benefit icon={<Sparkles/>} title="Comfortable Fit" text="Made for everyday wear"/><Benefit icon={<Package/>} title="Complete Packages" text="Save time & effort"/><Benefit icon={<ShoppingBag/>} title="Trusted Shopping" text="Simple online ordering"/></section>
-
     <section id="support" className="store-cta"><div><p className="eyebrow">READY FOR THE NEW TERM?</p><h2>Everything your student needs.<br/><em>One simple place.</em></h2></div><button onClick={onLogin}>Enter Your School Store <ArrowRight size={17}/></button></section>
-
     <footer className="store-footer"><div className="footer-brand"><img className="brand-logo" src="/logo.png" alt="Artisan"/><p>School uniforms, made simple.</p></div><div className="footer-nav"><div><strong>Shop</strong><a href="#collections">Uniforms</a><a href="#packages">Packages</a><a href="#accessories">Accessories</a></div><div><strong>Help</strong><a href="#size-guide">Size Guide</a><a onClick={onLogin}>Parent / Student Login</a><a>Support</a></div><div><strong>Information</strong><a>About Artisan</a><a>Terms & Conditions</a><a>Privacy Policy</a></div></div><div className="footer-bottom"><span>© 2026 Artisan. All rights reserved.</span><span>School-specific shopping • Secure access</span></div></footer>
   </main>
 }
