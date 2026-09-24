@@ -1282,7 +1282,8 @@ function ParentStudents() {
 
   const toggleStatus = async (student: any) => {
     if (!supabase || !student?.id) return
-    const nextStatus = String(student.status || '').toLowerCase() === 'active' ? 'inactive' : 'active'
+    const nextStatus =
+      String(student.status || '').toLowerCase() === 'active' ? 'inactive' : 'active'
     const r = await dbFrom('students').update({ status: nextStatus }).eq('id', student.id)
     if (r.error) {
       setError(r.error.message)
@@ -1375,7 +1376,9 @@ function ParentStudents() {
                           className="table-action-button"
                           onClick={() => void toggleStatus(r)}
                         >
-                          {String(r.status || '').toLowerCase() === 'active' ? 'Deactivate' : 'Activate'}
+                          {String(r.status || '').toLowerCase() === 'active'
+                            ? 'Deactivate'
+                            : 'Activate'}
                         </button>
                       </td>
                     </tr>
