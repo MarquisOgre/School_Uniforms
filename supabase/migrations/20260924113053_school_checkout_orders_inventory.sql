@@ -175,6 +175,7 @@ begin
         if v_variant_id is null then raise exception 'A package item is missing a valid variant selection.'; end if;
         v_item_allocations:=v_item_allocations||jsonb_build_array(jsonb_build_object('package_item_id',v_package_item_id,'variant_id',v_variant_id,'product_id',v_source_id,'quantity',v_alloc_qty));
       end loop;
+      v_source_id:=nullif(v_item->>'source_id','')::uuid;
       insert into public.order_items(order_id,product_id,package_id,quantity,unit_price,item_name_snapshot,selected_variants,inventory_allocations) values(v_order_id,null,v_source_id,v_quantity,v_unit_price,v_name,v_selected,v_item_allocations);
     end if;
   end loop;
