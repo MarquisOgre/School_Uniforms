@@ -6502,6 +6502,7 @@ a {
     'description toolbar'
     'error error'
     'body body';
+  align-content: start;
 }
 
 .admin-workspace .workspace-products > .workspace-error {
@@ -6639,5 +6640,36 @@ a {
 
   .admin-workspace .payment-settings-row.admin-table-header {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* Products table: keep columns aligned and centered consistently. */
+.admin-workspace .workspace-products .product-table-header > *:nth-child(2),
+.admin-workspace .workspace-products .product-table-header > *:nth-child(3),
+.admin-workspace .workspace-products .product-table-header > *:nth-child(4),
+.admin-workspace .workspace-products .product-table-header > *:nth-child(5) {
+  text-align: center;
+}
+
+.admin-workspace .workspace-products .product-row > *:nth-child(2),
+.admin-workspace .workspace-products .product-row > *:nth-child(3),
+.admin-workspace .workspace-products .product-row > *:nth-child(4),
+.admin-workspace .workspace-products .product-row > *:nth-child(5) {
+  text-align: center;
+}
+
+.admin-workspace .workspace-products .product-row > button {
+  justify-self: center;
+}
+
+@media (max-width: 900px) {
+  .admin-workspace .workspace-products .product-table-header > *,
+  .admin-workspace .workspace-products .product-row > * {
+    text-align: left;
+  }
+
+  .admin-workspace .workspace-products .product-row > button {
+    justify-self: stretch;
   }
 }
