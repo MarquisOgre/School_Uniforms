@@ -6392,3 +6392,25 @@ a {
     font-size: 28px;
   }
 }
+
+/* Keep product pricing and Edit action on one desktop row. */
+.workspace-row.product-row {
+  grid-template-columns: minmax(240px, 2fr) minmax(150px, 1.2fr) minmax(100px, 0.8fr) minmax(120px, 0.9fr) auto;
+}
+
+.workspace-row.product-row button {
+  justify-self: end;
+  min-width: 82px;
+}
+
+@media (max-width: 760px) {
+  .workspace-row.product-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .workspace-row.product-row button {
+    justify-self: stretch;
+    width: 100%;
+  }
+}
