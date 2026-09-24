@@ -1023,3 +1023,5 @@ function Profile({ studentId }: { studentId: string }) {
     </div>
   )
 }
+
+export default CustomerPortal
