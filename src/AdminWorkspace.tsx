@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { ArrowLeft, Plus, RefreshCw, Save, Trash2, Search, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
@@ -37,8 +37,8 @@ function ModuleBody({module}:{module:ModuleKey}){
  }
 }
 
-function Panel({children}:{children:React.ReactNode}){return <section className="workspace-panel">{children}</section>}
-function Toolbar({children,onRefresh}:{children:React.ReactNode;onRefresh:()=>void}){return <div className="workspace-toolbar"><div>{children}</div><button className="secondary-button" onClick={onRefresh}><RefreshCw size={15}/> Refresh</button></div>}
+function Panel({children}:{children:ReactNode}){return <section className="workspace-panel">{children}</section>}
+function Toolbar({children,onRefresh}:{children:ReactNode;onRefresh:()=>void}){return <div className="workspace-toolbar"><div>{children}</div><button className="secondary-button" onClick={onRefresh}><RefreshCw size={15}/> Refresh</button></div>}
 function Loading(){return <div className="workspace-empty">Loading...</div>}
 function ErrorBox({text}:{text:string}){return text?<div className="workspace-error">{text}</div>:null}
 
@@ -93,6 +93,6 @@ function Coupons(){
  return <><Toolbar onRefresh={load}><button className="primary-button" onClick={()=>setEditing({code:'',description:'',discount_type:'percent',discount_value:0,status:'active'})}><Plus size={15}/> Add Coupon</button></Toolbar><ErrorBox text={error}/><Panel><div className="workspace-table">{rows.map(x=><div className="workspace-row" key={x.id}><strong>{x.code}</strong><span>{x.discount_type}</span><span>{x.discount_value}</span><span>{x.status}</span><button onClick={()=>setEditing({...x})}>Edit</button></div>)}</div></Panel>{editing&&<EditModal title={editing.id?'Edit Coupon':'Add Coupon'} onClose={()=>setEditing(null)} onSave={save}><Field label="Code" value={editing.code} onChange={v=>setEditing({...editing,code:v})}/><Field label="Description" value={editing.description||''} onChange={v=>setEditing({...editing,description:v})} area/><Select label="Discount Type" value={editing.discount_type} options={['percent','fixed']} onChange={v=>setEditing({...editing,discount_type:v})}/><Field label="Discount Value" value={String(editing.discount_value)} onChange={v=>setEditing({...editing,discount_value:v})} type="number"/><Field label="Usage Limit" value={String(editing.usage_limit||'')} onChange={v=>setEditing({...editing,usage_limit:v})} type="number"/><Select label="Status" value={editing.status} options={['active','inactive','suspended']} onChange={v=>setEditing({...editing,status:v})}/></EditModal>}</>
 }
 
-function EditModal({title,onClose,onSave,children}:{title:string;onClose:()=>void;onSave:()=>void;children:React.ReactNode}){return <div className="workspace-modal"><div className="workspace-modal-card"><button className="workspace-close" onClick={onClose}><X size={18}/></button><h2>{title}</h2><div className="workspace-form">{children}</div><div className="workspace-modal-actions"><button className="secondary-button" onClick={onClose}>Cancel</button><button className="primary-button" onClick={onSave}><Save size={15}/> Save</button></div></div></div>}
+function EditModal({title,onClose,onSave,children}:{title:string;onClose:()=>void;onSave:()=>void;children:ReactNode}){return <div className="workspace-modal"><div className="workspace-modal-card"><button className="workspace-close" onClick={onClose}><X size={18}/></button><h2>{title}</h2><div className="workspace-form">{children}</div><div className="workspace-modal-actions"><button className="secondary-button" onClick={onClose}>Cancel</button><button className="primary-button" onClick={onSave}><Save size={15}/> Save</button></div></div></div>}
 function Field({label,value,onChange,type='text',area=false}:{label:string;value:string;onChange:(v:string)=>void;type?:string;area?:boolean}){return <label className="workspace-field"><span>{label}</span>{area?<textarea value={value} onChange={e=>onChange(e.target.value)}/>:<input type={type} value={value} onChange={e=>onChange(e.target.value)}/>}</label>}
 function Select({label,value,options,labels,onChange}:{label:string;value:string;options:string[];labels?:Record<string,string>;onChange:(v:string)=>void}){return <label className="workspace-field"><span>{label}</span><select value={value} onChange={e=>onChange(e.target.value)}>{options.map(x=><option key={x} value={x}>{labels?.[x]||x}</option>)}</select></label>}
