@@ -45,7 +45,8 @@ function App(){
       if(stored){
         try{const ctx=JSON.parse(stored);if(ctx?.mode==='store'&&ctx.school&&ctx.branch){setSchool(ctx.school);setBranch(ctx.branch);setStudentId(ctx.studentId||'');setCustomerPage(ctx.customerPage||'dashboard');setMode('store');const {data:branchRows}=await client.from('branches').select('id,name').eq('school_id',ctx.school).eq('status','active').order('name');if(!cancelled)setBranches(branchRows??[])}}catch{localStorage.removeItem('school_uniform_portal_context')}}
       const {data:profile}=await client.from('profiles').select('role').eq('id',data.session.user.id).maybeSingle()
-      if(profile&&['admin','super_admin'].includes(profile.role))setMode('admin')
+      const isAdminPath=window.location.pathname==='/admin'||window.location.pathname.startsWith('/admin/')
+      if(profile&&['admin','super_admin'].includes(profile.role)&&isAdminPath)setMode('admin')
       setSessionRestoring(false)
     }
     void restore();return()=>{cancelled=true}
@@ -63,7 +64,7 @@ function App(){
   if(sessionRestoring)return <div className="session-loading"><img src="/logo.png" alt="Artisan"/><span>Restoring your session...</span></div>
 
   if(mode==='store')return <CustomerPortal schoolId={school} schoolName={selectedSchoolName} branchName={selectedBranchName} branchId={branch} studentId={studentId} page={customerPage} setPage={setCustomerPage} onLogout={()=>void logout()}/>
-  if(mode==='admin')return <AdminPortal onBack={()=>setMode('login')}/>
+  if(mode==='admin')return <AdminPortal onBack={()=>{window.history.pushState({},'', '/');setMode('login')}}/>
 
   return <>
     <Landing onLogin={()=>setShowLogin(true)} />
@@ -91,7 +92,7 @@ function App(){
           </div>
         </div>
         <button className="text-button">Forgot Password?</button>
-        <button className="admin-link" onClick={()=>{setShowLogin(false);setMode('admin')}}>Administrator Portal</button>
+        <button className="admin-link" onClick={()=>{setShowLogin(false);window.history.pushState({},'', '/admin');setMode('admin')}}>Administrator Portal</button>
       </section>
     </div>}
   </>
@@ -334,17 +335,22 @@ function AdminPortal({onBack}:{onBack:()=>void}){
   const [schools,setSchools]=useState<SchoolOption[]>([]),[branches,setBranches]=useState<BranchOption[]>([]),[school,setSchool]=useState(''),[branch,setBranch]=useState(''),[tool,setTool]=useState<'menu'|'parent'|'import'|'home'|'schools'|'products'|'packages'|'orders'|'payments'|'inventory'|'students'|'reports'|'catalog'|'coupons'>('menu')
   useEffect(()=>{
     const onPopState=(event:PopStateEvent)=>{
+      if(!window.location.pathname.startsWith('/admin')){
+        onBack()
+        return
+      }
       const state=event.state
       if(state?.schoolUniformApp==='admin'){setTool(state.tool||'menu');return}
       setTool('menu')
-      window.history.replaceState({schoolUniformApp:'admin',tool:'menu'},'',window.location.href)
+      window.history.replaceState({schoolUniformApp:'admin',tool:'menu'},'', '/admin')
     }
     window.addEventListener('popstate',onPopState)
     return()=>window.removeEventListener('popstate',onPopState)
-  },[])
+  },[onBack])
   useEffect(()=>{
+    if(!window.location.pathname.startsWith('/admin'))return
     if(window.history.state?.schoolUniformApp==='admin'&&window.history.state?.tool===tool)return
-    window.history.pushState({schoolUniformApp:'admin',tool},'',window.location.href)
+    window.history.pushState({schoolUniformApp:'admin',tool},'', '/admin')
   },[tool])
   async function login(){const client=supabase;if(!client||!email.trim()||!password)return;setLoading(true);setError('');const {data,error}=await client.auth.signInWithPassword({email:email.trim(),password});if(error||!data.user){setError('Invalid admin email or password.');setLoading(false);return}const {data:p,error:pe}=await client.from('profiles').select('role').eq('id',data.user.id).single();if(pe||!p||!['admin','super_admin'].includes(p.role)){await client.auth.signOut({scope:'local'});setError('This account is not authorized for the Admin Portal.');setLoading(false);return}setAdmin(true);setLoading(false)}
   useEffect(()=>{const client=supabase;if(!client)return;void client.auth.getSession().then(async ({data})=>{if(!data.session)return;const {data:p}=await client.from('profiles').select('role').eq('id',data.session.user.id).maybeSingle();if(p&&['admin','super_admin'].includes(p.role))setAdmin(true)})},[])
