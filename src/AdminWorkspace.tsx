@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { ArrowLeft, Plus, RefreshCw, Save, Trash2, Search, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import { GlobalFooter, GlobalHeader } from './components/GlobalChrome'
 
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
 
@@ -21,7 +22,7 @@ const META:Record<ModuleKey,{title:string;description:string}>={
 
 export default function AdminWorkspace({module,onBack}:{module:ModuleKey;onBack:()=>void}){
  const m=META[module]
- return <div className="admin-workspace"><header className="admin-topbar"><div className="site-brand"><img className="brand-logo admin-brand-logo" src="/logo.png" alt="Artisan"/></div><button className="admin-back" onClick={onBack}><ArrowLeft size={17}/> Back to Menu</button></header><main className="workspace-body"><div className="workspace-heading"><span className="eyebrow">ADMINISTRATION</span><h1>{m.title}</h1><p>{m.description}</p></div><ModuleBody module={module}/></main></div>
+ return <div className="admin-workspace"><GlobalHeader portal="admin" title="Admin Portal" subtitle="School Uniform Store" onBack={onBack} backLabel="Dashboard"/><main className="workspace-body"><div className="workspace-heading"><span className="eyebrow">ADMINISTRATION</span><h1>{m.title}</h1><p>{m.description}</p></div><ModuleBody module={module}/></main><GlobalFooter portal="admin"/></div>
 }
 
 function ModuleBody({module}:{module:ModuleKey}){
