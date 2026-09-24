@@ -60,10 +60,12 @@ function App(){
         <button className="primary-button" disabled={!school||!branch||!studentId.trim()||!password||loggingIn} onClick={()=>void login()}>{loggingIn?'SIGNING IN...':'SIGN IN TO PORTAL'}<ArrowRight size={18}/></button>
         <div className="demo-credentials" aria-label="Demo user credentials">
           <div className="demo-credentials-title">DEMO USER</div>
-          <div className="demo-credential-row"><span>School</span><strong>Vignan Schools</strong></div>
-          <div className="demo-credential-row"><span>Branch</span><strong>Vignan's Bo Tree School — Nizampet</strong></div>
-          <div className="demo-credential-row"><span>Student / Parent ID</span><strong>BHUPESHKUMAR</strong></div>
-          <div className="demo-credential-row"><span>Password</span><strong>01031984</strong></div>
+          <div className="demo-credentials-grid">
+            <div className="demo-credential-row"><span>School</span><strong>Vignan Schools</strong></div>
+            <div className="demo-credential-row"><span>Branch</span><strong>Vignan's Bo Tree School — Nizampet</strong></div>
+            <div className="demo-credential-row"><span>Student / Parent ID</span><strong>BHUPESHKUMAR</strong></div>
+            <div className="demo-credential-row"><span>Password</span><strong>01031984</strong></div>
+          </div>
         </div>
         <button className="text-button">Forgot Password?</button>
         <button className="admin-link" onClick={()=>{setShowLogin(false);setMode('admin')}}>Administrator Portal</button>
