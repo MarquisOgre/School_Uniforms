@@ -21,6 +21,7 @@ export default function CheckoutFlow({schoolId,branchId,cart,total,step,setStep,
   const [settings,setSettings]=useState<any>({pay_at_school_enabled:true,upi_enabled:false,upi_id:'',upi_payee_name:'',shipping_fee:0,free_shipping_above:0})
   const [loading,setLoading]=useState(false)
   const [error,setError]=useState('')
+  const [successOrder,setSuccessOrder]=useState<any>(null)
   const [hydrating,setHydrating]=useState(true)
 
   useEffect(()=>{
@@ -74,13 +75,14 @@ export default function CheckoutFlow({schoolId,branchId,cart,total,step,setStep,
       const {data,error:rpcError}=await client.rpc('place_school_order',{p_school_id:schoolId,p_branch_id:branchId,p_student_id:studentId||null,p_items:payloadItems,p_shipping_address:{recipient_name:address.name.trim(),phone:address.phone.trim(),address_line1:address.line1.trim(),address_line2:address.line2.trim()||null,city:address.city.trim(),state:address.state.trim(),postal_code:address.pincode.trim()},p_payment_method:paymentMethod,p_payment_reference:paymentMethod==='upi'?paymentReference.trim():null,p_notes:null})
       if(rpcError)throw rpcError
       if(!data?.order_number)throw new Error('The order was not created.')
+      setSuccessOrder(data)
       onComplete(data)
     }catch(e:any){setError(e?.message||'Could not place the order. Please try again.')}
     finally{setLoading(false)}
   }
 
   if(hydrating)return <div className="checkout-page"><div className="checkout-form-card"><Loader2 className="spin"/><p>Preparing your secure checkout...</p></div></div>
-  if(step==='success')return <div className="checkout-page"><div className="success-card"><div className="success-icon"><CheckCircle2 size={48}/></div><p className="eyebrow">ORDER CONFIRMED</p><h1>Thank you for your order.</h1><p>Your order has been created successfully and your stock has been reserved.</p><strong>Your order is confirmed</strong><button className="primary-button" onClick={()=>setStep(null)}>Continue Shopping <ArrowRight size={18}/></button></div></div>
+  if(step==='success')return <div className="checkout-page"><div className="success-card"><div className="success-icon"><CheckCircle2 size={48}/></div><p className="eyebrow">ORDER CONFIRMED</p><h1>Thank you for your order.</h1><p>Your order has been created successfully and your stock has been reserved.</p><div className="success-order-number"><span>Order Number</span><strong>{successOrder?.order_number||'—'}</strong><span>Total</span><strong>₹{Number(successOrder?.grand_total||payable).toLocaleString('en-IN')}</strong></div><button className="primary-button" onClick={()=>setStep(null)}>Continue Shopping <ArrowRight size={18}/></button></div></div>
 
   if(step==='cart')return <div className="checkout-page"><div className="checkout-top"><button onClick={()=>setStep(null)}><ChevronLeft/> Continue shopping</button><strong>Your Cart</strong></div><div className="checkout-layout"><div className="cart-card"><div className="checkout-section-head"><div><p className="eyebrow">ORDER REVIEW</p><h1>Review your items</h1></div><span>{cart.reduce((s,x)=>s+x.quantity,0)} items</span></div>{!cart.length?<div className="empty-state"><ShoppingCart size={40}/><h3>Your cart is empty</h3></div>:cart.map(x=><div className="cart-row" key={x.id}><div className="cart-thumb">{x.image?<img src={x.image} alt={x.title}/>:<ShoppingBag/>}</div><div><strong>{x.title}</strong><span>{x.type==='package'?'Package • ':''}{x.size&&x.size!=='Multiple'?'Size '+x.size+' • ':''}₹{x.price.toLocaleString('en-IN')} each</span>{x.bundleItems?.length?<small>{x.bundleItems.join(' • ')}</small>:null}<div className="qty-controls"><button onClick={()=>update(x.id,-1)}><Minus/></button><b>{x.quantity}</b><button onClick={()=>update(x.id,1)}><Plus/></button></div></div><strong>₹{(x.price*x.quantity).toLocaleString('en-IN')}</strong><button className="remove-button" onClick={()=>remove(x.id)}><Trash2 size={17}/></button></div>)}</div><OrderSummary total={payable} subtotal={total} shipping={effectiveShipping} disabled={!cart.length} onNext={()=>setStep('details')}/></div></div>
 
