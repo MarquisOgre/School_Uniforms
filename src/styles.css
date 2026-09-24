@@ -6586,32 +6586,28 @@ a {
 }
 
 .admin-workspace .package-item-row {
-  grid-template-columns: minmax(240px, 2fr) minmax(100px, 0.9fr) minmax(120px, 1fr) minmax(
-      150px,
-      1.2fr
-    ) auto;
+  grid-template-columns:
+    minmax(240px, 2fr) minmax(100px, 0.9fr) minmax(120px, 1fr) minmax(150px, 1.2fr)
+    auto;
 }
 
 .admin-workspace .catalog-row {
-  grid-template-columns: minmax(220px, 1.5fr) minmax(220px, 1.5fr) minmax(140px, 1fr) minmax(
-      130px,
-      0.9fr
-    ) auto;
+  grid-template-columns:
+    minmax(220px, 1.5fr) minmax(220px, 1.5fr) minmax(140px, 1fr) minmax(130px, 0.9fr)
+    auto;
 }
 
 .admin-workspace .coupon-row {
-  grid-template-columns: minmax(180px, 1.5fr) minmax(150px, 1.2fr) minmax(120px, 1fr) minmax(
-      120px,
-      1fr
-    ) auto;
+  grid-template-columns:
+    minmax(180px, 1.5fr) minmax(150px, 1.2fr) minmax(120px, 1fr) minmax(120px, 1fr)
+    auto;
 }
 
 .admin-workspace .payment-settings-row.admin-table-header {
   display: grid;
-  grid-template-columns: minmax(160px, 1.4fr) minmax(105px, 1fr) minmax(65px, 0.65fr) minmax(
-      115px,
-      1fr
-    ) minmax(125px, 1fr) minmax(95px, 0.8fr) minmax(100px, 0.9fr) auto;
+  grid-template-columns:
+    minmax(160px, 1.4fr) minmax(105px, 1fr) minmax(65px, 0.65fr) minmax(115px, 1fr)
+    minmax(125px, 1fr) minmax(95px, 0.8fr) minmax(100px, 0.9fr) auto;
   flex-wrap: nowrap;
 }
 
