@@ -1,0 +1,56 @@
+import type { ReactNode } from 'react'
+import { ArrowLeft, ArrowRight, LogOut, ShoppingCart } from 'lucide-react'
+
+type GlobalHeaderProps = {
+  portal: 'customer' | 'admin'
+  title: string
+  subtitle?: string
+  onBack?: () => void
+  backLabel?: string
+  onLogout?: () => void
+  cartCount?: number
+  onCart?: () => void
+}
+
+export function GlobalHeader({portal,title,subtitle,onBack,backLabel,onLogout,cartCount=0,onCart}:GlobalHeaderProps){
+  return <header className={`global-header global-header-${portal}`}>
+    <div className="global-header-inner">
+      <div className="global-brand">
+        <img src="/logo.png" alt="Artisan" />
+        <div>
+          <strong>{title}</strong>
+          {subtitle&&<span>{subtitle}</span>}
+        </div>
+      </div>
+      <div className="global-header-actions">
+        {onCart&&<button className="global-button global-button-light" onClick={onCart}><ShoppingCart size={16}/> Cart{cartCount>0&&<b>{cartCount}</b>}</button>}
+        {onBack&&<button className="global-button" onClick={onBack}><ArrowLeft size={16}/> {backLabel||'Back to Dashboard'}</button>}
+        {onLogout&&<button className="global-button global-button-outline" onClick={onLogout}><LogOut size={16}/> Logout</button>}
+      </div>
+    </div>
+  </header>
+}
+
+export function GlobalFooter({portal='customer'}:{portal?:'customer'|'admin'}){
+  return <footer className={`global-footer global-footer-${portal}`}>
+    <div className="global-footer-inner">
+      <div>
+        <img src="/logo.png" alt="Artisan" />
+        <p>School uniforms, made simple.</p>
+      </div>
+      <div className="global-footer-meta">
+        <span>© 2026 Artisan. All rights reserved.</span>
+        <span>Developed by Dexorzo Creations.</span>
+        <span>School-specific shopping • Secure access</span>
+      </div>
+    </div>
+  </footer>
+}
+
+export function CustomerPageFrame({title,subtitle,onBack,onLogout,cartCount,onCart,children}:{title:string;subtitle?:string;onBack:()=>void;onLogout:()=>void;cartCount:number;onCart:()=>void;children:ReactNode}){
+  return <div className="customer-page-frame">
+    <GlobalHeader portal="customer" title={title} subtitle={subtitle} onBack={onBack} backLabel="Dashboard" onLogout={onLogout} cartCount={cartCount} onCart={onCart}/>
+    <main className="customer-page-frame-content">{children}</main>
+    <GlobalFooter portal="customer"/>
+  </div>
+}
