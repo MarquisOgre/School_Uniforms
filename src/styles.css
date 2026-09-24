@@ -329,3 +329,17 @@ a{color:inherit}
  .login-card h1{font-size:30px}
  .login-card-large .brand-mark{margin-bottom:10px}
 }
+
+/* Compact two-row demo credentials and no login-card scrollbar */
+.demo-credentials{margin-top:14px;padding:12px 15px}
+.demo-credentials-title{margin-bottom:7px}
+.demo-credentials-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;row-gap:0}
+.demo-credential-row{min-width:0;padding:4px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.demo-credential-row span{white-space:nowrap}
+.demo-credential-row strong{max-width:68%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.login-card-large{overflow:hidden}
+@media(max-width:640px){
+  .demo-credentials-grid{grid-template-columns:1fr}
+  .demo-credential-row{padding:3px 0}
+  .demo-credential-row strong{max-width:70%}
+}
