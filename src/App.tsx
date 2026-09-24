@@ -69,23 +69,19 @@ function Landing({onLogin}:{onLogin:()=>void}){
   const [publicPage,setPublicPage]=useState('home')
   const go=(p:string)=>{setPublicPage(p);setMenu(false);window.scrollTo({top:0,behavior:'smooth'})}
 
-  const [menu,setMenu]=useState(false),[slide,setSlide]=useState(0),[cartCount]=useState(0),[home,setHome]=useState<any>(DEFAULT_HOME)
+  const [menu,setMenu]=useState(false),[slide,setSlide]=useState(0),[cartCount]=useState(0),[home,setHome]=useState<any>(DEFAULT_HOME),[searchOpen,setSearchOpen]=useState(false),[search,setSearch]=useState('')
   useEffect(()=>{if(!supabase)return;void supabase.from('homepage_content').select('content').eq('slug','default').eq('is_published',true).maybeSingle().then(({data})=>{if(data?.content)setHome({...DEFAULT_HOME,...data.content})})},[])
   if(publicPage!=='home') return <PublicPage page={publicPage} onLogin={onLogin} onNavigate={go}/>
-  const slides=(home.hero?.slides??DEFAULT_HOME.hero.slides).filter((s:any)=>s.enabled!==false)
-    {eyebrow:'PREMIUM SCHOOL UNIFORMS',title:<>Dress for<br/>Brighter<br/>Tomorrows.</>,text:'Quality uniforms for confident learners. Shop school-approved uniforms, packages and accessories — all in one place.',image:'/hero-slide-1.jpg',className:'hero-light'},
-    {eyebrow:'SCHOOL UNIFORMS',title:<>Confidence<br/>Looks Good<br/><em>On You</em></>,text:'Official school uniforms, curated packages and quality accessories — designed for every step of their journey.',image:'/hero-slide-2.jpg',className:'hero-navy'},
-    {eyebrow:'UNIFORMS THAT INSPIRE',title:<>Quality Today<br/>for Greater<br/><em>Tomorrow</em></>,text:'Premium school uniforms crafted with care, comfort and confidence for every school day.',image:'/hero-slide-3.jpg',className:'hero-cream'}
-  ]
+  const slides=(home.hero?.slides??DEFAULT_HOME.hero.slides).filter((item:any)=>item.enabled!==false).map((item:any,i:number)=>({...item,className:i===1?'hero-navy':i===2?'hero-cream':'hero-light'}))
   const current=slides[Math.min(slide,slides.length-1)]
   useEffect(()=>{const t=window.setInterval(()=>setSlide(s=>(s+1)%slides.length),6000);return()=>window.clearInterval(t)},[])
   const next=()=>setSlide(s=>(s+1)%slides.length),prev=()=>setSlide(s=>(s+slides.length-1)%slides.length)
   return <main className="landing exact-home">
     <header className="store-header exact-header"><div className="store-header-inner">
-      <div className="site-brand"><img className="brand-logo" src="/logo.png" alt="Artisan" /></div>
+      <button className="brand-button" onClick={()=>go('home')} aria-label="Go to home"><img className="brand-logo" src="/logo.png" alt="Artisan" /></button>
       <nav className={menu?'nav-open':''}><a className="active" onClick={()=>go('home')}>Home</a><a onClick={()=>go('uniforms')}>Uniforms</a><a onClick={()=>go('packages')}>Packages</a><a onClick={()=>go('accessories')}>Accessories</a><a onClick={()=>go('size-guide')}>Size Guide</a><a onClick={()=>go('orders')}>Orders</a><a onClick={()=>go('help')}>Help</a></nav>
-      <div className="exact-header-icons"><button aria-label="Search"><Search/></button><button aria-label="Account" onClick={onLogin}><UserRound/></button><button className="mini-cart" aria-label="Cart" onClick={onLogin}><ShoppingCart/><b>{cartCount}</b></button></div>
-      <button className="mobile-menu" onClick={()=>setMenu(v=>!v)}>{menu?<X/>:<Menu/>}</button>
+      <div className="exact-header-icons"><button aria-label="Search" onClick={()=>setSearchOpen(v=>!v)}><Search/></button><button aria-label="Account" onClick={onLogin}><UserRound/></button><button className="mini-cart" aria-label="Cart" onClick={onLogin}><ShoppingCart/><b>{cartCount}</b></button></div>
+      {searchOpen&&<div className="header-search"><Search size={17}/><input autoFocus value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&search.trim()){go('uniforms');setSearchOpen(false)}}} placeholder="Search uniforms, packages & accessories"/><button onClick={()=>setSearchOpen(false)}><X size={16}/></button></div>}<button className="mobile-menu" onClick={()=>setMenu(v=>!v)}>{menu?<X/>:<Menu/>}</button>
     </div></header>
 
     <section className={`exact-hero ${current.className}`}>
