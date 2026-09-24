@@ -68,9 +68,8 @@ export default function AdminWorkspace({
         onBack={onBack}
         backLabel="Dashboard"
       />
-      <main className="workspace-body">
+      <main className={`workspace-body workspace-${module}`}>
         <div className="workspace-heading">
-          <span className="eyebrow">ADMINISTRATION</span>
           <h1>{m.title}</h1>
           <p>{m.description}</p>
         </div>
