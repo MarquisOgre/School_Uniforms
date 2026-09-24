@@ -1377,8 +1377,8 @@ function ParentStudents() {
                           onClick={() => void toggleStatus(r)}
                         >
                           {String(r.status || '').toLowerCase() === 'active'
-                            ? 'Deactivate'
-                            : 'Activate'}
+                            ? 'Inactive'
+                            : 'Active'}
                         </button>
                       </td>
                     </tr>
