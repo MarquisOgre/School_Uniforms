@@ -43,7 +43,7 @@ function App(){
       if(!data.session){localStorage.removeItem('school_uniform_portal_context');setSessionRestoring(false);return}
       const stored=localStorage.getItem('school_uniform_portal_context')
       if(stored){
-        try{const ctx=JSON.parse(stored);if(ctx?.mode==='store'&&ctx.school&&ctx.branch){setSchool(ctx.school);setBranch(ctx.branch);setStudentId(ctx.studentId||'');setCustomerPage(ctx.customerPage||'dashboard');setMode('store');const {data:branchRows}=await client.from('branches').select('id,name').eq('school_id',ctx.school).eq('status','active').order('name');if(!cancelled)setBranches(branchRows??[])}}catch{localStorage.removeItem('school_uniform_portal_context')}}
+        try{const ctx=JSON.parse(stored);if(ctx?.mode==='store'&&ctx.school&&ctx.branch){setSchool(ctx.school);setBranch(ctx.branch);setStudentId(ctx.studentId||'');setCustomerPage(ctx.customerPage||'dashboard');window.history.replaceState({schoolUniformApp:'customer',screen:'page:dashboard',page:'dashboard'},'', '/app');setMode('store');const {data:branchRows}=await client.from('branches').select('id,name').eq('school_id',ctx.school).eq('status','active').order('name');if(!cancelled)setBranches(branchRows??[])}}catch{localStorage.removeItem('school_uniform_portal_context')}}
       const {data:profile}=await client.from('profiles').select('role').eq('id',data.session.user.id).maybeSingle()
       const isAdminPath=window.location.pathname==='/admin'||window.location.pathname.startsWith('/admin/')
       if(profile&&['admin','super_admin'].includes(profile.role)&&isAdminPath)setMode('admin')
