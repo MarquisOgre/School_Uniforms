@@ -6783,14 +6783,14 @@ a {
 /* Parents & Students workspace: keep heading and all controls on the left. */
 .admin-workspace .workspace-students {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    'title'
-    'description'
-    'toolbar'
-    'error'
-    'body';
+    'title toolbar'
+    'description toolbar'
+    'error error'
+    'body body';
   align-content: start;
+  column-gap: 24px;
 }
 
 .admin-workspace .workspace-students > .workspace-heading {
@@ -6807,8 +6807,9 @@ a {
 
 .admin-workspace .workspace-students > .workspace-toolbar {
   grid-area: toolbar;
-  justify-content: flex-start;
+  justify-content: flex-end;
   margin-bottom: 18px;
+  align-self: center;
 }
 
 .admin-workspace .workspace-students > .workspace-toolbar > div {
