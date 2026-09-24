@@ -6873,3 +6873,64 @@ a {
   .table-action-button:last-child {
   margin-right: 0;
 }
+
+
+/* Inventory workspace: heading on the left, search + Add Product + Refresh on the right. */
+.admin-workspace .workspace-inventory {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'title toolbar'
+    'description toolbar'
+    'error error'
+    'body body';
+  align-content: start;
+  column-gap: 24px;
+}
+
+.admin-workspace .workspace-inventory > .workspace-heading {
+  display: contents;
+}
+
+.admin-workspace .workspace-inventory > .workspace-heading h1 {
+  grid-area: title;
+  margin: 4px 0 8px;
+}
+
+.admin-workspace .workspace-inventory > .workspace-heading p {
+  grid-area: description;
+  margin: 0 0 18px;
+}
+
+.admin-workspace .workspace-inventory > .workspace-toolbar {
+  grid-area: toolbar;
+  justify-self: end;
+  align-self: center;
+  margin: 0 0 18px;
+}
+
+.admin-workspace .workspace-inventory > .workspace-toolbar > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-workspace .workspace-inventory > .workspace-error {
+  grid-area: error;
+}
+
+.admin-workspace .workspace-inventory > .workspace-panel {
+  grid-area: body;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .admin-workspace .workspace-inventory {
+    display: block;
+  }
+
+  .admin-workspace .workspace-inventory > .workspace-toolbar {
+    margin-top: 16px;
+  }
+}
