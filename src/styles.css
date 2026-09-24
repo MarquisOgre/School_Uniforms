@@ -6552,3 +6552,76 @@ a {
     text-align: left;
   }
 }
+
+
+/* Consistent admin data tables — full width, aligned columns and readable headers */
+.admin-workspace .workspace-table {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-workspace .admin-table-header {
+  background: #faf6ef;
+  border-bottom: 1px solid #ded5c8;
+  border-radius: 8px 8px 0 0;
+  min-height: 48px;
+  padding-top: 11px;
+  padding-bottom: 11px;
+  color: #526066;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-workspace .admin-table-header strong,
+.admin-workspace .admin-table-header span {
+  color: #526066;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-workspace .school-row,
+.admin-workspace .branch-row {
+  grid-template-columns: minmax(240px, 2fr) minmax(150px, 1.2fr) minmax(120px, 1fr) auto;
+}
+
+.admin-workspace .package-item-row {
+  grid-template-columns: minmax(240px, 2fr) minmax(100px, 0.9fr) minmax(120px, 1fr) minmax(150px, 1.2fr) auto;
+}
+
+.admin-workspace .catalog-row {
+  grid-template-columns: minmax(220px, 1.5fr) minmax(220px, 1.5fr) minmax(140px, 1fr) minmax(130px, 0.9fr) auto;
+}
+
+.admin-workspace .coupon-row {
+  grid-template-columns: minmax(180px, 1.5fr) minmax(150px, 1.2fr) minmax(120px, 1fr) minmax(120px, 1fr) auto;
+}
+
+.admin-workspace .payment-settings-row.admin-table-header {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) minmax(105px, 1fr) minmax(65px, 0.65fr) minmax(115px, 1fr) minmax(125px, 1fr) minmax(95px, 0.8fr) minmax(100px, 0.9fr) auto;
+  flex-wrap: nowrap;
+}
+
+.admin-workspace .workspace-scroll th {
+  font-size: 12px;
+  font-weight: 900;
+  color: #526066;
+  letter-spacing: 0.05em;
+  background: #faf6ef;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .admin-workspace .admin-table-header {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .admin-workspace .payment-settings-row.admin-table-header {
+    grid-template-columns: 1fr;
+  }
+}
