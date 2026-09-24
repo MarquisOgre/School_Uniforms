@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ArrowRight, BookOpen, Building2, CheckCircle2, ChevronDown, ClipboardList, CreditCard, Eye, EyeOff, FileSpreadsheet, Home, LockKeyhole, LogOut, MapPin, Menu, Package, Search, ShoppingBag, ShoppingCart, Sparkles, UserRound, X, Minus, Plus, Trash2, ChevronLeft
+  ArrowRight, ArrowLeft, BookOpen, Building2, CheckCircle2, ChevronDown, ClipboardList, CreditCard, Eye, EyeOff, FileSpreadsheet, Home, LockKeyhole, LogOut, MapPin, Menu, Package, Search, ShoppingBag, ShoppingCart, Sparkles, UserRound, X, Minus, Plus, Trash2, ChevronLeft
 } from 'lucide-react'
 import type { PortalMode } from './types'
 import { supabase } from './lib/supabase'
@@ -70,7 +70,7 @@ function Landing({onLogin}:{onLogin:()=>void}){
   const go=(p:string)=>{setPublicPage(p);setMenu(false);window.scrollTo({top:0,behavior:'smooth'})}
 
   const [menu,setMenu]=useState(false),[slide,setSlide]=useState(0),[cartCount]=useState(0),[home,setHome]=useState<any>(DEFAULT_HOME),[searchOpen,setSearchOpen]=useState(false),[search,setSearch]=useState('')
-  useEffect(()=>{if(!supabase)return;void supabase.from('homepage_content').select('content').eq('slug','default').eq('is_published',true).maybeSingle().then(({data})=>{if(data?.content)setHome({...DEFAULT_HOME,...data.content})})},[])
+  useEffect(()=>{if(!supabase)return;void (supabase as any).from('homepage_content').select('content').eq('slug','default').eq('is_published',true).maybeSingle().then(({data})=>{if(data?.content)setHome({...DEFAULT_HOME,...data.content})})},[])
   const slides=(home.hero?.slides??DEFAULT_HOME.hero.slides).filter((item:any)=>item.enabled!==false).map((item:any,i:number)=>({...item,className:i===1?'hero-navy':i===2?'hero-cream':'hero-light'}))
   useEffect(()=>{const count=slides.length; if(!count)return; const t=window.setInterval(()=>setSlide(s=>(s+1)%count),6000);return()=>window.clearInterval(t)},[slides.length])
   if(publicPage!=='home') return <PublicPage page={publicPage} onLogin={onLogin} onNavigate={go}/>
