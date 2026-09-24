@@ -6441,3 +6441,53 @@ a {
     width: 100%;
   }
 }
+
+/* Products workspace: keep title, search, add and refresh controls on one desktop row. */
+.admin-workspace .workspace-products .workspace-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title toolbar"
+    "description toolbar";
+  align-items: center;
+  column-gap: 24px;
+  margin-bottom: 18px;
+}
+
+.admin-workspace .workspace-products .workspace-heading h1 {
+  grid-area: title;
+  margin: 0;
+}
+
+.admin-workspace .workspace-products .workspace-heading p {
+  grid-area: description;
+  margin: 6px 0 0;
+}
+
+.admin-workspace .workspace-products > .workspace-toolbar {
+  grid-area: toolbar;
+  margin: 0;
+  align-self: center;
+}
+
+.admin-workspace .workspace-products > .workspace-toolbar > div {
+  flex-wrap: nowrap;
+}
+
+.admin-workspace .workspace-products > .workspace-toolbar .toolbar-search input {
+  min-width: 220px;
+}
+
+@media (max-width: 900px) {
+  .admin-workspace .workspace-products .workspace-heading {
+    display: block;
+  }
+
+  .admin-workspace .workspace-products > .workspace-toolbar {
+    margin-top: 16px;
+  }
+
+  .admin-workspace .workspace-products > .workspace-toolbar > div {
+    flex-wrap: wrap;
+  }
+}
