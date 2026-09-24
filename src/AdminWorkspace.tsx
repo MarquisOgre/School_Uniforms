@@ -1414,7 +1414,7 @@ function ParentStudents() {
   const filtered = rows.filter((r) => {
     const fatherName =
       r.parent_student_links
-        ?.filter((p: any) => p.relationship?.toLowerCase() === 'father')
+        ?.filter((p: any) => ['father', 'parent'].includes(p.relationship?.toLowerCase()))
         ?.sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary))[0]?.profiles
         ?.full_name || ''
     return [
