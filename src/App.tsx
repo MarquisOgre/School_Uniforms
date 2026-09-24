@@ -173,7 +173,7 @@ function CustomerPortal({schoolId,schoolName,branchName,branchId,studentId,page,
     void client.from('students').select('id,student_code,full_name,class_name,section').eq('school_id',schoolId).eq('branch_id',branchId).eq('status','active').order('full_name').then(({data}:{data:any[]|null})=>{if(!cancelled)setStudents(data??[])})
     return()=>{cancelled=true}
   },[schoolId,branchId])
-  const add=(item:CartItem)=>setCart(items=>{const same=(x:CartItem)=>x.id===item.id&&JSON.stringify(x.selectedVariants||[])===JSON.stringify(item.selectedVariants||[]);const f=items.find(same);return f?items.map(x=>same(x)?{...x,quantity:x.quantity+item.quantity}:x):[...items,item]})
+  const add=(item:CartItem)=>setCart(items=>{const cartKey=item.id+'|'+JSON.stringify(item.selectedVariants||[]);const normalized={...item,id:cartKey};const f=items.find(x=>x.id===cartKey);return f?items.map(x=>x.id===cartKey?{...x,quantity:x.quantity+item.quantity}:x):[...items,normalized]})
   const update=(id:string,d:number)=>setCart(items=>items.map(x=>x.id===id?{...x,quantity:Math.max(1,x.quantity+d)}:x))
   const remove=(id:string)=>setCart(items=>items.filter(x=>x.id!==id))
   const total=cart.reduce((s,x)=>s+x.price*x.quantity,0)
