@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { ArrowLeft, Plus, RefreshCw, Save, Trash2, Search, X } from 'lucide-react'
+import { Plus, RefreshCw, Save, Trash2, Search, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { GlobalFooter, GlobalHeader } from './components/GlobalChrome'
 
