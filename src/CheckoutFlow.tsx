@@ -179,12 +179,12 @@ export default function CheckoutFlow({
   }, [settings, payable])
   const detailsValid = Boolean(
     studentId &&
-    address.name.trim() &&
-    address.phone.trim() &&
-    address.line1.trim() &&
-    address.city.trim() &&
-    address.state.trim() &&
-    /^[0-9]{6}$/.test(address.pincode.trim()),
+      address.name.trim() &&
+      address.phone.trim() &&
+      address.line1.trim() &&
+      address.city.trim() &&
+      address.state.trim() &&
+      /^[0-9]{6}$/.test(address.pincode.trim()),
   )
   const paymentValid = paymentMethod === 'pay_at_school' || paymentReference.trim().length >= 4
 
