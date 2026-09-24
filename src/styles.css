@@ -5844,3 +5844,558 @@ a {
     padding-right: 10px;
   }
 }
+
+
+
+/* =========================================================
+   SCHOOL UNIFORMS — Premium UI Refresh
+   Homepage / Parent-Student App / Admin Portal
+   ========================================================= */
+
+:root {
+  --su-ink: #16262c;
+  --su-gold: #f4b52b;
+  --su-gold-soft: #fff2cc;
+  --su-cream: #faf7f0;
+  --su-border: #e8e0d3;
+  --su-muted: #74807f;
+  --su-shadow-sm: 0 8px 24px rgba(23, 39, 45, 0.07);
+  --su-shadow-md: 0 18px 50px rgba(23, 39, 45, 0.1);
+}
+
+.landing {
+  background:
+    radial-gradient(circle at 84% 12%, rgba(244, 181, 43, 0.1), transparent 28%),
+    var(--su-cream);
+}
+
+.exact-header,
+.store-header {
+  backdrop-filter: blur(16px);
+  background: rgba(255, 253, 248, 0.92);
+  border-bottom: 1px solid rgba(232, 224, 211, 0.8);
+}
+
+.exact-header .brand-logo {
+  transition: transform 0.2s ease;
+}
+
+.exact-header .brand-button:hover .brand-logo {
+  transform: scale(1.025);
+}
+
+.hero h1,
+.hero-copy-store h1 {
+  text-wrap: balance;
+}
+
+.hero-primary,
+.header-login-button,
+.store-cta button {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.hero-primary:hover,
+.header-login-button:hover,
+.store-cta button:hover {
+  box-shadow: 0 14px 32px rgba(23, 39, 45, 0.18);
+}
+
+.hero-visual,
+.hero-student-stage,
+.slider-stage {
+  box-shadow: var(--su-shadow-md);
+}
+
+.exact-category,
+.exact-feature,
+.category-card,
+.life-card {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.exact-category:hover,
+.exact-feature:hover,
+.category-card:hover,
+.life-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--su-shadow-md);
+}
+
+.global-header {
+  background: linear-gradient(135deg, var(--su-ink), #20373e);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 24px rgba(16, 29, 34, 0.12);
+}
+
+.global-header-inner {
+  min-height: 72px;
+}
+
+.global-brand {
+  margin-left: 0;
+}
+
+.global-brand img {
+  filter: brightness(0) invert(1);
+}
+
+.global-header-actions {
+  gap: 8px;
+}
+
+.global-button {
+  min-height: 38px;
+  border-radius: 9px;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.global-button-light {
+  background: var(--su-gold);
+  border-color: var(--su-gold);
+  color: var(--su-ink);
+}
+
+.global-button-light:hover {
+  background: #ffc94d;
+}
+
+.global-button-outline {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.global-footer {
+  background: linear-gradient(135deg, #132329, #1d333a);
+}
+
+.global-footer-inner {
+  min-height: 72px;
+}
+
+.portal {
+  background:
+    radial-gradient(circle at 80% 0%, rgba(244, 181, 43, 0.08), transparent 28%),
+    #f5f2eb;
+}
+
+.portal-layout {
+  align-items: stretch;
+}
+
+.portal .sidebar {
+  flex-basis: 248px;
+  background: linear-gradient(180deg, #16262c 0%, #1d343b 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px 14px;
+}
+
+.portal .sidebar .portal-brand {
+  padding: 6px 10px 12px;
+}
+
+.portal .sidebar .portal-brand-title {
+  color: #fff;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 18px;
+}
+
+.school-scope {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 13px;
+}
+
+.sidebar nav {
+  gap: 4px;
+}
+
+.sidebar nav button,
+.sidebar-logout {
+  min-height: 43px;
+  border-radius: 9px;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.sidebar nav button.active {
+  background: var(--su-gold);
+  color: var(--su-ink);
+}
+
+.sidebar nav button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateX(2px);
+}
+
+.sidebar-logout:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.portal .portal-main {
+  background: #f5f2eb;
+}
+
+.portal .portal-header {
+  background: rgba(255, 253, 248, 0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--su-border);
+  padding: 20px clamp(24px, 4vw, 48px);
+}
+
+.portal-header h1 {
+  font-size: clamp(27px, 2.2vw, 34px);
+}
+
+.portal-content {
+  width: min(100%, 1280px);
+  max-width: none;
+  padding: clamp(28px, 4vw, 48px) clamp(24px, 4vw, 56px);
+}
+
+.welcome-banner {
+  min-height: 220px;
+  border-radius: 24px;
+  padding: clamp(28px, 4vw, 42px);
+  background:
+    radial-gradient(circle at 88% 30%, rgba(244, 181, 43, 0.22), transparent 24%),
+    linear-gradient(135deg, #16262c, #274149);
+  box-shadow: 0 20px 55px rgba(23, 39, 45, 0.16);
+}
+
+.welcome-banner h2 {
+  font-size: clamp(30px, 3vw, 40px);
+  max-width: 700px;
+}
+
+.banner-icon {
+  width: 112px;
+  height: 112px;
+  background: var(--su-gold);
+}
+
+.portal-grid {
+  gap: 16px;
+  margin: 20px 0 42px;
+}
+
+.stat {
+  border-radius: 16px;
+  padding: 19px;
+  box-shadow: var(--su-shadow-sm);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.stat:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--su-shadow-md);
+}
+
+.shop-cards {
+  gap: 18px;
+}
+
+.shop-card {
+  min-height: 215px;
+  border-radius: 18px;
+  padding: 27px;
+  box-shadow: var(--su-shadow-sm);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.shop-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--su-shadow-md);
+}
+
+.catalog-grid {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  border-radius: 18px;
+  box-shadow: var(--su-shadow-sm);
+}
+
+.product-image {
+  height: 250px;
+}
+
+.product-copy {
+  padding: 20px;
+}
+
+.empty-state {
+  box-shadow: var(--su-shadow-sm);
+}
+
+.customer-page-frame {
+  background: #f5f2eb;
+}
+
+.customer-page-frame-content {
+  width: min(100%, 1440px);
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 40px);
+}
+
+.admin-shell,
+.admin-workspace,
+.admin-import-page {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(244, 181, 43, 0.08), transparent 25%),
+    #f5f2eb;
+}
+
+.admin-content,
+.admin-workspace .workspace-body {
+  width: min(100%, 1440px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(22px, 4vw, 56px);
+  padding-right: clamp(22px, 4vw, 56px);
+}
+
+.admin-shell .admin-content {
+  padding-top: clamp(28px, 4vw, 48px);
+  padding-bottom: 48px;
+}
+
+.admin-title {
+  margin-bottom: 24px;
+}
+
+.admin-title h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(30px, 3vw, 42px);
+}
+
+.admin-scope-card {
+  border-radius: 16px;
+  box-shadow: var(--su-shadow-sm);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.admin-selector-grid {
+  gap: 16px;
+  margin: 18px 0 24px;
+}
+
+.admin-selector-grid label {
+  background: #fff;
+  border: 1px solid var(--su-border);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: var(--su-shadow-sm);
+}
+
+.admin-action-grid {
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-action-grid > button,
+.admin-module {
+  min-height: 82px;
+  border-radius: 15px;
+  border: 1px solid var(--su-border);
+  box-shadow: var(--su-shadow-sm);
+  background: #fff;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.admin-action-grid > button:hover:not(:disabled),
+.admin-module:hover {
+  transform: translateY(-3px);
+  border-color: #dbcda9;
+  box-shadow: var(--su-shadow-md);
+}
+
+.admin-module-grid {
+  gap: 14px;
+}
+
+.admin-module-active .feature-icon {
+  background: var(--su-gold-soft);
+  color: #8d6500;
+}
+
+.admin-workspace .workspace-header {
+  background: rgba(255, 253, 248, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.admin-workspace .workspace-table,
+.admin-workspace .panel,
+.admin-workspace .workspace-card,
+.admin-workspace .edit-modal {
+  border-radius: 15px;
+  box-shadow: var(--su-shadow-sm);
+}
+
+.admin-workspace .workspace-row {
+  min-height: 58px;
+}
+
+.admin-login-page {
+  background:
+    radial-gradient(circle at 15% 15%, rgba(244, 181, 43, 0.15), transparent 28%),
+    linear-gradient(135deg, #f4eee1, #e8e0d1);
+}
+
+.admin-login-card {
+  box-shadow: 0 30px 90px rgba(23, 39, 45, 0.16);
+}
+
+@media (max-width: 980px) {
+  .portal .sidebar {
+    flex-basis: 220px;
+  }
+
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .global-header-inner {
+    min-height: 64px;
+    padding: 9px 14px;
+  }
+
+  .global-brand > div {
+    display: none;
+  }
+
+  .global-brand img {
+    width: 138px;
+  }
+
+  .global-header-actions {
+    gap: 5px;
+  }
+
+  .global-button {
+    min-height: 35px;
+    padding: 8px 10px;
+    font-size: 9px;
+  }
+
+  .portal-layout {
+    display: block;
+  }
+
+  .portal .sidebar {
+    position: relative;
+    width: 100%;
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .portal .sidebar .portal-brand,
+  .portal .school-scope {
+    display: none;
+  }
+
+  .sidebar nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .sidebar nav button {
+    justify-content: center;
+    padding: 8px 4px;
+    min-height: 42px;
+    font-size: 8px;
+    text-align: center;
+  }
+
+  .sidebar nav button svg {
+    display: none;
+  }
+
+  .sidebar-logout {
+    display: none;
+  }
+
+  .portal .portal-header {
+    position: relative;
+    top: auto;
+    padding: 18px 20px;
+  }
+
+  .portal-content {
+    padding: 24px 18px 36px;
+  }
+
+  .welcome-banner {
+    min-height: 0;
+  }
+
+  .banner-icon {
+    display: none;
+  }
+
+  .portal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-page-frame-content {
+    padding: 18px;
+  }
+
+  .admin-content,
+  .admin-workspace .workspace-body {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .global-header-actions .global-button:not(.global-button-light) {
+    display: none;
+  }
+
+  .portal-header .header-user {
+    display: none;
+  }
+
+  .welcome-banner {
+    padding: 25px 22px;
+    border-radius: 19px;
+  }
+
+  .welcome-banner h2 {
+    font-size: 28px;
+  }
+}
