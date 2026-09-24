@@ -366,6 +366,8 @@ a{color:inherit}
 .admin-subpage-header .brand-logo{filter:brightness(0) invert(1)}
 .admin-subpage-header .site-brand>div span{font-size:11px;color:#d7dfdc;font-weight:700}
 .admin-subpage-header .admin-back{margin-left:auto;border:1px solid #45575d;background:transparent;border-radius:7px;padding:8px 12px;display:flex;gap:7px;align-items:center;color:#e0e6e4;font-weight:800}
+.admin-workspace .admin-topbar .brand-logo{filter:none}
+.admin-workspace .admin-topbar .site-brand>div span{color:#17272d}
 .workspace-body{padding-top:34px}
 .workspace-heading{margin:0 0 26px}
 .workspace-heading h1{margin:4px 0 8px}
