@@ -251,9 +251,9 @@ function Packages({branchId,onView,onAdd}:{branchId:string;onView:(x:CartItem)=>
         productIds.length?client.from('products').select('id,name').in('id',productIds):Promise.resolve({data:[],error:null}),
         productIds.length?client.from('product_variants').select('id,product_id,size_label,variant_name').in('product_id',productIds).eq('status','active').order('size_label'):Promise.resolve({data:[],error:null})
       ])
-      const names=Object.fromEntries((pr.data??[] as Array<{id:string;name:string}>).map((x)=>[x.id,x.name]))
+      const names=Object.fromEntries(((pr.data??[]) as Array<{id:string;name:string}>).map((x)=>[x.id,x.name]))
       const variantsByProduct:Record<string,{id:string;label:string}[]>=Object.fromEntries(productIds.map(id=>[id,[]]))
-      ;(pv.data??[] as Array<{id:string;product_id:string;size_label:string|null;variant_name:string|null}>).forEach((x)=>{if(x.size_label&&variantsByProduct[x.product_id])variantsByProduct[x.product_id].push({id:x.id,label:x.size_label})})
+      ;((pv.data??[]) as Array<{id:string;product_id:string;size_label:string|null;variant_name:string|null}>).forEach((x)=>{if(x.size_label&&variantsByProduct[x.product_id])variantsByProduct[x.product_id].push({id:x.id,label:x.size_label})})
       const priceMap=Object.fromEntries(branchPackages.map((x)=>[x.package_id,x.branch_price]))
       if(!cancelled)setItems(packages.map(x=>{
         const components=packageItems.filter((i)=>i.package_id===x.id).map((i)=>({packageItemId:i.id,productId:i.product_id,title:names[i.product_id]||'Product',quantity:i.quantity,requiresSize:i.requires_size,required:i.is_required,variants:variantsByProduct[i.product_id]||[]}))
@@ -337,7 +337,7 @@ function Orders(){
       const ir=ids.length?await client.from('order_items').select('order_id,item_name_snapshot,quantity,unit_price').in('order_id',ids):{data:[],error:null}
       if(ir.error){setError(ir.error.message);setLoading(false);return}
       const itemMap:Record<string,any[]>=Object.fromEntries(ids.map(id=>[id,[]]))
-      ;(ir.data??[] as Array<{order_id:string;item_name_snapshot:string;quantity:number;unit_price:number}>).forEach((x)=>{if(itemMap[x.order_id])itemMap[x.order_id].push(x)})
+      ;((ir.data??[]) as Array<{order_id:string;item_name_snapshot:string;quantity:number;unit_price:number}>).forEach((x)=>{if(itemMap[x.order_id])itemMap[x.order_id].push(x)})
       if(!cancelled)setRows(orders.map((x)=>({...x,items:itemMap[x.id]||[]})))
       setLoading(false)
     }
