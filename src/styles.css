@@ -6603,6 +6603,16 @@ a {
     auto;
 }
 
+.admin-workspace .payment-settings-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) minmax(105px, 1fr) minmax(65px, 0.65fr) minmax(
+      115px,
+      1fr
+    ) minmax(125px, 1fr) minmax(95px, 0.8fr) minmax(100px, 0.9fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
 .admin-workspace .payment-settings-row.admin-table-header {
   display: grid;
   grid-template-columns:
