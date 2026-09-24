@@ -1284,12 +1284,25 @@ function ParentStudents() {
     if (!supabase || !student?.id) return
     const nextStatus =
       String(student.status || '').toLowerCase() === 'active' ? 'inactive' : 'active'
-    const r = await dbFrom('students').update({ status: nextStatus }).eq('id', student.id)
+    const r = await dbFrom('students')
+      .update({ status: nextStatus })
+      .eq('id', student.id)
+      .select('id,status')
+      .maybeSingle()
+
     if (r.error) {
       setError(r.error.message)
       return
     }
-    await load()
+
+    if (!r.data) {
+      setError('Student status was not changed. Your account may not have permission to update this student.')
+      return
+    }
+
+    setRows((current) =>
+      current.map((item) => (item.id === student.id ? { ...item, status: r.data.status } : item)),
+    )
   }
 
   const filtered = rows.filter((r) => {
