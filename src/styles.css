@@ -6631,6 +6631,16 @@ a {
     auto;
 }
 
+.package-list-items {
+  display: grid;
+  gap: 3px;
+  line-height: 1.35;
+}
+
+.package-list-items > span {
+  display: block;
+}
+
 .package-items-grid-header,
 .package-items-grid-row {
   display: grid;
