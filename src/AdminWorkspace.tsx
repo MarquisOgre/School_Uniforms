@@ -695,10 +695,14 @@ function Packages() {
     const [p, x, pi] = await Promise.all([
       dbFrom('uniform_packages').select('*').order('name'),
       dbFrom('products').select('id,name,gender,base_price').eq('status', 'active').order('name'),
-      dbFrom('package_items').select('package_id,product_id,quantity,sort_order').order('sort_order'),
+      dbFrom('package_items')
+        .select('package_id,product_id,quantity,sort_order')
+        .order('sort_order'),
     ])
 
-    const productMap = Object.fromEntries((x.data ?? []).map((product: any) => [product.id, product]))
+    const productMap = Object.fromEntries(
+      (x.data ?? []).map((product: any) => [product.id, product]),
+    )
     const packageItemsMap: Record<string, string[]> = {}
 
     for (const item of pi.data ?? []) {
