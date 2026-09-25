@@ -1082,7 +1082,7 @@ function Packages() {
                         </strong>
                         <span>{i.quantity}</span>
                         <span>{i.requires_size ? 'Required' : 'Not required'}</span>
-                        <button onClick={() => setItemEditing({ ...i })}>Edit</button>
+                        <button className="secondary-button" onClick={() => setItemEditing({ ...i })}>Edit</button>
                       </div>
                     ))}
                   </div>
