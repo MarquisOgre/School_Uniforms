@@ -916,23 +916,29 @@ function Packages() {
                   <Plus size={14} /> Add Item
                 </button>
               </div>
-              <div className="workspace-table">
-                <div className="package-items-grid-header">
-                  <strong>Product</strong>
-                  <strong>Qty / Size / Action</strong>
-                </div>
-                {items.map((i) => (
-                  <div className="package-items-grid-row" key={i.id}>
-                    <strong>
-                      {products.find((p) => p.id === i.product_id)?.name || i.product_id}
-                    </strong>
-                    <div className="package-item-details">
-                      <span>Qty {i.quantity}</span>
-                      <span>{i.requires_size ? 'Size Required' : 'No Size'}</span>
-                      <button onClick={() => setItemEditing({ ...i })}>Edit</button>
+              <div className="package-items-tables">
+                {[items.slice(0, Math.ceil(items.length / 2)), items.slice(Math.ceil(items.length / 2))].map(
+                  (columnItems, columnIndex) => (
+                    <div className="package-items-table" key={columnIndex}>
+                      <div className="package-items-table-header">
+                        <strong>Product</strong>
+                        <strong>Qty</strong>
+                        <strong>Size</strong>
+                        <strong>Action</strong>
+                      </div>
+                      {columnItems.map((i) => (
+                        <div className="package-items-table-row" key={i.id}>
+                          <strong>
+                            {products.find((p) => p.id === i.product_id)?.name || i.product_id}
+                          </strong>
+                          <span>{i.quantity}</span>
+                          <span>{i.requires_size ? 'Required' : 'Not required'}</span>
+                          <button onClick={() => setItemEditing({ ...i })}>Edit</button>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
             </>
           )}
