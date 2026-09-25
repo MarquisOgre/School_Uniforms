@@ -434,11 +434,12 @@ function Products() {
       description: editing.description || null,
       gender: editing.gender,
       image_url: editing.image_url || null,
-      base_price: Number(editing.base_price || 0),
-      offer_price:
-        editing.offer_price === '' || editing.offer_price == null
-          ? null
-          : Number(editing.offer_price),
+      base_price: calculatePackageBasePrice(),
+      offer_price: calculateOfferPrice(
+        calculatePackageBasePrice(),
+        Number(editing.discount_percentage || 0),
+      ),
+      discount_percentage: Number(editing.discount_percentage || 0),
       status: editing.status,
     }
     const r = editing.id
@@ -870,6 +871,22 @@ function Packages() {
       .eq('package_id', packageId)
       .order('sort_order')
     setItems(r.data ?? [])
+    if (r.data && editing?.id === packageId) {
+      const basePrice = r.data.reduce((total: number, item: any) => {
+        const product = products.find((p) => p.id === item.product_id)
+        return total + Number(product?.base_price || 0) * Number(item.quantity || 1)
+      }, 0)
+      const discount = Number(editing.discount_percentage || 0)
+      setEditing((current: any) =>
+        current
+          ? {
+              ...current,
+              base_price: basePrice,
+              offer_price: calculateOfferPrice(basePrice, discount),
+            }
+          : current,
+      )
+    }
     if (r.error) setError(r.error.message || '')
   }
   useEffect(() => {
@@ -879,7 +896,8 @@ function Packages() {
         name: '',
         gender: 'unisex',
         base_price: 0,
-        offer_price: '',
+        offer_price: 0,
+        discount_percentage: 0,
         status: 'active',
       })
     const refreshHandler = () => void load()
@@ -890,6 +908,15 @@ function Packages() {
       window.removeEventListener('packages:refresh', refreshHandler)
     }
   }, [])
+  const calculatePackageBasePrice = () =>
+    items.reduce((total, item) => {
+      const product = products.find((p) => p.id === item.product_id)
+      return total + Number(product?.base_price || 0) * Number(item.quantity || 1)
+    }, 0)
+
+  const calculateOfferPrice = (basePrice: number, discount: number) =>
+    Math.max(0, basePrice * (1 - Math.min(100, Math.max(0, discount)) / 100))
+
   const save = async () => {
     if (!supabase || !editing) return
     const slug = (editing.slug || editing.name || '')
@@ -1004,17 +1031,28 @@ function Packages() {
           <div className="workspace-form-row">
             <Field
               label="Base Price"
-              value={String(editing.base_price ?? 0)}
-              onChange={(v) => setEditing({ ...editing, base_price: v })}
+              value={String(calculatePackageBasePrice())}
+              onChange={() => undefined}
               type="number"
             />
             <Field
-              label="Offer Price"
-              value={String(editing.offer_price ?? '')}
-              onChange={(v) => setEditing({ ...editing, offer_price: v })}
+              label="Discount (%)"
+              value={String(editing.discount_percentage ?? 0)}
+              onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
               type="number"
             />
           </div>
+          <Field
+            label="Offer Price"
+            value={String(
+              calculateOfferPrice(
+                calculatePackageBasePrice(),
+                Number(editing.discount_percentage || 0),
+              ),
+            )}
+            onChange={() => undefined}
+            type="number"
+          />
           <Field
             label="Description"
             value={editing.description || ''}
