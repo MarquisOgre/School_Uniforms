@@ -983,7 +983,8 @@ function PaymentsAdmin() {
     [branches, setBranches] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
-    [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+    [updatingStatus, setUpdatingStatus] = useState<string | null>(null),
+    [saving, setSaving] = useState<string | null>(null)
 
   const load = async () => {
     if (!supabase) return
@@ -1046,7 +1047,7 @@ function PaymentsAdmin() {
 
   const save = async (row: any) => {
     if (!supabase) return
-    setUpdatingStatus(row.branch_id)
+    setSaving(row.branch_id)
     const r = await dbFrom('branch_payment_settings').upsert(
       {
         branch_id: row.branch_id,
@@ -1061,7 +1062,7 @@ function PaymentsAdmin() {
     )
     if (r.error) setError(r.error.message)
     else await load()
-    setUpdatingStatus(null)
+    setSaving(null)
   }
 
   const orderStatusOptions = [
@@ -1187,10 +1188,10 @@ function PaymentsAdmin() {
                     />
                     <button
                       className="primary-button"
-                      disabled={updatingStatus === b.id}
+                      disabled={saving === b.id}
                       onClick={() => void save(row)}
                     >
-                      {updatingStatus === b.id ? 'Saving...' : 'Save'}
+                      {saving === b.id ? 'Saving...' : 'Save'}
                     </button>
                   </div>
                 )
