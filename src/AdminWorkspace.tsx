@@ -719,10 +719,7 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
       setImages(
         (result.data ?? [])
           .filter((file) => file.name)
-          .map(
-            (file) =>
-              storage.from('package-images').getPublicUrl(file.name).data.publicUrl,
-          ),
+          .map((file) => storage.from('package-images').getPublicUrl(file.name).data.publicUrl),
       )
     }
     setLoading(false)
