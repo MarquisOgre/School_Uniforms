@@ -886,8 +886,7 @@ function Packages() {
               <div className="workspace-table">
                 <div className="workspace-row admin-table-header package-item-row">
                   <strong>Product</strong>
-                  <span>Quantity</span>
-                  <span>Requirement</span>
+                  <span>Qty</span>
                   <span>Size</span>
                   <span>Actions</span>
                 </div>
@@ -896,9 +895,8 @@ function Packages() {
                     <strong>
                       {products.find((p) => p.id === i.product_id)?.name || i.product_id}
                     </strong>
-                    <span>Qty {i.quantity}</span>
-                    <span>{i.is_required ? 'Required' : 'Optional'}</span>
-                    <span>{i.requires_size ? 'Size required' : 'No size'}</span>
+                    <span>{i.quantity}</span>
+                    <span>{i.requires_size ? 'Required' : 'Not required'}</span>
                     <button onClick={() => setItemEditing({ ...i })}>Edit</button>
                   </div>
                 ))}
