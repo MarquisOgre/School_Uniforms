@@ -670,7 +670,7 @@ a {
   color: #aeb9b6;
   font-weight: 700;
   text-align: left;
-  font-size: 11px;
+  font-size: 13px;
 }
 .sidebar nav button.active {
   background: var(--gold);
