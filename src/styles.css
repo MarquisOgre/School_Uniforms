@@ -632,7 +632,7 @@ a {
   display: flex;
   gap: 9px;
   padding: 14px 10px;
-  margin: 24px 0 17px;
+  margin: 8px 0 17px;
   background: #23363d;
   border: 1px solid #31474e;
   border-radius: 11px;
@@ -5568,6 +5568,7 @@ a {
   flex: 0 0 260px;
   min-height: calc(100vh - 76px);
   height: auto;
+  padding-top: 10px;
 }
 .portal .portal-main {
   margin-left: 0;
