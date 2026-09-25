@@ -7024,12 +7024,6 @@ a {
   }
 }
 
-.admin-workspace .catalog-row {
-  grid-template-columns:
-    minmax(220px, 1.5fr) minmax(220px, 1.5fr) minmax(140px, 1fr) minmax(130px, 0.9fr)
-    auto;
-}
-
 .admin-workspace .coupon-row {
   grid-template-columns:
     minmax(180px, 1.5fr) minmax(150px, 1.2fr) minmax(120px, 1fr) minmax(120px, 1fr)
@@ -7158,61 +7152,7 @@ a {
   }
 }
 
-/* Catalog Rules workspace: title on left, Add Rule + Refresh together on the right. */
-.admin-workspace .workspace-catalog {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'title toolbar'
-    'description toolbar'
-    'error error'
-    'body body';
-  align-content: start;
-  column-gap: 24px;
-}
-
-.admin-workspace .workspace-catalog > .workspace-heading {
-  display: contents;
-}
-
-.admin-workspace .workspace-catalog > .workspace-heading h1 {
-  grid-area: title;
-  margin: 4px 0 8px;
-}
-
-.admin-workspace .workspace-catalog > .workspace-heading p {
-  grid-area: description;
-  margin: 0 0 18px;
-}
-
-.admin-workspace .workspace-catalog > .workspace-toolbar {
-  grid-area: toolbar;
-  justify-self: end;
-  margin: 0 0 18px;
-  align-self: center;
-}
-
-.admin-workspace .workspace-catalog > .workspace-error {
-  grid-area: error;
-}
-
-.admin-workspace .workspace-catalog > .workspace-panel {
-  grid-area: body;
-  width: 100%;
-  min-width: 0;
-}
-
-@media (max-width: 900px) {
-  .admin-workspace .workspace-catalog {
-    display: block;
-  }
-
-  .admin-workspace .workspace-catalog > .workspace-toolbar {
-    margin-top: 16px;
-  }
-}
-
-/* Parents & Students workspace: keep heading and all controls on the left. */
+/* Parents & Students workspace/* Parents & Students workspace: keep heading and all controls on the left. */
 .admin-workspace .workspace-students {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
