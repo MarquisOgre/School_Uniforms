@@ -14,7 +14,6 @@ import {
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import AdminWorkspace from './AdminWorkspace'
-import { GlobalHeader } from './components/GlobalChrome'
 import { DEFAULT_HOME } from './HomePage'
 
 type AdminTool =
@@ -335,13 +334,6 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
     })
   return (
     <div className="admin-shell">
-      <GlobalHeader
-        portal="admin"
-        title="Admin Portal"
-        subtitle="Homepage Editor"
-        onBack={onBack}
-        backLabel="Uniform Packages"
-      />
       <div className="admin-content">
         <div className="admin-title">
           <div>
