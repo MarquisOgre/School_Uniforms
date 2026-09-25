@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import CheckoutFlow, { type CheckoutCartItem } from './CheckoutFlow'
-import { CustomerPageFrame, GlobalFooter, GlobalHeader } from './components/GlobalChrome'
+import { CustomerPageFrame, GlobalHeader } from './components/GlobalChrome'
 
 export type CustomerPage = 'dashboard' | 'packages' | 'products' | 'orders' | 'profile'
 type CartItem = CheckoutCartItem
@@ -253,11 +253,7 @@ function CustomerPortal({
             <Profile studentId={studentId} />
           )}
         </main>
-      </div>
-      <GlobalFooter portal="customer" />
-    </div>
-  )
-}
+      </div>\n    </div>\n  )\n}
 function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
   return (
     <div className="portal-content">
@@ -486,11 +482,7 @@ function Packages({
   }, [branchId])
   return (
     <div className="portal-content">
-      <CatalogHeading
-        eyebrow="PACKAGES"
-        title="Uniform Packages"
-        text="Complete school-approved sets, built from the same individual products available in the store."
-      />
+      <CatalogHeading eyebrow="PACKAGES" title="Uniform Packages" />
       {error && <p className="workspace-error">{error}</p>}
       {loading ? (
         <div className="empty-state">Loading school packages...</div>
@@ -620,11 +612,7 @@ function Products({
   }, [branchId])
   return (
     <div className="portal-content">
-      <CatalogHeading
-        eyebrow="PRODUCTS"
-        title="Individual Products"
-        text="Find a single item, select the right size and add it to your order."
-      />
+      <CatalogHeading eyebrow="PRODUCTS" title="Individual Products" />
       <div className="catalog-toolbar">
         <div className="search-box">
           <Search size={17} />
@@ -945,11 +933,7 @@ function Orders() {
   }, [])
   return (
     <div className="portal-content">
-      <CatalogHeading
-        eyebrow="ORDERS"
-        title="My Orders"
-        text="Track your school uniform orders and view previous purchases."
-      />
+      <CatalogHeading eyebrow="ORDERS" title="My Orders" />
       {error && <p className="workspace-error">{error}</p>}
       {loading ? (
         <div className="empty-state">Loading orders...</div>
@@ -1000,11 +984,7 @@ function Orders() {
 function Profile({ studentId }: { studentId: string }) {
   return (
     <div className="portal-content">
-      <CatalogHeading
-        eyebrow="ACCOUNT"
-        title="My Profile"
-        text="Your school account information."
-      />
+      <CatalogHeading eyebrow="ACCOUNT" title="My Profile" />
       <div className="profile-card">
         <div className="profile-avatar">{studentId.slice(0, 1).toUpperCase()}</div>
         <div>
