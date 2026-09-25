@@ -7414,8 +7414,7 @@ a {
 }
 
 .admin-sidebar-brand img {
-  width: 42px;
-  height: 42px;
+  width: clamp(145px, 11vw, 175px);
   object-fit: contain;
   filter: brightness(0) invert(1);
 }

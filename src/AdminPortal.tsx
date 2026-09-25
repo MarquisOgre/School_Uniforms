@@ -72,10 +72,10 @@ function AdminSidebar({
     <aside className="admin-sidebar">
       <div className="admin-sidebar-brand">
         <img src="/logo.png" alt="School Uniforms" />
-        <div>
+        {/* <div>
           <strong>School Uniforms</strong>
           <span>ADMIN PORTAL</span>
-        </div>
+        </div> */}
       </div>
       <nav className="admin-sidebar-nav" aria-label="Admin navigation">
         {ADMIN_NAV.map(({ key, label, icon: Icon }) => (
