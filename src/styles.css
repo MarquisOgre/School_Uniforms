@@ -5419,7 +5419,7 @@ a {
   min-height: 76px;
   width: min(100%, 1536px);
   margin: 0 auto;
-  padding: 12px clamp(18px, 3vw, 42px);
+  padding: 20px 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
