@@ -17,7 +17,6 @@ import AdminWorkspace from './AdminWorkspace'
 import { GlobalHeader } from './components/GlobalChrome'
 import { DEFAULT_HOME } from './HomePage'
 
-
 type AdminTool =
   | 'home'
   | 'schools'
@@ -163,11 +162,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       const nextTool = adminToolFromPath(window.location.pathname)
       setTool(nextTool)
       const canonicalPath = adminPathForTool(nextTool)
-      window.history.replaceState(
-        { schoolUniformApp: 'admin', tool: nextTool },
-        '',
-        canonicalPath,
-      )
+      window.history.replaceState({ schoolUniformApp: 'admin', tool: nextTool }, '', canonicalPath)
     }
 
     syncAdminRoute()
@@ -179,11 +174,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (!window.location.pathname.startsWith('/admin')) return
     const canonicalPath = adminPathForTool(tool)
     if (window.location.pathname === canonicalPath) return
-    window.history.pushState(
-      { schoolUniformApp: 'admin', tool },
-      '',
-      canonicalPath,
-    )
+    window.history.pushState({ schoolUniformApp: 'admin', tool }, '', canonicalPath)
   }, [tool])
   async function login() {
     const client = supabase
