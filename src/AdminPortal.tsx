@@ -200,11 +200,58 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       if (p && ['admin', 'super_admin'].includes(p.role)) setAdmin(true)
     })
   }, [])
-  const logoutAdmin = () => {
-    void supabase?.auth.signOut({ scope: 'local' })
+  const logoutAdmin = async () => {
+    if (supabase) await supabase.auth.signOut({ scope: 'local' })
     localStorage.removeItem('school_uniform_admin_context')
+    window.history.replaceState({}, '', '/admin')
+    setTool('packages')
     setAdmin(false)
+    setEmail('')
+    setPassword('')
+    setError('')
   }
+
+  if (!admin)
+    return (
+      <div className="admin-login-page">
+        <div className="admin-login-card">
+          <div className="admin-login-logo">
+            <img src="/logo.png" alt="Artisan" />
+          </div>
+          <p className="eyebrow">ADMINISTRATION</p>
+          <h1>Administrator Sign In</h1>
+          <p>Manage schools, students, catalogs and orders from the secure admin portal.</p>
+          <label>Email</label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@gmail.com"
+            autoComplete="username"
+          />
+          <label>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void login()
+            }}
+            autoComplete="current-password"
+          />
+          {error && <p className="login-error">{error}</p>}
+          <button
+            className="primary-button"
+            onClick={() => void login()}
+            disabled={loading || !email || !password}
+          >
+            {loading ? 'SIGNING IN...' : 'ADMIN LOGIN'}
+          </button>
+          <button type="button" className="secondary-button" onClick={onBack}>
+            BACK TO STORE
+          </button>
+        </div>
+      </div>
+    )
 
   if (tool === 'home')
     return (
