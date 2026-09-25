@@ -69,9 +69,28 @@ export default function AdminWorkspace({
         backLabel="Dashboard"
       />
       <main className={`workspace-body workspace-${module}`}>
-        <div className="workspace-heading">
-          <h1>{m.title}</h1>
-          <p>{m.description}</p>
+        <div
+          className="workspace-heading"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '20px',
+          }}
+        >
+          <div>
+            <h1>{m.title}</h1>
+            <p>{m.description}</p>
+          </div>
+          {module === 'payments' ? (
+            <button
+              className="secondary-button"
+              onClick={() => window.dispatchEvent(new CustomEvent('payments:refresh'))}
+              style={{ flexShrink: 0 }}
+            >
+              <RefreshCw size={15} /> Refresh
+            </button>
+          ) : null}
         </div>
         <ModuleBody module={module} />
       </main>
@@ -964,26 +983,52 @@ function PaymentsAdmin() {
     [branches, setBranches] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
-    [saving, setSaving] = useState<string | null>(null)
+    [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+
   const load = async () => {
     if (!supabase) return
     setLoading(true)
     const [p, o, b, s] = await Promise.all([
       dbFrom('payments').select('*').order('created_at', { ascending: false }),
-      dbFrom('orders').select('id,order_number'),
+      dbFrom('orders').select('id,order_number,status'),
       dbFrom('branches').select('id,name').order('name'),
       dbFrom('branch_payment_settings').select('*'),
     ])
-    const om = Object.fromEntries((o.data ?? []).map((x: any) => [x.id, x.order_number]))
-    setRows((p.data ?? []).map((x: any) => ({ ...x, order_number: om[x.order_id] || '—' })))
+    const om = Object.fromEntries((o.data ?? []).map((x: any) => [x.id, x]))
+    setRows(
+      (p.data ?? []).map((x: any) => ({
+        ...x,
+        order_number: om[x.order_id]?.order_number || '—',
+        order_status: om[x.order_id]?.status || 'pending',
+      })),
+    )
     setBranches(b.data ?? [])
     setSettings(s.data ?? [])
     setError(p.error?.message || o.error?.message || b.error?.message || s.error?.message || '')
     setLoading(false)
   }
+
   useEffect(() => {
     void load()
+    const refreshHandler = () => void load()
+    window.addEventListener('payments:refresh', refreshHandler)
+    return () => window.removeEventListener('payments:refresh', refreshHandler)
   }, [])
+
+  const updateOrderStatus = async (orderId: string, status: string) => {
+    if (!supabase || !orderId) return
+    setUpdatingStatus(orderId)
+    const result = await dbFrom('orders').update({ status }).eq('id', orderId).select('id,status').maybeSingle()
+    if (result.error) {
+      setError(result.error.message)
+    } else {
+      setRows((current) =>
+        current.map((row) => (row.order_id === orderId ? { ...row, order_status: status } : row)),
+      )
+    }
+    setUpdatingStatus(null)
+  }
+
   const value = (branchId: string) =>
     settings.find((x) => x.branch_id === branchId) || {
       branch_id: branchId,
@@ -994,9 +1039,10 @@ function PaymentsAdmin() {
       shipping_fee: 0,
       free_shipping_above: 0,
     }
+
   const save = async (row: any) => {
     if (!supabase) return
-    setSaving(row.branch_id)
+    setUpdatingStatus(row.branch_id)
     const r = await dbFrom('branch_payment_settings').upsert(
       {
         branch_id: row.branch_id,
@@ -1011,11 +1057,28 @@ function PaymentsAdmin() {
     )
     if (r.error) setError(r.error.message)
     else await load()
-    setSaving(null)
+    setUpdatingStatus(null)
   }
+
+  const orderStatusOptions = [
+    ['pending', 'Order Received'],
+    ['confirmed', 'Order Confirmed'],
+    ['processing', 'Order Processing'],
+    ['ready', 'Order Ready'],
+    ['packed', 'Order Packed'],
+    ['shipped', 'Order Shipped'],
+    ['out_for_delivery', 'Out for Delivery'],
+    ['delivered', 'Order Delivered'],
+    ['cancelled', 'Order Cancelled'],
+    ['return_requested', 'Return Requested'],
+    ['return_approved', 'Return Approved'],
+    ['returned', 'Order Returned'],
+    ['refund_processing', 'Refund Processing'],
+    ['refunded', 'Refund Completed'],
+  ]
+
   return (
     <>
-      <Toolbar onRefresh={load} />
       <ErrorBox text={error} />
       {loading ? (
         <Loading />
@@ -1120,10 +1183,10 @@ function PaymentsAdmin() {
                     />
                     <button
                       className="primary-button"
-                      disabled={saving === b.id}
+                      disabled={updatingStatus === b.id}
                       onClick={() => void save(row)}
                     >
-                      {saving === b.id ? 'Saving...' : 'Save'}
+                      {updatingStatus === b.id ? 'Saving...' : 'Save'}
                     </button>
                   </div>
                 )
@@ -1153,7 +1216,31 @@ function PaymentsAdmin() {
                       <td>{x.order_number}</td>
                       <td>{x.provider || '—'}</td>
                       <td>₹{Number(x.amount || 0).toLocaleString('en-IN')}</td>
-                      <td>{x.status}</td>
+                      <td>
+                        <select
+                          value={x.order_status || 'pending'}
+                          disabled={!x.order_id || updatingStatus === x.order_id}
+                          onChange={(e) => void updateOrderStatus(x.order_id, e.target.value)}
+                          aria-label={`Order status for ${x.order_number}`}
+                          style={{
+                            minWidth: '150px',
+                            height: '34px',
+                            border: '1px solid var(--line)',
+                            borderRadius: '7px',
+                            padding: '0 9px',
+                            background: '#fff',
+                            color: 'var(--ink)',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {orderStatusOptions.map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
                       <td>{x.paid_at ? new Date(x.paid_at).toLocaleDateString('en-IN') : '—'}</td>
                     </tr>
                   ))}
