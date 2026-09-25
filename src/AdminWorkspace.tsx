@@ -948,15 +948,13 @@ function OrdersAdmin({ search }: { search: string }) {
       const quantity = Number(item.quantity || 1)
 
       if (item.package_id) {
+        const packageName = item.item_name_snapshot || 'Uniform Package'
+        orderItems.push(`${packageName} × ${quantity}`)
         const components = packageItemsMap[item.package_id] || []
-        if (components.length) {
-          for (const component of components) {
-            const componentQuantity = Number(component.quantity || 1) * quantity
-            const productName = productMap[component.product_id] || 'Product'
-            orderItems.push(`${productName} × ${componentQuantity}`)
-          }
-        } else {
-          orderItems.push(`${item.item_name_snapshot || 'Package'} × ${quantity}`)
+        for (const component of components) {
+          const componentQuantity = Number(component.quantity || 1) * quantity
+          const productName = productMap[component.product_id] || 'Product'
+          orderItems.push(`↳ ${productName} × ${componentQuantity}`)
         }
       } else {
         const productName = productMap[item.product_id] || item.item_name_snapshot || 'Product'
