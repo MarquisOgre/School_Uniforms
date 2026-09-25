@@ -117,13 +117,7 @@ export default function AdminWorkspace({
   )
 }
 
-function ModuleBody({
-  module,
-  ordersSearch,
-}: {
-  module: ModuleKey
-  ordersSearch?: string
-}) {
+function ModuleBody({ module, ordersSearch }: { module: ModuleKey; ordersSearch?: string }) {
   switch (module) {
     case 'schools':
       return <Schools />
@@ -930,7 +924,9 @@ function OrdersAdmin({ search }: { search: string }) {
           'id,order_id,product_id,package_id,quantity,unit_price,item_name_snapshot,selected_variants',
         )
         .order('created_at'),
-      dbFrom('package_items').select('package_id,product_id,quantity,sort_order').order('sort_order'),
+      dbFrom('package_items')
+        .select('package_id,product_id,quantity,sort_order')
+        .order('sort_order'),
       dbFrom('products').select('id,name'),
     ])
 
