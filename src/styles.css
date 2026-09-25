@@ -5401,6 +5401,12 @@ a {
   z-index: 40;
   color: #fff;
 }
+.global-header-customer {
+  position: relative;
+  top: auto;
+  flex-shrink: 0;
+}
+
 .global-header-customer .global-header-inner {
   padding-bottom: 20px;
 }
