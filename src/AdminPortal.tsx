@@ -17,7 +17,6 @@ import AdminWorkspace from './AdminWorkspace'
 import { GlobalHeader } from './components/GlobalChrome'
 import { DEFAULT_HOME } from './HomePage'
 
-
 type AdminTool =
   | 'home'
   | 'schools'
@@ -29,8 +28,6 @@ type AdminTool =
   | 'students'
   | 'reports'
   | 'coupons'
-  | 'parent'
-  | 'import'
 
 const ADMIN_NAV: Array<{
   key: AdminTool
@@ -113,18 +110,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     [admin, setAdmin] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState('')
-  const [tool, setTool] = useState<
-    | 'home'
-    | 'schools'
-    | 'products'
-    | 'packages'
-    | 'orders'
-    | 'payments'
-    | 'inventory'
-    | 'students'
-    | 'reports'
-    | 'coupons'
-  >('packages')
+  const [tool, setTool] = useState<AdminTool>('packages')
   const adminPathForTool = (value: AdminTool) => {
     const paths: Record<AdminTool, string> = {
       home: '/admin/homepage',
@@ -163,11 +149,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       const nextTool = adminToolFromPath(window.location.pathname)
       setTool(nextTool)
       const canonicalPath = adminPathForTool(nextTool)
-      window.history.replaceState(
-        { schoolUniformApp: 'admin', tool: nextTool },
-        '',
-        canonicalPath,
-      )
+      window.history.replaceState({ schoolUniformApp: 'admin', tool: nextTool }, '', canonicalPath)
     }
 
     syncAdminRoute()
@@ -179,11 +161,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (!window.location.pathname.startsWith('/admin')) return
     const canonicalPath = adminPathForTool(tool)
     if (window.location.pathname === canonicalPath) return
-    window.history.pushState(
-      { schoolUniformApp: 'admin', tool },
-      '',
-      canonicalPath,
-    )
+    window.history.pushState({ schoolUniformApp: 'admin', tool }, '', canonicalPath)
   }, [tool])
   async function login() {
     const client = supabase
