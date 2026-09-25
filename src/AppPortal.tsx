@@ -1052,19 +1052,19 @@ function Profile({
       }
       setUserId(user.id)
 
-      const [pr, st, ad] = await Promise.all([
+      const [pr, link, ad] = await Promise.all([
         client
           .from('profiles')
           .select('full_name,login_id,phone,role')
           .eq('id', user.id)
           .maybeSingle(),
         client
-          .from('students')
-          .select('id,student_code,full_name,class_name,section,gender,date_of_birth')
-          .eq('school_id', schoolId)
-          .eq('branch_id', branchId)
-          .eq('student_code', studentId)
-          .maybeSingle(),
+          .from('parent_student_links')
+          .select(
+            'relationship,is_primary,student:students!parent_student_links_student_id_fkey(id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id)',
+          )
+          .eq('parent_user_id', user.id)
+          .order('is_primary', { ascending: false }),
         client
           .from('customer_addresses')
           .select('id,recipient_name,phone,address_line1,address_line2,city,state,postal_code')
@@ -1078,11 +1078,30 @@ function Profile({
         ...(pr.data || {}),
         email: user.email || '',
       })
-      setStudent(st.data || {})
+      const linkedStudents = (link.data || []) as any[]
+      const linkedStudent = linkedStudents.find((x) => {
+        const s = Array.isArray(x.student) ? x.student[0] : x.student
+        return s && s.school_id === schoolId && s.branch_id === branchId
+      })
+      const selectedStudent = linkedStudent
+        ? Array.isArray(linkedStudent.student)
+          ? linkedStudent.student[0]
+          : linkedStudent.student
+        : linkedStudents[0]
+          ? Array.isArray(linkedStudents[0].student)
+            ? linkedStudents[0].student[0]
+            : linkedStudents[0].student
+          : null
+      setStudent(selectedStudent || {})
       if (ad.data) setAddress(ad.data)
       setLoading(false)
-      if (pr.error || st.error || ad.error) {
-        setError(pr.error?.message || st.error?.message || ad.error?.message || '')
+      if (pr.error || link.error || ad.error) {
+        setError(
+          pr.error?.message ||
+            link.error?.message ||
+            ad.error?.message ||
+            'Unable to load profile details.',
+        )
       }
     }
     void load()
@@ -1122,7 +1141,11 @@ function Profile({
       : await client.from('customer_addresses').insert(adPayload).select().single()
 
     if (pr.error || ad.error) {
-      setError(pr.error?.message || ad.error?.message || 'Unable to save profile')
+      setError(
+        pr.error?.message ||
+          ad.error?.message ||
+          'Unable to save your profile details. Please try again.',
+      )
     } else {
       if (ad.data) setAddress(ad.data)
       setMessage('Profile details saved successfully.')
@@ -1158,7 +1181,12 @@ function Profile({
     if (!client || !profile.email) return
     setMessage('')
     setError('')
-    const result = await client.auth.updateUser({ email: profile.email.trim() })
+    const email = profile.email.trim()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Please enter a valid email address.')
+      return
+    }
+    const result = await client.auth.updateUser({ email })
     if (result.error) setError(result.error.message)
     else setMessage('Email update requested. Check your email to confirm the new address.')
   }
