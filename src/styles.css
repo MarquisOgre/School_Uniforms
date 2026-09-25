@@ -4261,6 +4261,10 @@ a {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
 }
+.workspace-form-row-pricing {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .workspace-form-row-image-status {
   grid-template-columns: minmax(0, 2fr) minmax(150px, 1fr);
 }
