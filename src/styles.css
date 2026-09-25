@@ -6637,8 +6637,8 @@ a {
 
 .workspace-image-picker-box {
   position: relative;
-  width: 100%;
-  height: 132px;
+  width: 150px;
+  height: 100px;
   border: 1px dashed #cfc3b2;
   border-radius: 8px;
   background: #faf7f0;
