@@ -157,22 +157,67 @@ function CustomerPortal({
     )
   if (selected)
     return (
-      <CustomerPageFrame
-        title=""
-        onBack={() => setPage('dashboard')}
-        onLogout={onLogout}
-        cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
-        onCart={() => setCheckout('cart')}
-      >
-        <ProductDetail
-          item={selected}
+      <div className="portal">
+        <GlobalHeader
+          portal="customer"
+          title="Parent / Student Portal"
+          subtitle={schoolName + ' • ' + branchName}
           onBack={() => setPage('dashboard')}
-          onAdd={(x) => {
-            add(x)
-            setSelected(null)
-          }}
+          backLabel="Dashboard"
+          onLogout={onLogout}
+          cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
+          onCart={() => setCheckout('cart')}
         />
-      </CustomerPageFrame>
+        <div className="portal-layout">
+          <aside className="sidebar">
+            <div className="school-scope">
+              <Building2 size={16} />
+              <div>
+                <strong>{schoolName}</strong>
+                <span>{branchName}</span>
+              </div>
+            </div>
+            <nav>
+              {nav.map(([key, label, Icon]) => (
+                <button
+                  className={page === key ? 'active' : ''}
+                  onClick={() => setPage(key)}
+                  key={key}
+                >
+                  <Icon size={18} />
+                  {label}
+                </button>
+              ))}
+            </nav>
+            <button className="sidebar-logout" onClick={onLogout}>
+              <LogOut size={17} /> Logout
+            </button>
+          </aside>
+          <main className="portal-main">
+            <div className="portal-header">
+              <div>
+                <p className="eyebrow">{branchName}</p>
+                <h1>Product Details</h1>
+              </div>
+              <div className="header-user">
+                <div className="avatar">{studentId.slice(0, 1).toUpperCase()}</div>
+                <div>
+                  <strong>{studentId}</strong>
+                  <span>Parent / Student</span>
+                </div>
+              </div>
+            </div>
+            <ProductDetail
+              item={selected}
+              onBack={() => setPage('dashboard')}
+              onAdd={(x) => {
+                add(x)
+                setSelected(null)
+              }}
+            />
+          </main>
+        </div>
+      </div>
     )
   return (
     <div className="portal">
