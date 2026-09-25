@@ -147,6 +147,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       }
       const nextTool = adminToolFromPath(window.location.pathname)
       setTool(nextTool)
+      if (window.location.pathname === '/admin') return
       const canonicalPath = adminPathForTool(nextTool)
       window.history.replaceState({ schoolUniformApp: 'admin', tool: nextTool }, '', canonicalPath)
     }
