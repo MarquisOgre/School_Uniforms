@@ -17,7 +17,7 @@ import { supabase } from './lib/supabase'
 import AdminWorkspace from './AdminWorkspace'
 import ParentCreate from './components/ParentCreate'
 import StudentImport from './components/StudentImport'
-import { GlobalHeader, GlobalFooter } from './components/GlobalChrome'
+import { GlobalHeader } from './components/GlobalChrome'
 import { DEFAULT_HOME } from './HomePage'
 
 type SchoolOption = { id: string; name: string }
@@ -200,7 +200,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
             {loading ? 'SIGNING IN...' : 'ADMIN LOGIN'}
           </button>
         </div>
-        <GlobalFooter portal="admin" />
       </div>
     )
   if (tool === 'parent' && school && branch)
@@ -371,7 +370,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
           />
         </div>
       </div>
-      <GlobalFooter portal="admin" />
     </div>
   )
 }
@@ -887,7 +885,6 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
           ))}
         </section>
       </div>
-      <GlobalFooter portal="admin" />
     </div>
   )
 }
