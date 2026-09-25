@@ -692,13 +692,32 @@ function Packages() {
   const load = async () => {
     if (!supabase) return
     setLoading(true)
-    const [p, x] = await Promise.all([
+    const [p, x, pi] = await Promise.all([
       dbFrom('uniform_packages').select('*').order('name'),
       dbFrom('products').select('id,name,gender,base_price').eq('status', 'active').order('name'),
+      dbFrom('package_items').select('package_id,product_id,quantity,sort_order').order('sort_order'),
     ])
-    setRows(p.data ?? [])
+
+    const productMap = Object.fromEntries((x.data ?? []).map((product: any) => [product.id, product]))
+    const packageItemsMap: Record<string, string[]> = {}
+
+    for (const item of pi.data ?? []) {
+      const product = productMap[item.product_id]
+      if (!product) continue
+      if (!packageItemsMap[item.package_id]) packageItemsMap[item.package_id] = []
+      packageItemsMap[item.package_id].push(
+        `${product.name}${Number(item.quantity || 1) > 1 ? ` × ${item.quantity}` : ''}`,
+      )
+    }
+
+    setRows(
+      (p.data ?? []).map((pkg: any) => ({
+        ...pkg,
+        item_names: packageItemsMap[pkg.id] ?? [],
+      })),
+    )
     setProducts(x.data ?? [])
-    setError(p.error?.message || x.error?.message || '')
+    setError(p.error?.message || x.error?.message || pi.error?.message || '')
     setLoading(false)
   }
   const loadItems = async (packageId: string) => {
@@ -793,7 +812,17 @@ function Packages() {
                 <strong>{x.name}</strong>
                 <span>{x.gender}</span>
                 <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
-                <span>{items.length && editing?.id === x.id ? '' : 'Package items available'}</span>
+                <span>
+                  {x.item_names?.length ? (
+                    <span className="package-list-items">
+                      {x.item_names.map((name: string, index: number) => (
+                        <span key={`${x.id}-item-${index}`}>{name}</span>
+                      ))}
+                    </span>
+                  ) : (
+                    'No items configured'
+                  )}
+                </span>
                 <button
                   onClick={() => {
                     setEditing({ ...x })
