@@ -524,7 +524,6 @@ function Products() {
                 <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
                 <span>{Number(x.discount_percentage || 0)}%</span>
                 <span>₹{Number(x.offer_price ?? x.base_price ?? 0).toLocaleString('en-IN')}</span>
-                <span></span>
                 <button
                   onClick={() => {
                     setEditing({ ...x })
