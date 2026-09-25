@@ -59,6 +59,7 @@ export default function AdminWorkspace({
   onBack: () => void
 }) {
   const m = META[module]
+  const [ordersSearch, setOrdersSearch] = useState('')
   return (
     <div className="admin-workspace">
       <GlobalHeader
@@ -82,7 +83,24 @@ export default function AdminWorkspace({
             <h1>{m.title}</h1>
             <p>{m.description}</p>
           </div>
-          {module === 'payments' ? (
+          {module === 'orders' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+              <div className="toolbar-search">
+                <Search size={15} />
+                <input
+                  value={ordersSearch}
+                  onChange={(e) => setOrdersSearch(e.target.value)}
+                  placeholder="Search orders"
+                />
+              </div>
+              <button
+                className="secondary-button"
+                onClick={() => window.dispatchEvent(new CustomEvent('orders:refresh'))}
+              >
+                <RefreshCw size={15} /> Refresh
+              </button>
+            </div>
+          ) : module === 'payments' ? (
             <button
               className="secondary-button"
               onClick={() => window.dispatchEvent(new CustomEvent('payments:refresh'))}
@@ -92,14 +110,20 @@ export default function AdminWorkspace({
             </button>
           ) : null}
         </div>
-        <ModuleBody module={module} />
+        <ModuleBody module={module} ordersSearch={ordersSearch} />
       </main>
       <GlobalFooter portal="admin" />
     </div>
   )
 }
 
-function ModuleBody({ module }: { module: ModuleKey }) {
+function ModuleBody({
+  module,
+  ordersSearch,
+}: {
+  module: ModuleKey
+  ordersSearch?: string
+}) {
   switch (module) {
     case 'schools':
       return <Schools />
@@ -108,7 +132,7 @@ function ModuleBody({ module }: { module: ModuleKey }) {
     case 'packages':
       return <Packages />
     case 'orders':
-      return <OrdersAdmin />
+      return <OrdersAdmin search={ordersSearch || ''} />
     case 'payments':
       return <PaymentsAdmin />
     case 'inventory':
@@ -888,54 +912,101 @@ function Packages() {
   )
 }
 
-function OrdersAdmin() {
+function OrdersAdmin({ search }: { search: string }) {
   const [rows, setRows] = useState<any[]>([]),
     [error, setError] = useState(''),
-    [loading, setLoading] = useState(true),
-    [search, setSearch] = useState('')
+    [loading, setLoading] = useState(true)
+
   const load = async () => {
     if (!supabase) return
     setLoading(true)
-    const [o, p, s, b] = await Promise.all([
+    const [o, p, s, b, oi, pi, products] = await Promise.all([
       dbFrom('orders').select('*').order('created_at', { ascending: false }),
       dbFrom('profiles').select('id,full_name,login_id'),
       dbFrom('students').select('id,full_name,student_code'),
       dbFrom('branches').select('id,name'),
+      dbFrom('order_items')
+        .select(
+          'id,order_id,product_id,package_id,quantity,unit_price,item_name_snapshot,selected_variants',
+        )
+        .order('created_at'),
+      dbFrom('package_items').select('package_id,product_id,quantity,sort_order').order('sort_order'),
+      dbFrom('products').select('id,name'),
     ])
+
     const pm = Object.fromEntries((p.data ?? []).map((x: any) => [x.id, x]))
     const sm = Object.fromEntries((s.data ?? []).map((x: any) => [x.id, x]))
     const bm = Object.fromEntries((b.data ?? []).map((x: any) => [x.id, x]))
+    const productMap = Object.fromEntries((products.data ?? []).map((x: any) => [x.id, x.name]))
+    const packageItemsMap: Record<string, any[]> = {}
+
+    for (const item of pi.data ?? []) {
+      if (!packageItemsMap[item.package_id]) packageItemsMap[item.package_id] = []
+      packageItemsMap[item.package_id].push(item)
+    }
+
+    const itemsByOrder: Record<string, string[]> = {}
+
+    for (const item of oi.data ?? []) {
+      const orderItems = itemsByOrder[item.order_id] || []
+      const quantity = Number(item.quantity || 1)
+
+      if (item.package_id) {
+        const components = packageItemsMap[item.package_id] || []
+        if (components.length) {
+          for (const component of components) {
+            const componentQuantity = Number(component.quantity || 1) * quantity
+            const productName = productMap[component.product_id] || 'Product'
+            orderItems.push(`${productName} × ${componentQuantity}`)
+          }
+        } else {
+          orderItems.push(`${item.item_name_snapshot || 'Package'} × ${quantity}`)
+        }
+      } else {
+        const productName = productMap[item.product_id] || item.item_name_snapshot || 'Product'
+        orderItems.push(`${productName} × ${quantity}`)
+      }
+
+      itemsByOrder[item.order_id] = orderItems
+    }
+
     setRows(
       (o.data ?? []).map((x: any) => ({
         ...x,
         customer: pm[x.customer_user_id]?.full_name || pm[x.customer_user_id]?.login_id || '—',
         student: sm[x.student_id]?.full_name || sm[x.student_id]?.student_code || '—',
         branch: bm[x.branch_id]?.name || '—',
+        products: itemsByOrder[x.id] ?? [],
       })),
     )
-    setError(o.error?.message || p.error?.message || s.error?.message || b.error?.message || '')
+    setError(
+      o.error?.message ||
+        p.error?.message ||
+        s.error?.message ||
+        b.error?.message ||
+        oi.error?.message ||
+        pi.error?.message ||
+        products.error?.message ||
+        '',
+    )
     setLoading(false)
   }
+
   useEffect(() => {
     void load()
+    const refreshHandler = () => void load()
+    window.addEventListener('orders:refresh', refreshHandler)
+    return () => window.removeEventListener('orders:refresh', refreshHandler)
   }, [])
+
   const filtered = rows.filter((x) =>
-    [x.order_number, x.status, x.customer, x.student, x.branch].some((v) =>
+    [x.order_number, x.status, x.customer, x.student, x.branch, ...(x.products || [])].some((v) =>
       String(v).toLowerCase().includes(search.toLowerCase()),
     ),
   )
+
   return (
     <>
-      <Toolbar onRefresh={load}>
-        <div className="toolbar-search">
-          <Search size={15} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search orders"
-          />
-        </div>
-      </Toolbar>
       <ErrorBox text={error} />
       {loading ? (
         <Loading />
@@ -949,6 +1020,7 @@ function OrdersAdmin() {
                   <th>Customer</th>
                   <th>Student</th>
                   <th>Branch</th>
+                  <th>Products</th>
                   <th>Status</th>
                   <th>Total</th>
                   <th>Date</th>
@@ -963,6 +1035,17 @@ function OrdersAdmin() {
                     <td>{x.customer}</td>
                     <td>{x.student}</td>
                     <td>{x.branch}</td>
+                    <td>
+                      <div style={{ display: 'grid', gap: '4px', minWidth: '260px' }}>
+                        {x.products.length ? (
+                          x.products.map((product: string, index: number) => (
+                            <span key={`${x.id}-product-${index}`}>{product}</span>
+                          ))
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </div>
+                    </td>
                     <td>{x.status}</td>
                     <td>₹{Number(x.grand_total || 0).toLocaleString('en-IN')}</td>
                     <td>{new Date(x.created_at).toLocaleDateString('en-IN')}</td>
