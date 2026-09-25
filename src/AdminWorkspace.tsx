@@ -581,11 +581,15 @@ function Products() {
               type="number"
             />
           </div>
-          <Field
-            label="Image URL"
-            value={editing.image_url || ''}
-            onChange={(v) => setEditing({ ...editing, image_url: v })}
-          />
+          <label className="workspace-field">
+            <span>Product Image</span>
+            <ImagePicker
+              value={editing.image_url || ''}
+              folder="products"
+              alt="Selected product"
+              onChange={(v) => setEditing({ ...editing, image_url: v })}
+            />
+          </label>
           <Select
             label="Status"
             value={editing.status}
@@ -679,7 +683,17 @@ function Products() {
   )
 }
 
-function ImagePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function ImagePicker({
+  value,
+  onChange,
+  folder = 'packages',
+  alt = 'Selected image',
+}: {
+  value: string
+  onChange: (v: string) => void
+  folder?: string
+  alt?: string
+}) {
   const [open, setOpen] = useState(false)
   const [images, setImages] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
@@ -688,10 +702,10 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
 
   const loadImages = async () => {
     if (!supabase) return
-    const storage = supabase.storage
     setLoading(true)
     setImageError('')
-    const result = await storage.from('package-images').list('', {
+    const storage = supabase.storage
+    const result = await storage.from('package-images').list(folder, {
       limit: 100,
       sortBy: { column: 'created_at', order: 'desc' },
     })
@@ -702,7 +716,12 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
       setImages(
         (result.data ?? [])
           .filter((file) => file.name)
-          .map((file) => storage.from('package-images').getPublicUrl(file.name).data.publicUrl),
+          .map(
+            (file) =>
+              storage
+                .from('package-images')
+                .getPublicUrl(`${folder}/${file.name}`).data.publicUrl,
+          ),
       )
     }
     setLoading(false)
@@ -710,7 +729,7 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
 
   useEffect(() => {
     if (open) void loadImages()
-  }, [open])
+  }, [open, folder])
 
   const uploadImage = async (file: File) => {
     if (!supabase) return
@@ -722,7 +741,7 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
         .replace(/[^a-zA-Z0-9.-]+/g, '-')
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '') || `image.${extension}`
-    const path = `packages/${Date.now()}-${safeName}`
+    const path = `${folder}/${Date.now()}-${safeName}`
     const result = await supabase.storage.from('package-images').upload(path, file, {
       cacheControl: '3600',
       upsert: false,
@@ -742,15 +761,16 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
     <div className="workspace-image-picker">
       <div className="workspace-image-picker-box">
         {value ? (
-          <img src={value} alt="Selected package" />
+          <img src={value} alt={alt} />
         ) : (
           <button
             type="button"
             className="workspace-image-picker-add"
             onClick={() => setOpen(true)}
-            aria-label="Select package image"
+            aria-label="Add image"
           >
             <Plus size={22} />
+            <span>Add Image</span>
           </button>
         )}
         {value ? (
@@ -767,7 +787,7 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
       {open ? (
         <div className="workspace-image-picker-panel">
           <div className="workspace-image-picker-panel-header">
-            <strong>Select Image</strong>
+            <strong>Media Library</strong>
             <button type="button" className="workspace-close" onClick={() => setOpen(false)}>
               <X size={16} />
             </button>
@@ -784,7 +804,7 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
               }}
             />
             <Plus size={17} />
-            {uploading ? 'Uploading...' : 'Upload New Image'}
+            {uploading ? 'Uploading...' : 'Add New Image'}
           </label>
 
           {imageError ? <div className="workspace-image-error">{imageError}</div> : null}
@@ -1059,6 +1079,8 @@ function Packages() {
               <span>Package Image</span>
               <ImagePicker
                 value={editing.image_url || ''}
+                folder="packages"
+                alt="Selected package"
                 onChange={(v) => setEditing({ ...editing, image_url: v })}
               />
             </label>
@@ -1090,35 +1112,37 @@ function Packages() {
                   <Plus size={14} /> Add Item
                 </button>
               </div>
-              <div className="package-items-tables">
-                {[
-                  items.slice(0, Math.ceil(items.length / 2)),
-                  items.slice(Math.ceil(items.length / 2)),
-                ].map((columnItems, columnIndex) => (
-                  <div className="package-items-table" key={columnIndex}>
-                    <div className="package-items-table-header">
-                      <strong>Product</strong>
-                      <strong>Qty</strong>
-                      <strong>Size</strong>
-                      <strong>Action</strong>
-                    </div>
-                    {columnItems.map((i) => (
-                      <div className="package-items-table-row" key={i.id}>
+              <div className="package-items-inline">
+                {items.length ? (
+                  items.map((i) => (
+                    <div className="package-item-inline-row" key={i.id}>
+                      <div className="package-item-inline-main">
                         <strong>
-                          {products.find((p) => p.id === i.product_id)?.name || i.product_id}
+                          {i.quantity} × {products.find((p) => p.id === i.product_id)?.name || i.product_id}
                         </strong>
-                        <span>{i.quantity}</span>
-                        <span>{i.requires_size ? 'Required' : 'Not required'}</span>
-                        <button
-                          className="secondary-button"
-                          onClick={() => setItemEditing({ ...i })}
-                        >
-                          Edit
-                        </button>
+                        {i.requires_size ? (
+                          <select aria-label="Select size" defaultValue="">
+                            <option value="">Select Size</option>
+                            <option value="__customer_select__">Customer selects size</option>
+                          </select>
+                        ) : (
+                          <span className="package-size-not-required">No size selection</span>
+                        )}
                       </div>
-                    ))}
+                      <button
+                        className="secondary-button"
+                        onClick={() => setItemEditing({ ...i })}
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="workspace-empty package-items-empty">
+                    No products added to this package yet.
                   </div>
-                ))}
+                )}
+              </div>
               </div>
             </>
           )}
