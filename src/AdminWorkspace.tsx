@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Plus, RefreshCw, Save, Trash2, Search, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
-import { GlobalFooter, GlobalHeader } from './components/GlobalChrome'
+import { GlobalHeader } from './components/GlobalChrome'
 
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
 
@@ -127,7 +127,6 @@ export default function AdminWorkspace({
         </div>
         <ModuleBody module={module} ordersSearch={ordersSearch} />
       </main>
-      <GlobalFooter portal="admin" />
     </div>
   )
 }
