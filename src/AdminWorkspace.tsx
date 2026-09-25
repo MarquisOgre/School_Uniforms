@@ -917,28 +917,29 @@ function Packages() {
                 </button>
               </div>
               <div className="package-items-tables">
-                {[items.slice(0, Math.ceil(items.length / 2)), items.slice(Math.ceil(items.length / 2))].map(
-                  (columnItems, columnIndex) => (
-                    <div className="package-items-table" key={columnIndex}>
-                      <div className="package-items-table-header">
-                        <strong>Product</strong>
-                        <strong>Qty</strong>
-                        <strong>Size</strong>
-                        <strong>Action</strong>
-                      </div>
-                      {columnItems.map((i) => (
-                        <div className="package-items-table-row" key={i.id}>
-                          <strong>
-                            {products.find((p) => p.id === i.product_id)?.name || i.product_id}
-                          </strong>
-                          <span>{i.quantity}</span>
-                          <span>{i.requires_size ? 'Required' : 'Not required'}</span>
-                          <button onClick={() => setItemEditing({ ...i })}>Edit</button>
-                        </div>
-                      ))}
+                {[
+                  items.slice(0, Math.ceil(items.length / 2)),
+                  items.slice(Math.ceil(items.length / 2)),
+                ].map((columnItems, columnIndex) => (
+                  <div className="package-items-table" key={columnIndex}>
+                    <div className="package-items-table-header">
+                      <strong>Product</strong>
+                      <strong>Qty</strong>
+                      <strong>Size</strong>
+                      <strong>Action</strong>
                     </div>
-                  ),
-                )}
+                    {columnItems.map((i) => (
+                      <div className="package-items-table-row" key={i.id}>
+                        <strong>
+                          {products.find((p) => p.id === i.product_id)?.name || i.product_id}
+                        </strong>
+                        <span>{i.quantity}</span>
+                        <span>{i.requires_size ? 'Required' : 'Not required'}</span>
+                        <button onClick={() => setItemEditing({ ...i })}>Edit</button>
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
             </>
           )}
