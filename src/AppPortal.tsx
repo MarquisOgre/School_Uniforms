@@ -1053,7 +1053,11 @@ function Profile({
       setUserId(user.id)
 
       const [pr, st, ad] = await Promise.all([
-        client.from('profiles').select('full_name,login_id,phone,role').eq('id', user.id).maybeSingle(),
+        client
+          .from('profiles')
+          .select('full_name,login_id,phone,role')
+          .eq('id', user.id)
+          .maybeSingle(),
         client
           .from('students')
           .select('id,student_code,full_name,class_name,section,gender,date_of_birth')
@@ -1195,7 +1199,9 @@ function Profile({
         </div>
         <div>
           <span>Class / Section</span>
-          <strong>{[student.class_name, student.section].filter(Boolean).join(' / ') || '—'}</strong>
+          <strong>
+            {[student.class_name, student.section].filter(Boolean).join(' / ') || '—'}
+          </strong>
         </div>
         <div>
           <span>Account Type</span>
@@ -1215,15 +1221,25 @@ function Profile({
           <div className="profile-form-grid">
             <label>
               Full Name
-              <input value={profile.full_name || ''} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} />
+              <input
+                value={profile.full_name || ''}
+                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+              />
             </label>
             <label>
               Mobile
-              <input value={profile.phone || ''} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+              <input
+                value={profile.phone || ''}
+                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+              />
             </label>
             <label className="profile-field-full">
               Email
-              <input value={profile.email || ''} onChange={(e) => setProfile({ ...profile, email: e.target.value })} type="email" />
+              <input
+                value={profile.email || ''}
+                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                type="email"
+              />
             </label>
           </div>
           <div className="profile-panel-actions">
@@ -1245,12 +1261,30 @@ function Profile({
             <UserRound size={20} />
           </div>
           <div className="profile-readonly-grid">
-            <div><span>Student Name</span><strong>{student.full_name || '—'}</strong></div>
-            <div><span>Student ID</span><strong>{student.student_code || studentId}</strong></div>
-            <div><span>Class</span><strong>{student.class_name || '—'}</strong></div>
-            <div><span>Section</span><strong>{student.section || '—'}</strong></div>
-            <div><span>Gender</span><strong>{student.gender || '—'}</strong></div>
-            <div><span>Date of Birth</span><strong>{student.date_of_birth || '—'}</strong></div>
+            <div>
+              <span>Student Name</span>
+              <strong>{student.full_name || '—'}</strong>
+            </div>
+            <div>
+              <span>Student ID</span>
+              <strong>{student.student_code || studentId}</strong>
+            </div>
+            <div>
+              <span>Class</span>
+              <strong>{student.class_name || '—'}</strong>
+            </div>
+            <div>
+              <span>Section</span>
+              <strong>{student.section || '—'}</strong>
+            </div>
+            <div>
+              <span>Gender</span>
+              <strong>{student.gender || '—'}</strong>
+            </div>
+            <div>
+              <span>Date of Birth</span>
+              <strong>{student.date_of_birth || '—'}</strong>
+            </div>
           </div>
         </section>
 
@@ -1265,31 +1299,52 @@ function Profile({
           <div className="profile-form-grid">
             <label>
               Recipient Name
-              <input value={address.recipient_name || ''} onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })} />
+              <input
+                value={address.recipient_name || ''}
+                onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })}
+              />
             </label>
             <label>
               Address Mobile
-              <input value={address.phone || ''} onChange={(e) => setAddress({ ...address, phone: e.target.value })} />
+              <input
+                value={address.phone || ''}
+                onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+              />
             </label>
             <label className="profile-field-full">
               Address Line 1
-              <input value={address.address_line1 || ''} onChange={(e) => setAddress({ ...address, address_line1: e.target.value })} />
+              <input
+                value={address.address_line1 || ''}
+                onChange={(e) => setAddress({ ...address, address_line1: e.target.value })}
+              />
             </label>
             <label className="profile-field-full">
               Address Line 2
-              <input value={address.address_line2 || ''} onChange={(e) => setAddress({ ...address, address_line2: e.target.value })} />
+              <input
+                value={address.address_line2 || ''}
+                onChange={(e) => setAddress({ ...address, address_line2: e.target.value })}
+              />
             </label>
             <label>
               City
-              <input value={address.city || ''} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
+              <input
+                value={address.city || ''}
+                onChange={(e) => setAddress({ ...address, city: e.target.value })}
+              />
             </label>
             <label>
               State
-              <input value={address.state || ''} onChange={(e) => setAddress({ ...address, state: e.target.value })} />
+              <input
+                value={address.state || ''}
+                onChange={(e) => setAddress({ ...address, state: e.target.value })}
+              />
             </label>
             <label>
               PIN / Postal Code
-              <input value={address.postal_code || ''} onChange={(e) => setAddress({ ...address, postal_code: e.target.value })} />
+              <input
+                value={address.postal_code || ''}
+                onChange={(e) => setAddress({ ...address, postal_code: e.target.value })}
+              />
             </label>
           </div>
           <div className="profile-panel-actions">
@@ -1310,11 +1365,21 @@ function Profile({
           <div className="profile-form-grid">
             <label>
               New Password
-              <input type="password" value={passwords.password} onChange={(e) => setPasswords({ ...passwords, password: e.target.value })} placeholder="Minimum 6 characters" />
+              <input
+                type="password"
+                value={passwords.password}
+                onChange={(e) => setPasswords({ ...passwords, password: e.target.value })}
+                placeholder="Minimum 6 characters"
+              />
             </label>
             <label>
               Confirm Password
-              <input type="password" value={passwords.confirm} onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })} placeholder="Repeat new password" />
+              <input
+                type="password"
+                value={passwords.confirm}
+                onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+                placeholder="Repeat new password"
+              />
             </label>
           </div>
           <div className="profile-panel-actions">
