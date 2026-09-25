@@ -13,7 +13,6 @@ type ModuleKey =
   | 'inventory'
   | 'students'
   | 'reports'
-  | 'catalog'
   | 'coupons'
 
 const META: Record<ModuleKey, { title: string; description: string }> = {
@@ -39,10 +38,6 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
   reports: {
     title: 'Reports',
     description: 'View high-level sales, orders and inventory summaries.',
-  },
-  catalog: {
-    title: 'Catalog Rules',
-    description: 'Control branch-specific products, prices and visibility.',
   },
   coupons: {
     title: 'Coupons',
@@ -141,8 +136,6 @@ function ModuleBody({ module, ordersSearch }: { module: ModuleKey; ordersSearch?
       return <ParentStudents />
     case 'reports':
       return <Reports />
-    case 'catalog':
-      return <Catalog />
     case 'coupons':
       return <Coupons />
   }
@@ -2223,138 +2216,6 @@ function Reports() {
   )
 }
 
-function Catalog() {
-  const [rows, setRows] = useState<any[]>([]),
-    [branches, setBranches] = useState<any[]>([]),
-    [products, setProducts] = useState<any[]>([]),
-    [editing, setEditing] = useState<any>(null),
-    [error, setError] = useState('')
-  const load = async () => {
-    if (!supabase) return
-    const [r, b, p] = await Promise.all([
-      dbFrom('branch_products').select('*'),
-      dbFrom('branches').select('id,name').order('name'),
-      dbFrom('products').select('id,name').eq('status', 'active').order('name'),
-    ])
-    setRows(r.data ?? [])
-    setBranches(b.data ?? [])
-    setProducts(p.data ?? [])
-    setError(r.error?.message || b.error?.message || p.error?.message || '')
-  }
-  useEffect(() => {
-    void load()
-  }, [])
-  const save = async () => {
-    if (!supabase || !editing) return
-    const payload = {
-      branch_id: editing.branch_id,
-      product_id: editing.product_id,
-      branch_price: Number(editing.branch_price || 0),
-      is_visible: editing.is_visible !== false,
-    }
-    const r = editing.id
-      ? await dbFrom('branch_products').update(payload).eq('id', editing.id)
-      : await dbFrom('branch_products').upsert(payload, { onConflict: 'branch_id,product_id' })
-    if (r.error) setError(r.error.message)
-    else {
-      setEditing(null)
-      await load()
-    }
-  }
-  const toggle = async (x: any) => {
-    if (!supabase) return
-    const r = await dbFrom('branch_products')
-      .update({ is_visible: !x.is_visible })
-      .eq('branch_id', x.branch_id)
-      .eq('product_id', x.product_id)
-    if (r.error) setError(r.error.message)
-    else await load()
-  }
-  return (
-    <>
-      <Toolbar onRefresh={load}>
-        <button
-          className="primary-button"
-          onClick={() =>
-            setEditing({
-              branch_id: branches[0]?.id || '',
-              product_id: products[0]?.id || '',
-              branch_price: products[0]?.base_price || 0,
-              is_visible: true,
-            })
-          }
-        >
-          <Plus size={15} /> Add New Rule
-        </button>
-      </Toolbar>
-      <ErrorBox text={error} />
-      <Panel>
-        <div className="workspace-table">
-          <div className="workspace-row admin-table-header catalog-row">
-            <strong>Branch</strong>
-            <span>Product</span>
-            <span>Branch Price</span>
-            <span>Visibility</span>
-            <span>Actions</span>
-          </div>
-          {rows.map((x) => (
-            <div className="workspace-row catalog-row" key={x.branch_id + x.product_id}>
-              <strong>{branches.find((b) => b.id === x.branch_id)?.name || x.branch_id}</strong>
-              <span>{products.find((p) => p.id === x.product_id)?.name || x.product_id}</span>
-              <span>₹{Number(x.branch_price || 0).toLocaleString('en-IN')}</span>
-              <span>{x.is_visible ? 'Visible' : 'Hidden'}</span>
-              <button onClick={() => void toggle(x)}>{x.is_visible ? 'Hide' : 'Show'}</button>
-            </div>
-          ))}
-        </div>
-      </Panel>
-      {editing && (
-        <EditModal
-          title={editing.id ? 'Edit Catalog Rule' : 'Add Catalog Rule'}
-          onClose={() => setEditing(null)}
-          onSave={save}
-        >
-          <Select
-            label="Branch"
-            value={editing.branch_id || ''}
-            options={branches.map((x) => x.id)}
-            labels={Object.fromEntries(branches.map((x) => [x.id, x.name]))}
-            onChange={(v) => setEditing({ ...editing, branch_id: v })}
-          />
-          <Select
-            label="Product"
-            value={editing.product_id || ''}
-            options={products.map((x) => x.id)}
-            labels={Object.fromEntries(products.map((x) => [x.id, x.name]))}
-            onChange={(v) => {
-              const product = products.find((x) => x.id === v)
-              setEditing({
-                ...editing,
-                product_id: v,
-                branch_price:
-                  editing.branch_price === '' || editing.branch_price === undefined
-                    ? product?.base_price || 0
-                    : editing.branch_price,
-              })
-            }}
-          />
-          <Field
-            label="Branch Price"
-            value={String(editing.branch_price ?? 0)}
-            onChange={(v) => setEditing({ ...editing, branch_price: v })}
-            type="number"
-          />
-          <Select
-            label="Visibility"
-            value={editing.is_visible ? 'visible' : 'hidden'}
-            options={['visible', 'hidden']}
-            onChange={(v) => setEditing({ ...editing, is_visible: v === 'visible' })}
-          />
-        </EditModal>
-      )}
-    </>
-  )
-}
 function Coupons() {
   const [rows, setRows] = useState<any[]>([]),
     [editing, setEditing] = useState<any>(null),
