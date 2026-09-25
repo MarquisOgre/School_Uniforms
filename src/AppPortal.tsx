@@ -257,12 +257,12 @@ function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
     <div className="portal-content">
       <div className="welcome-banner">
         <div>
-          <p className="eyebrow">YOUR SCHOOL STORE</p>
+          {/* <p className="eyebrow">YOUR SCHOOL STORE</p> */}
           <h2>Uniform shopping, organized for you.</h2>
           <p>Choose a complete package for the term or replace individual items as needed.</p>
-          <button className="hero-primary" onClick={() => setPage('packages')}>
+          {/* <button className="hero-primary" onClick={() => setPage('packages')}>
             Explore Uniform Packages <ArrowRight size={17} />
-          </button>
+          </button> */}
         </div>
         <div className="banner-icon">
           <ShoppingBag size={58} />
@@ -273,10 +273,10 @@ function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
         <Stat title="Saved items" value="0" icon={<Package />} />
         <Stat title="School branch" value="Active" icon={<Building2 />} />
       </div>
-      <div className="section-row">
+      {/* <div className="section-row">
         <p className="eyebrow">SHOP</p>
         <h2>Start with what you need</h2>
-      </div>
+      </div> */}
       <div className="shop-cards">
         <ShopCard
           icon={<Package />}
