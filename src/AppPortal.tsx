@@ -1081,7 +1081,9 @@ function Profile({
       if (studentIds.length) {
         const sr = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id')
+          .select(
+            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id',
+          )
           .in('id', studentIds)
         if (sr.error) {
           setError(sr.error.message)
