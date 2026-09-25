@@ -6163,10 +6163,6 @@ a {
   margin-left: 0;
 }
 
-.global-brand img {
-  filter: brightness(0) invert(1);
-}
-
 .global-header-actions {
   gap: 8px;
 }
@@ -7356,7 +7352,6 @@ a {
 .admin-sidebar-brand img {
   width: clamp(145px, 11vw, 175px);
   object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 
 .admin-sidebar-brand strong,
@@ -7396,7 +7391,7 @@ a {
   color: #aeb9b6;
   font-weight: 700;
   text-align: left;
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
   width: 100%;
 }
