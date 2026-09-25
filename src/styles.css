@@ -6438,14 +6438,26 @@ a {
 
 /* Keep product pricing and Edit action on one desktop row. */
 .workspace-row.product-row {
-  grid-template-columns:
-    minmax(220px, 2fr) minmax(130px, 1.1fr) minmax(90px, 0.8fr) minmax(105px, 0.85fr)
-    minmax(75px, 0.6fr) minmax(110px, 0.9fr) auto;
+  grid-template-columns: 2.2fr 1.35fr 0.85fr 0.95fr 0.7fr 0.95fr 0.75fr;
+  min-width: 0;
+}
+
+.workspace-row.product-row > * {
+  min-width: 0;
+}
+
+.workspace-row.product-row > strong,
+.workspace-row.product-row > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .workspace-row.product-row button {
   justify-self: end;
-  min-width: 82px;
+  width: 82px;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 @media (max-width: 760px) {
