@@ -705,9 +705,10 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
 
   const loadImages = async () => {
     if (!supabase) return
+    const storage = supabase.storage
     setLoading(true)
     setImageError('')
-    const result = await supabase.storage.from('package-images').list('', {
+    const result = await storage.from('package-images').list('', {
       limit: 100,
       sortBy: { column: 'created_at', order: 'desc' },
     })
@@ -720,7 +721,7 @@ function ImagePicker({ value, onChange }: { value: string; onChange: (v: string)
           .filter((file) => file.name)
           .map(
             (file) =>
-              supabase.storage.from('package-images').getPublicUrl(file.name).data.publicUrl,
+              storage.from('package-images').getPublicUrl(file.name).data.publicUrl,
           ),
       )
     }
