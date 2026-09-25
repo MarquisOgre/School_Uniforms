@@ -884,20 +884,20 @@ function Packages() {
                 </button>
               </div>
               <div className="workspace-table">
-                <div className="workspace-row admin-table-header package-item-row">
+                <div className="package-items-grid-header">
                   <strong>Product</strong>
-                  <span>Qty</span>
-                  <span>Size</span>
-                  <span>Actions</span>
+                  <strong>Qty / Size / Action</strong>
                 </div>
                 {items.map((i) => (
-                  <div className="workspace-row package-item-row" key={i.id}>
+                  <div className="package-items-grid-row" key={i.id}>
                     <strong>
                       {products.find((p) => p.id === i.product_id)?.name || i.product_id}
                     </strong>
-                    <span>{i.quantity}</span>
-                    <span>{i.requires_size ? 'Required' : 'Not required'}</span>
-                    <button onClick={() => setItemEditing({ ...i })}>Edit</button>
+                    <div className="package-item-details">
+                      <span>Qty {i.quantity}</span>
+                      <span>{i.requires_size ? 'Size Required' : 'No Size'}</span>
+                      <button onClick={() => setItemEditing({ ...i })}>Edit</button>
+                    </div>
                   </div>
                 ))}
               </div>
