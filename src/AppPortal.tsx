@@ -810,9 +810,39 @@ function ProductDetail({
             {item.text ||
               'School-approved product for your selected school and branch. Final availability and pricing are controlled by the school catalog.'}
           </p>
-          {item.bundleItems?.length ? (
-            <div className="bundle-list">
+          {item.type === 'package' ? (
+            <div className="package-includes-inline">
               <strong>Package includes</strong>
+              {packageComponents.map((x) => (
+                <div className="package-include-row" key={x.packageItemId}>
+                  <span>
+                    {x.quantity} × {x.title}
+                    {x.requiresSize && x.required ? <em>*</em> : null}
+                  </span>
+                  {x.requiresSize ? (
+                    <select
+                      aria-label={x.title + ' size'}
+                      value={bundleSizes[x.packageItemId] || ''}
+                      onChange={(e) =>
+                        setBundleSizes((v) => ({ ...v, [x.packageItemId]: e.target.value }))
+                      }
+                    >
+                      <option value="">Select Size</option>
+                      {x.variants.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="package-no-size">No size</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : item.bundleItems?.length ? (
+            <div className="bundle-list">
+              <strong>Product includes</strong>
               {item.bundleItems.map((x) => (
                 <span key={x}>{x}</span>
               ))}
@@ -831,35 +861,7 @@ function ProductDetail({
                 ))}
               </select>
             </label>
-          ) : (
-            <div className="package-size-list">
-              <strong>Select sizes for this package</strong>
-              {packageComponents.map((x) => (
-                <label key={x.packageItemId}>
-                  {x.title}
-                  {x.quantity > 1 ? ' × ' + x.quantity : ''}
-                  {x.requiresSize && x.required ? <span>*</span> : null}
-                  {x.requiresSize ? (
-                    <select
-                      value={bundleSizes[x.packageItemId] || ''}
-                      onChange={(e) =>
-                        setBundleSizes((v) => ({ ...v, [x.packageItemId]: e.target.value }))
-                      }
-                    >
-                      <option value="">Select size</option>
-                      {x.variants.map((v) => (
-                        <option key={v.id} value={v.id}>
-                          {v.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <small>No size selection required</small>
-                  )}
-                </label>
-              ))}
-            </div>
-          )}
+          ) : null}
           <div className="quantity">
             <span>Quantity</span>
             <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
