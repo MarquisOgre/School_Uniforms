@@ -1835,6 +1835,28 @@ a {
   .profile-card {
     grid-template-columns: 1fr 1fr;
   }
+  .profile-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-address-panel {
+    grid-column: auto;
+  }
+  .profile-readonly-grid,
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-field-full {
+    grid-column: auto;
+  }
+  .profile-panel-actions {
+    flex-direction: column;
+  }
+  .profile-panel-actions button {
+    width: 100%;
+  }
   .admin-scope-card,
   .admin-selector-grid {
     grid-template-columns: 1fr;
