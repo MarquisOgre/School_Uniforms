@@ -186,7 +186,10 @@ function CustomerPortal({
               {nav.map(([key, label, Icon]) => (
                 <button
                   className={page === key ? 'active' : ''}
-                  onClick={() => setPage(key)}
+                  onClick={() => {
+                    setSelected(null)
+                    setPage(key)
+                  }}
                   key={key}
                 >
                   <Icon size={18} />
@@ -214,7 +217,10 @@ function CustomerPortal({
             </div>
             <ProductDetail
               item={selected}
-              onBack={() => setPage('dashboard')}
+              onBack={() => {
+                setSelected(null)
+                setPage('dashboard')
+              }}
               onAdd={(x) => {
                 add(x)
                 setSelected(null)
