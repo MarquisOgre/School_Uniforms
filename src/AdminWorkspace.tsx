@@ -435,6 +435,10 @@ function Products() {
       gender: editing.gender,
       image_url: editing.image_url || null,
       base_price: Number(editing.base_price || 0),
+      offer_price:
+        editing.offer_price === '' || editing.offer_price == null
+          ? null
+          : Number(editing.offer_price),
       status: editing.status,
     }
     const r = editing.id
@@ -513,7 +517,14 @@ function Products() {
                   {categories.find((c) => c.id === x.category_id)?.name || 'Uncategorized'}
                 </span>
                 <span>{x.gender}</span>
-                <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
+                <span>
+                  ₹{Number(x.offer_price ?? x.base_price ?? 0).toLocaleString('en-IN')}
+                  {x.offer_price != null && Number(x.offer_price) < Number(x.base_price || 0) ? (
+                    <small style={{ display: 'block', color: 'var(--muted)', textDecoration: 'line-through' }}>
+                      ₹{Number(x.base_price || 0).toLocaleString('en-IN')}
+                    </small>
+                  ) : null}
+                </span>
                 <button
                   onClick={() => {
                     setEditing({ ...x })
@@ -696,7 +707,13 @@ function Packages() {
   useEffect(() => {
     void load()
     const addHandler = () =>
-      setEditing({ name: '', gender: 'unisex', base_price: 0, status: 'active' })
+      setEditing({
+        name: '',
+        gender: 'unisex',
+        base_price: 0,
+        offer_price: '',
+        status: 'active',
+      })
     const refreshHandler = () => void load()
     window.addEventListener('packages:add', addHandler)
     window.addEventListener('packages:refresh', refreshHandler)
@@ -793,40 +810,52 @@ function Packages() {
           }}
           onSave={save}
         >
-          <Field
-            label="Name"
-            value={editing.name}
-            onChange={(v) => setEditing({ ...editing, name: v })}
-          />
-          <Select
-            label="Gender"
-            value={editing.gender}
-            options={['boys', 'girls', 'unisex']}
-            onChange={(v) => setEditing({ ...editing, gender: v })}
-          />
-          <Field
-            label="Base Price"
-            value={String(editing.base_price ?? 0)}
-            onChange={(v) => setEditing({ ...editing, base_price: v })}
-            type="number"
-          />
+          <div className="workspace-form-row">
+            <Field
+              label="Name"
+              value={editing.name}
+              onChange={(v) => setEditing({ ...editing, name: v })}
+            />
+            <Select
+              label="Gender"
+              value={editing.gender}
+              options={['boys', 'girls', 'unisex']}
+              onChange={(v) => setEditing({ ...editing, gender: v })}
+            />
+          </div>
+          <div className="workspace-form-row">
+            <Field
+              label="Base Price"
+              value={String(editing.base_price ?? 0)}
+              onChange={(v) => setEditing({ ...editing, base_price: v })}
+              type="number"
+            />
+            <Field
+              label="Offer Price"
+              value={String(editing.offer_price ?? '')}
+              onChange={(v) => setEditing({ ...editing, offer_price: v })}
+              type="number"
+            />
+          </div>
           <Field
             label="Description"
             value={editing.description || ''}
             onChange={(v) => setEditing({ ...editing, description: v })}
             area
           />
-          <Field
-            label="Image URL"
-            value={editing.image_url || ''}
-            onChange={(v) => setEditing({ ...editing, image_url: v })}
-          />
-          <Select
-            label="Status"
-            value={editing.status}
-            options={['active', 'inactive', 'suspended']}
-            onChange={(v) => setEditing({ ...editing, status: v })}
-          />
+          <div className="workspace-form-row workspace-form-row-image-status">
+            <Field
+              label="Image URL"
+              value={editing.image_url || ''}
+              onChange={(v) => setEditing({ ...editing, image_url: v })}
+            />
+            <Select
+              label="Status"
+              value={editing.status}
+              options={['active', 'inactive', 'suspended']}
+              onChange={(v) => setEditing({ ...editing, status: v })}
+            />
+          </div>
           {editing.id && (
             <>
               <div className="panel-heading">
@@ -2230,19 +2259,21 @@ function EditModal({
   return (
     <div className="workspace-modal">
       <div className="workspace-modal-card">
-        <button className="workspace-close" onClick={onClose}>
+        <div className="workspace-modal-header">
+          <h2>{title}</h2>
+          <div className="workspace-modal-actions">
+            <button className="secondary-button" onClick={onClose}>
+              Cancel
+            </button>
+            <button className="primary-button" onClick={onSave}>
+              <Save size={15} /> Save
+            </button>
+          </div>
+        </div>
+        <button className="workspace-close" onClick={onClose} aria-label="Close">
           <X size={18} />
         </button>
-        <h2>{title}</h2>
         <div className="workspace-form">{children}</div>
-        <div className="workspace-modal-actions">
-          <button className="secondary-button" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="primary-button" onClick={onSave}>
-            <Save size={15} /> Save
-          </button>
-        </div>
       </div>
     </div>
   )
