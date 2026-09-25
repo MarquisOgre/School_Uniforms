@@ -12,6 +12,7 @@ import {
   Sparkles,
   UserRound,
   ClipboardList,
+  LogOut,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import AdminWorkspace from './AdminWorkspace'
@@ -22,6 +23,99 @@ import { DEFAULT_HOME } from './HomePage'
 
 type SchoolOption = { id: string; name: string }
 type BranchOption = { id: string; name: string }
+
+type AdminTool =
+  | 'menu'
+  | 'home'
+  | 'schools'
+  | 'products'
+  | 'packages'
+  | 'orders'
+  | 'payments'
+  | 'inventory'
+  | 'students'
+  | 'reports'
+  | 'catalog'
+  | 'coupons'
+  | 'parent'
+  | 'import'
+
+const ADMIN_NAV: Array<{
+  key: AdminTool
+  label: string
+  icon: React.ComponentType<{ size?: number }>
+}> = [
+  { key: 'menu', label: 'Dashboard', icon: Home },
+  { key: 'home', label: 'Homepage', icon: Home },
+  { key: 'schools', label: 'Schools & Branches', icon: Building2 },
+  { key: 'products', label: 'Products & Variants', icon: ShoppingBag },
+  { key: 'packages', label: 'Uniform Packages', icon: Package },
+  { key: 'orders', label: 'Orders', icon: ClipboardList },
+  { key: 'payments', label: 'Payments', icon: CreditCard },
+  { key: 'inventory', label: 'Inventory', icon: ClipboardList },
+  { key: 'students', label: 'Parents & Students', icon: UserRound },
+  { key: 'reports', label: 'Reports', icon: FileSpreadsheet },
+  { key: 'catalog', label: 'Catalog Rules', icon: BookOpen },
+  { key: 'coupons', label: 'Coupons', icon: Sparkles },
+]
+
+function AdminSidebar({
+  tool,
+  onNavigate,
+  onLogout,
+}: {
+  tool: AdminTool
+  onNavigate: (tool: AdminTool) => void
+  onLogout: () => void
+}) {
+  return (
+    <aside className="admin-sidebar">
+      <div className="admin-sidebar-brand">
+        <img src="/logo.png" alt="School Uniforms" />
+        <div>
+          <strong>School Uniforms</strong>
+          <span>ADMIN PORTAL</span>
+        </div>
+      </div>
+      <nav className="admin-sidebar-nav" aria-label="Admin navigation">
+        {ADMIN_NAV.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            type="button"
+            className={tool === key ? 'active' : ''}
+            onClick={() => onNavigate(key)}
+          >
+            <Icon size={18} />
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+      <button type="button" className="admin-sidebar-logout" onClick={onLogout}>
+        <LogOut size={17} />
+        <span>Logout</span>
+      </button>
+    </aside>
+  )
+}
+
+function AdminLayout({
+  tool,
+  onNavigate,
+  onLogout,
+  children,
+}: {
+  tool: AdminTool
+  onNavigate: (tool: AdminTool) => void
+  onLogout: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="admin-portal-layout">
+      <AdminSidebar tool={tool} onNavigate={onNavigate} onLogout={onLogout} />
+      <main className="admin-portal-main">{children}</main>
+    </div>
+  )
+}
 
 function AdminModuleActive({
   icon,
@@ -202,11 +296,30 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
         </div>
       </div>
     )
+  const logoutAdmin = () => {
+    void supabase?.auth.signOut({ scope: 'local' })
+    localStorage.removeItem('school_uniform_admin_context')
+    setAdmin(false)
+  }
+
   if (tool === 'parent' && school && branch)
-    return <ParentCreate schoolId={school} branchId={branch} onBack={() => setTool('menu')} />
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <ParentCreate schoolId={school} branchId={branch} onBack={() => setTool('menu')} />
+      </AdminLayout>
+    )
   if (tool === 'import' && school && branch)
-    return <StudentImport schoolId={school} branchId={branch} onBack={() => setTool('menu')} />
-  if (tool === 'home') return <HomepageEditor onBack={() => setTool('menu')} />
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <StudentImport schoolId={school} branchId={branch} onBack={() => setTool('menu')} />
+      </AdminLayout>
+    )
+  if (tool === 'home')
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <HomepageEditor onBack={() => setTool('menu')} />
+      </AdminLayout>
+    )
   if (
     tool === 'schools' ||
     tool === 'products' ||
@@ -219,9 +332,14 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     tool === 'catalog' ||
     tool === 'coupons'
   )
-    return <AdminWorkspace module={tool} onBack={() => setTool('menu')} />
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <AdminWorkspace module={tool} onBack={() => setTool('menu')} />
+      </AdminLayout>
+    )
   return (
-    <div className="admin-shell">
+    <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <div className="admin-shell">
       <GlobalHeader
         portal="admin"
         title="Admin Dashboard"
@@ -370,7 +488,8 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
           />
         </div>
       </div>
-    </div>
+      </div>
+    </AdminLayout>
   )
 }
 
