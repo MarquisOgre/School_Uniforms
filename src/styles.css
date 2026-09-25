@@ -4224,16 +4224,25 @@ a {
   position: relative;
   background: #fffdf9;
   border-radius: 14px;
-  width: min(620px, 100%);
-  max-height: 90vh;
-  overflow: auto;
-  padding: 28px;
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100vh - 24px);
+  overflow: hidden;
+  padding: 24px;
   box-shadow: 0 20px 70px rgba(0, 0, 0, 0.18);
+}
+.workspace-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-right: 34px;
+  margin-bottom: 16px;
 }
 .workspace-modal-card h2 {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 30px;
-  margin: 0 0 20px;
+  margin: 0;
+  white-space: nowrap;
 }
 .workspace-close {
   position: absolute;
@@ -4245,7 +4254,15 @@ a {
 }
 .workspace-form {
   display: grid;
-  gap: 13px;
+  gap: 10px;
+}
+.workspace-form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.workspace-form-row-image-status {
+  grid-template-columns: minmax(0, 2fr) minmax(150px, 1fr);
 }
 .workspace-field span {
   display: block;
@@ -4270,9 +4287,11 @@ a {
 }
 .workspace-modal-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 22px;
+  gap: 8px;
+  margin: 0;
+  flex-shrink: 0;
 }
 .report-grid {
   display: grid;
@@ -4298,6 +4317,26 @@ a {
   margin-top: 8px;
 }
 @media (max-width: 800px) {
+  .workspace-modal {
+    padding: 12px;
+  }
+  .workspace-modal-card {
+    width: min(100%, 760px);
+    max-height: calc(100vh - 16px);
+    padding: 18px;
+  }
+  .workspace-modal-header {
+    align-items: flex-start;
+    gap: 10px;
+    padding-right: 26px;
+  }
+  .workspace-modal-card h2 {
+    font-size: 26px;
+  }
+  .workspace-form-row,
+  .workspace-form-row-image-status {
+    grid-template-columns: 1fr;
+  }
   .workspace-toolbar {
     align-items: stretch;
     flex-direction: column;
