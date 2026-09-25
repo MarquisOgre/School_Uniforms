@@ -246,9 +246,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
           >
             {loading ? 'SIGNING IN...' : 'ADMIN LOGIN'}
           </button>
-          <button type="button" className="secondary-button" onClick={onBack}>
-            BACK TO STORE
-          </button>
         </div>
       </div>
     )
