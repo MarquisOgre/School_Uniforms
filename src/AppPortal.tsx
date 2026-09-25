@@ -132,8 +132,6 @@ function CustomerPortal({
   if (checkout)
     return (
       <CustomerPageFrame
-        title="Parent / Student Portal"
-        subtitle={schoolName + ` • ` + branchName}
         onBack={() => setPage('dashboard')}
         onLogout={onLogout}
         cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
@@ -159,8 +157,6 @@ function CustomerPortal({
   if (selected)
     return (
       <CustomerPageFrame
-        title="Parent / Student Portal"
-        subtitle={schoolName + ` • ` + branchName}
         onBack={() => setPage('dashboard')}
         onLogout={onLogout}
         cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
@@ -482,7 +478,6 @@ function Packages({
   }, [branchId])
   return (
     <div className="portal-content">
-      <CatalogHeading eyebrow="PACKAGES" title="Uniform Packages" />
       {error && <p className="workspace-error">{error}</p>}
       {loading ? (
         <div className="empty-state">Loading school packages...</div>
@@ -612,7 +607,6 @@ function Products({
   }, [branchId])
   return (
     <div className="portal-content">
-      <CatalogHeading eyebrow="PRODUCTS" title="Individual Products" />
       <div className="catalog-toolbar">
         <div className="search-box">
           <Search size={17} />
@@ -702,23 +696,6 @@ function ProductCard({
         </div>
       </div>
     </article>
-  )
-}
-function CatalogHeading({
-  eyebrow,
-  title,
-  text,
-}: {
-  eyebrow: string
-  title: string
-  text: string
-}) {
-  return (
-    <div className="section-heading portal-heading">
-      <p className="eyebrow">{eyebrow}</p>
-      <h2>{title}</h2>
-      <p>{text}</p>
-    </div>
   )
 }
 function ProductDetail({
@@ -933,7 +910,6 @@ function Orders() {
   }, [])
   return (
     <div className="portal-content">
-      <CatalogHeading eyebrow="ORDERS" title="My Orders" />
       {error && <p className="workspace-error">{error}</p>}
       {loading ? (
         <div className="empty-state">Loading orders...</div>
@@ -984,7 +960,6 @@ function Orders() {
 function Profile({ studentId }: { studentId: string }) {
   return (
     <div className="portal-content">
-      <CatalogHeading eyebrow="ACCOUNT" title="My Profile" />
       <div className="profile-card">
         <div className="profile-avatar">{studentId.slice(0, 1).toUpperCase()}</div>
         <div>
