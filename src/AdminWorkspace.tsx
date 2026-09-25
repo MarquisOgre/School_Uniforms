@@ -83,7 +83,22 @@ export default function AdminWorkspace({
             <h1>{m.title}</h1>
             <p>{m.description}</p>
           </div>
-          {module === 'orders' ? (
+          {module === 'packages' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+              <button
+                className="primary-button"
+                onClick={() => window.dispatchEvent(new CustomEvent('packages:add'))}
+              >
+                <Plus size={15} /> Add Package
+              </button>
+              <button
+                className="secondary-button"
+                onClick={() => window.dispatchEvent(new CustomEvent('packages:refresh'))}
+              >
+                <RefreshCw size={15} /> Refresh
+              </button>
+            </div>
+          ) : module === 'orders' ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
               <div className="toolbar-search">
                 <Search size={15} />
@@ -680,6 +695,15 @@ function Packages() {
   }
   useEffect(() => {
     void load()
+    const addHandler = () =>
+      setEditing({ name: '', gender: 'unisex', base_price: 0, status: 'active' })
+    const refreshHandler = () => void load()
+    window.addEventListener('packages:add', addHandler)
+    window.addEventListener('packages:refresh', refreshHandler)
+    return () => {
+      window.removeEventListener('packages:add', addHandler)
+      window.removeEventListener('packages:refresh', refreshHandler)
+    }
   }, [])
   const save = async () => {
     if (!supabase || !editing) return
@@ -728,16 +752,6 @@ function Packages() {
   }
   return (
     <>
-      <Toolbar onRefresh={load}>
-        <button
-          className="primary-button"
-          onClick={() =>
-            setEditing({ name: '', gender: 'unisex', base_price: 0, status: 'active' })
-          }
-        >
-          <Plus size={15} /> Add Package
-        </button>
-      </Toolbar>
       <ErrorBox text={error} />
       {loading ? (
         <Loading />
