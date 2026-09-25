@@ -6571,9 +6571,8 @@ a {
 }
 
 .admin-workspace .workspace-products .product-table-header {
-  grid-template-columns:
-    minmax(240px, 2fr) minmax(150px, 1.2fr) minmax(100px, 0.8fr) minmax(120px, 0.9fr)
-    auto;
+  grid-template-columns: 2.2fr 1.35fr 0.85fr 0.95fr 0.7fr 0.95fr 0.75fr;
+  min-width: 0;
   background: #faf6ef;
   border-bottom: 1px solid #ded5c8;
   border-radius: 8px 8px 0 0;
