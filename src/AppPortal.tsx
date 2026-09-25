@@ -190,9 +190,6 @@ function CustomerPortal({
       />
       <div className="portal-layout">
         <aside className="sidebar">
-          <div className="portal-brand">
-            <div className="portal-brand-title">Parent Portal</div>
-          </div>
           <div className="school-scope">
             <Building2 size={16} />
             <div>
@@ -253,7 +250,10 @@ function CustomerPortal({
             <Profile studentId={studentId} />
           )}
         </main>
-      </div>\n    </div>\n  )\n}
+      </div>
+    </div>
+  )
+}
 function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
   return (
     <div className="portal-content">
