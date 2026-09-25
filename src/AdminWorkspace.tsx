@@ -1018,7 +1018,11 @@ function PaymentsAdmin() {
   const updateOrderStatus = async (orderId: string, status: string) => {
     if (!supabase || !orderId) return
     setUpdatingStatus(orderId)
-    const result = await dbFrom('orders').update({ status }).eq('id', orderId).select('id,status').maybeSingle()
+    const result = await dbFrom('orders')
+      .update({ status })
+      .eq('id', orderId)
+      .select('id,status')
+      .maybeSingle()
     if (result.error) {
       setError(result.error.message)
     } else {
