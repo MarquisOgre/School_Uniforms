@@ -452,12 +452,19 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
     setError('')
     setSaved(false)
     const { data: user } = await client.auth.getUser()
-    const { error: e } = await (client as any)
+    const { data: updated, error: e } = await (client as any)
       .from('homepage_content')
       .update({ content, updated_by: user.user?.id, updated_at: new Date().toISOString() })
       .eq('slug', 'default')
-    if (e) setError(e.message)
-    else setSaved(true)
+      .select('id,updated_at')
+      .maybeSingle()
+    if (e) {
+      setError(e.message)
+    } else if (!updated) {
+      setError('Homepage was not updated. Check your admin permissions.')
+    } else {
+      setSaved(true)
+    }
     setSaving(false)
   }
   const edit = (fn: (c: any) => void) =>
