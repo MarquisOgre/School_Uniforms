@@ -340,16 +340,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   return (
     <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
       <div className="admin-shell">
-        <GlobalHeader
-          portal="admin"
-          title="Admin Dashboard"
-          subtitle="School Uniform Store"
-          onLogout={() => {
-            void supabase?.auth.signOut({ scope: 'local' })
-            localStorage.removeItem('school_uniform_admin_context')
-            setAdmin(false)
-          }}
-        />
         <div className="admin-content">
           <div className="admin-title">
             <div>

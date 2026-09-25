@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Plus, RefreshCw, Save, Trash2, Search, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
-import { GlobalHeader } from './components/GlobalChrome'
 
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
 
@@ -62,13 +61,6 @@ export default function AdminWorkspace({
   const [ordersSearch, setOrdersSearch] = useState('')
   return (
     <div className="admin-workspace">
-      <GlobalHeader
-        portal="admin"
-        title="Admin Portal"
-        subtitle="School Uniform Store"
-        onBack={onBack}
-        backLabel="Dashboard"
-      />
       <main className={`workspace-body workspace-${module}`}>
         <div
           className="workspace-heading"
