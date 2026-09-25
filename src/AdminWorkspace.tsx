@@ -681,13 +681,7 @@ function Products() {
   )
 }
 
-function ImagePicker({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (v: string) => void
-}) {
+function ImagePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false)
   const [images, setImages] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
@@ -1082,7 +1076,12 @@ function Packages() {
                         </strong>
                         <span>{i.quantity}</span>
                         <span>{i.requires_size ? 'Required' : 'Not required'}</span>
-                        <button className="secondary-button" onClick={() => setItemEditing({ ...i })}>Edit</button>
+                        <button
+                          className="secondary-button"
+                          onClick={() => setItemEditing({ ...i })}
+                        >
+                          Edit
+                        </button>
                       </div>
                     ))}
                   </div>
