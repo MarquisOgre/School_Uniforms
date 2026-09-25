@@ -1028,7 +1028,7 @@ function Packages() {
               onChange={(v) => setEditing({ ...editing, gender: v })}
             />
           </div>
-          <div className="workspace-form-row">
+          <div className="workspace-form-row workspace-form-row-pricing">
             <Field
               label="Base Price"
               value={String(calculatePackageBasePrice())}
@@ -1041,18 +1041,18 @@ function Packages() {
               onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
               type="number"
             />
+            <Field
+              label="Offer Price"
+              value={String(
+                calculateOfferPrice(
+                  calculatePackageBasePrice(),
+                  Number(editing.discount_percentage || 0),
+                ),
+              )}
+              onChange={() => undefined}
+              type="number"
+            />
           </div>
-          <Field
-            label="Offer Price"
-            value={String(
-              calculateOfferPrice(
-                calculatePackageBasePrice(),
-                Number(editing.discount_percentage || 0),
-              ),
-            )}
-            onChange={() => undefined}
-            type="number"
-          />
           <Field
             label="Description"
             value={editing.description || ''}
