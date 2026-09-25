@@ -175,13 +175,6 @@ function CustomerPortal({
         />
         <div className="portal-layout">
           <aside className="sidebar">
-            <div className="school-scope">
-              <Building2 size={16} />
-              <div>
-                <strong>{schoolName}</strong>
-                <span>{branchName}</span>
-              </div>
-            </div>
             <nav>
               {nav.map(([key, label, Icon]) => (
                 <button
@@ -244,13 +237,6 @@ function CustomerPortal({
       />
       <div className="portal-layout">
         <aside className="sidebar">
-          <div className="school-scope">
-            <Building2 size={16} />
-            <div>
-              <strong>{schoolName}</strong>
-              <span>{branchName}</span>
-            </div>
-          </div>
           <nav>
             {nav.map(([key, label, Icon]) => (
               <button
