@@ -1143,7 +1143,6 @@ function Packages() {
                   </div>
                 )}
               </div>
-              </div>
             </>
           )}
         </EditModal>
