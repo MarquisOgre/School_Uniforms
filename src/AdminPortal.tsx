@@ -147,6 +147,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       }
       const nextTool = adminToolFromPath(window.location.pathname)
       setTool(nextTool)
+      if (window.location.pathname === '/admin') return
       const canonicalPath = adminPathForTool(nextTool)
       window.history.replaceState({ schoolUniformApp: 'admin', tool: nextTool }, '', canonicalPath)
     }
@@ -159,6 +160,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     if (!window.location.pathname.startsWith('/admin')) return
     const canonicalPath = adminPathForTool(tool)
+    if (window.location.pathname === '/admin' && tool === 'packages') return
     if (window.location.pathname === canonicalPath) return
     window.history.pushState({ schoolUniformApp: 'admin', tool }, '', canonicalPath)
   }, [tool])
@@ -184,6 +186,11 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       setLoading(false)
       return
     }
+    window.history.replaceState(
+      { schoolUniformApp: 'admin', tool: 'packages' },
+      '',
+      '/admin',
+    )
     setAdmin(true)
     setLoading(false)
   }

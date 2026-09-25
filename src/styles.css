@@ -6824,6 +6824,79 @@ a {
     auto;
 }
 
+
+/* Inline package component editor: each component stays on one clear row. */
+.package-items-inline {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.package-item-inline-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf9;
+}
+
+.package-item-inline-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.package-item-inline-main strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.package-item-inline-main select {
+  width: 100%;
+  min-width: 0;
+}
+
+.package-item-inline-row > button {
+  min-width: 76px;
+}
+
+.package-size-not-required {
+  color: #7a8585;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.package-items-empty {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.workspace-image-picker-add {
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.workspace-image-picker-add span {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+@media (max-width: 700px) {
+  .package-item-inline-main {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
 .workspace-image-picker {
   width: 100%;
 }
