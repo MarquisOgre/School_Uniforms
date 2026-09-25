@@ -186,11 +186,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       setLoading(false)
       return
     }
-    window.history.replaceState(
-      { schoolUniformApp: 'admin', tool: 'packages' },
-      '',
-      '/admin',
-    )
+    window.history.replaceState({ schoolUniformApp: 'admin', tool: 'packages' }, '', '/admin')
     setAdmin(true)
     setLoading(false)
   }

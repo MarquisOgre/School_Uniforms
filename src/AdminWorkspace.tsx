@@ -718,9 +718,7 @@ function ImagePicker({
           .filter((file) => file.name)
           .map(
             (file) =>
-              storage
-                .from('package-images')
-                .getPublicUrl(`${folder}/${file.name}`).data.publicUrl,
+              storage.from('package-images').getPublicUrl(`${folder}/${file.name}`).data.publicUrl,
           ),
       )
     }
@@ -1118,7 +1116,8 @@ function Packages() {
                     <div className="package-item-inline-row" key={i.id}>
                       <div className="package-item-inline-main">
                         <strong>
-                          {i.quantity} × {products.find((p) => p.id === i.product_id)?.name || i.product_id}
+                          {i.quantity} ×{' '}
+                          {products.find((p) => p.id === i.product_id)?.name || i.product_id}
                         </strong>
                         {i.requires_size ? (
                           <select aria-label="Select size" defaultValue="">
@@ -1129,10 +1128,7 @@ function Packages() {
                           <span className="package-size-not-required">No size selection</span>
                         )}
                       </div>
-                      <button
-                        className="secondary-button"
-                        onClick={() => setItemEditing({ ...i })}
-                      >
+                      <button className="secondary-button" onClick={() => setItemEditing({ ...i })}>
                         Edit
                       </button>
                     </div>

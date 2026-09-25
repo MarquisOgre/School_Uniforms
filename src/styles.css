@@ -6824,7 +6824,6 @@ a {
     auto;
 }
 
-
 /* Inline package component editor: each component stays on one clear row. */
 .package-items-inline {
   display: grid;
