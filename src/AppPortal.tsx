@@ -1052,7 +1052,7 @@ function Profile({
       }
       setUserId(user.id)
 
-      const [pr, link, ad] = await Promise.all([
+      const [pr, links, ad] = await Promise.all([
         client
           .from('profiles')
           .select('full_name,login_id,phone,role')
@@ -1060,9 +1060,7 @@ function Profile({
           .maybeSingle(),
         client
           .from('parent_student_links')
-          .select(
-            'relationship,is_primary,student:students!parent_student_links_student_id_fkey(id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id)',
-          )
+          .select('student_id,relationship,is_primary')
           .eq('parent_user_id', user.id)
           .order('is_primary', { ascending: false }),
         client
@@ -1078,27 +1076,30 @@ function Profile({
         ...(pr.data || {}),
         email: user.email || '',
       })
-      const linkedStudents = (link.data || []) as any[]
-      const linkedStudent = linkedStudents.find((x) => {
-        const s = Array.isArray(x.student) ? x.student[0] : x.student
-        return s && s.school_id === schoolId && s.branch_id === branchId
-      })
-      const selectedStudent = linkedStudent
-        ? Array.isArray(linkedStudent.student)
-          ? linkedStudent.student[0]
-          : linkedStudent.student
-        : linkedStudents[0]
-          ? Array.isArray(linkedStudents[0].student)
-            ? linkedStudents[0].student[0]
-            : linkedStudents[0].student
-          : null
+      const studentIds = ((links.data || []) as any[]).map((x) => x.student_id).filter(Boolean)
+      let selectedStudent: any = null
+      if (studentIds.length) {
+        const sr = await client
+          .from('students')
+          .select('id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id')
+          .in('id', studentIds)
+        if (sr.error) {
+          setError(sr.error.message)
+        } else {
+          const students = (sr.data || []) as any[]
+          selectedStudent =
+            students.find((s) => s.school_id === schoolId && s.branch_id === branchId) ||
+            students[0] ||
+            null
+        }
+      }
       setStudent(selectedStudent || {})
       if (ad.data) setAddress(ad.data)
       setLoading(false)
-      if (pr.error || link.error || ad.error) {
+      if (pr.error || links.error || ad.error) {
         setError(
           pr.error?.message ||
-            link.error?.message ||
+            links.error?.message ||
             ad.error?.message ||
             'Unable to load profile details.',
         )
@@ -1110,13 +1111,13 @@ function Profile({
     }
   }, [studentId, schoolId, branchId])
 
-  const updateProfile = async () => {
+  const saveCustomerDetails = async () => {
     const client = supabase as any
     if (!client || !userId) return
     setSaving(true)
     setMessage('')
     setError('')
-    const pr = await client
+    const result = await client
       .from('profiles')
       .update({
         full_name: profile.full_name || null,
@@ -1124,31 +1125,44 @@ function Profile({
       })
       .eq('id', userId)
 
-    const adPayload = {
+    if (result.error) setError(result.error.message || 'Unable to save customer details.')
+    else setMessage('Customer details saved successfully.')
+    setSaving(false)
+  }
+
+  const saveAddress = async () => {
+    const client = supabase as any
+    if (!client || !userId) return
+    setSaving(true)
+    setMessage('')
+    setError('')
+    if (!address.address_line1 || !address.city || !address.state || !address.postal_code) {
+      setError('Please complete Address Line 1, City, State and PIN / Postal Code.')
+      setSaving(false)
+      return
+    }
+
+    const payload = {
       user_id: userId,
       label: 'Home',
       recipient_name: address.recipient_name || profile.full_name || student.full_name || '',
       phone: address.phone || profile.phone || '',
-      address_line1: address.address_line1 || '',
+      address_line1: address.address_line1,
       address_line2: address.address_line2 || null,
-      city: address.city || '',
-      state: address.state || '',
-      postal_code: address.postal_code || '',
+      city: address.city,
+      state: address.state,
+      postal_code: address.postal_code,
       is_default: true,
     }
-    const ad = address.id
-      ? await client.from('customer_addresses').update(adPayload).eq('id', address.id)
-      : await client.from('customer_addresses').insert(adPayload).select().single()
 
-    if (pr.error || ad.error) {
-      setError(
-        pr.error?.message ||
-          ad.error?.message ||
-          'Unable to save your profile details. Please try again.',
-      )
-    } else {
-      if (ad.data) setAddress(ad.data)
-      setMessage('Profile details saved successfully.')
+    const result = address.id
+      ? await client.from('customer_addresses').update(payload).eq('id', address.id)
+      : await client.from('customer_addresses').insert(payload).select().single()
+
+    if (result.error) setError(result.error.message || 'Unable to save delivery address.')
+    else {
+      if (result.data) setAddress(result.data)
+      setMessage('Delivery address saved successfully.')
     }
     setSaving(false)
   }
@@ -1274,7 +1288,7 @@ function Profile({
             <button className="secondary-button" onClick={updateEmail}>
               <Mail size={15} /> Update Email
             </button>
-            <button className="primary-button" onClick={updateProfile} disabled={saving}>
+            <button className="primary-button" onClick={saveCustomerDetails} disabled={saving}>
               <Save size={15} /> {saving ? 'Saving...' : 'Save Details'}
             </button>
           </div>
@@ -1376,7 +1390,7 @@ function Profile({
             </label>
           </div>
           <div className="profile-panel-actions">
-            <button className="primary-button" onClick={updateProfile} disabled={saving}>
+            <button className="primary-button" onClick={saveAddress} disabled={saving}>
               <Save size={15} /> {saving ? 'Saving...' : 'Save Address'}
             </button>
           </div>
