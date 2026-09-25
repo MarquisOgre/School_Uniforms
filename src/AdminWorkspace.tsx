@@ -681,6 +681,151 @@ function Products() {
   )
 }
 
+function ImagePicker({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (v: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [images, setImages] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [imageError, setImageError] = useState('')
+
+  const loadImages = async () => {
+    if (!supabase) return
+    setLoading(true)
+    setImageError('')
+    const result = await supabase.storage.from('package-images').list('', {
+      limit: 100,
+      sortBy: { column: 'created_at', order: 'desc' },
+    })
+    if (result.error) {
+      setImageError(result.error.message)
+      setImages([])
+    } else {
+      setImages(
+        (result.data ?? [])
+          .filter((file) => file.name)
+          .map(
+            (file) =>
+              supabase.storage.from('package-images').getPublicUrl(file.name).data.publicUrl,
+          ),
+      )
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    if (open) void loadImages()
+  }, [open])
+
+  const uploadImage = async (file: File) => {
+    if (!supabase) return
+    setUploading(true)
+    setImageError('')
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const safeName =
+      file.name
+        .replace(/[^a-zA-Z0-9.-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || `image.${extension}`
+    const path = `packages/${Date.now()}-${safeName}`
+    const result = await supabase.storage.from('package-images').upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type,
+    })
+    if (result.error) {
+      setImageError(result.error.message)
+    } else {
+      const url = supabase.storage.from('package-images').getPublicUrl(path).data.publicUrl
+      onChange(url)
+      setOpen(false)
+    }
+    setUploading(false)
+  }
+
+  return (
+    <div className="workspace-image-picker">
+      <div className="workspace-image-picker-box">
+        {value ? (
+          <img src={value} alt="Selected package" />
+        ) : (
+          <button
+            type="button"
+            className="workspace-image-picker-add"
+            onClick={() => setOpen(true)}
+            aria-label="Select package image"
+          >
+            <Plus size={22} />
+          </button>
+        )}
+        {value ? (
+          <button
+            type="button"
+            className="workspace-image-picker-change"
+            onClick={() => setOpen(true)}
+          >
+            Change Image
+          </button>
+        ) : null}
+      </div>
+
+      {open ? (
+        <div className="workspace-image-picker-panel">
+          <div className="workspace-image-picker-panel-header">
+            <strong>Select Image</strong>
+            <button type="button" className="workspace-close" onClick={() => setOpen(false)}>
+              <X size={16} />
+            </button>
+          </div>
+
+          <label className="workspace-image-upload">
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) void uploadImage(file)
+                e.currentTarget.value = ''
+              }}
+            />
+            <Plus size={17} />
+            {uploading ? 'Uploading...' : 'Upload New Image'}
+          </label>
+
+          {imageError ? <div className="workspace-image-error">{imageError}</div> : null}
+
+          <div className="workspace-image-library">
+            {loading ? (
+              <span>Loading images...</span>
+            ) : images.length ? (
+              images.map((url) => (
+                <button
+                  type="button"
+                  className={`workspace-image-tile${value === url ? ' selected' : ''}`}
+                  key={url}
+                  onClick={() => {
+                    onChange(url)
+                    setOpen(false)
+                  }}
+                >
+                  <img src={url} alt="" />
+                </button>
+              ))
+            ) : (
+              <span>No images uploaded yet.</span>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function Packages() {
   const [rows, setRows] = useState<any[]>([]),
     [products, setProducts] = useState<any[]>([]),
@@ -883,11 +1028,13 @@ function Packages() {
             area
           />
           <div className="workspace-form-row workspace-form-row-image-status">
-            <Field
-              label="Image URL"
-              value={editing.image_url || ''}
-              onChange={(v) => setEditing({ ...editing, image_url: v })}
-            />
+            <label className="workspace-field">
+              <span>Package Image</span>
+              <ImagePicker
+                value={editing.image_url || ''}
+                onChange={(v) => setEditing({ ...editing, image_url: v })}
+              />
+            </label>
             <Select
               label="Status"
               value={editing.status}
