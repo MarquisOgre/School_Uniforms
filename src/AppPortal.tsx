@@ -14,6 +14,11 @@ import {
   ShoppingBag,
   ShoppingCart,
   UserRound,
+  Save,
+  KeyRound,
+  MapPin,
+  Mail,
+  Phone,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import CheckoutFlow, { type CheckoutCartItem } from './CheckoutFlow'
@@ -290,7 +295,7 @@ function CustomerPortal({
           ) : page === 'orders' ? (
             <Orders />
           ) : (
-            <Profile studentId={studentId} />
+            <Profile studentId={studentId} schoolId={schoolId} branchId={branchId} />
           )}
         </main>
       </div>
@@ -1004,23 +1009,320 @@ function Orders() {
     </div>
   )
 }
-function Profile({ studentId }: { studentId: string }) {
+function Profile({
+  studentId,
+  schoolId,
+  branchId,
+}: {
+  studentId: string
+  schoolId: string
+  branchId: string
+}) {
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [userId, setUserId] = useState('')
+  const [profile, setProfile] = useState<any>({})
+  const [student, setStudent] = useState<any>({})
+  const [address, setAddress] = useState<any>({
+    recipient_name: '',
+    phone: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    state: '',
+    postal_code: '',
+  })
+  const [passwords, setPasswords] = useState({ password: '', confirm: '' })
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      const client = supabase as any
+      if (!client) return
+      setLoading(true)
+      setError('')
+      const { data: auth } = await client.auth.getUser()
+      const user = auth?.user
+      if (!user || cancelled) {
+        setLoading(false)
+        return
+      }
+      setUserId(user.id)
+
+      const [pr, st, ad] = await Promise.all([
+        client.from('profiles').select('full_name,login_id,phone,role').eq('id', user.id).maybeSingle(),
+        client
+          .from('students')
+          .select('id,student_code,full_name,class_name,section,gender,date_of_birth')
+          .eq('school_id', schoolId)
+          .eq('branch_id', branchId)
+          .eq('student_code', studentId)
+          .maybeSingle(),
+        client
+          .from('customer_addresses')
+          .select('id,recipient_name,phone,address_line1,address_line2,city,state,postal_code')
+          .eq('user_id', user.id)
+          .eq('is_default', true)
+          .maybeSingle(),
+      ])
+
+      if (cancelled) return
+      setProfile({
+        ...(pr.data || {}),
+        email: user.email || '',
+      })
+      setStudent(st.data || {})
+      if (ad.data) setAddress(ad.data)
+      setLoading(false)
+      if (pr.error || st.error || ad.error) {
+        setError(pr.error?.message || st.error?.message || ad.error?.message || '')
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [studentId, schoolId, branchId])
+
+  const updateProfile = async () => {
+    const client = supabase as any
+    if (!client || !userId) return
+    setSaving(true)
+    setMessage('')
+    setError('')
+    const pr = await client
+      .from('profiles')
+      .update({
+        full_name: profile.full_name || null,
+        phone: profile.phone || null,
+      })
+      .eq('id', userId)
+
+    const adPayload = {
+      user_id: userId,
+      label: 'Home',
+      recipient_name: address.recipient_name || profile.full_name || student.full_name || '',
+      phone: address.phone || profile.phone || '',
+      address_line1: address.address_line1 || '',
+      address_line2: address.address_line2 || null,
+      city: address.city || '',
+      state: address.state || '',
+      postal_code: address.postal_code || '',
+      is_default: true,
+    }
+    const ad = address.id
+      ? await client.from('customer_addresses').update(adPayload).eq('id', address.id)
+      : await client.from('customer_addresses').insert(adPayload).select().single()
+
+    if (pr.error || ad.error) {
+      setError(pr.error?.message || ad.error?.message || 'Unable to save profile')
+    } else {
+      if (ad.data) setAddress(ad.data)
+      setMessage('Profile details saved successfully.')
+    }
+    setSaving(false)
+  }
+
+  const changePassword = async () => {
+    const client = supabase as any
+    if (!client) return
+    setMessage('')
+    setError('')
+    if (passwords.password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+    if (passwords.password !== passwords.confirm) {
+      setError('Passwords do not match.')
+      return
+    }
+    setPasswordSaving(true)
+    const result = await client.auth.updateUser({ password: passwords.password })
+    if (result.error) setError(result.error.message)
+    else {
+      setPasswords({ password: '', confirm: '' })
+      setMessage('Password changed successfully.')
+    }
+    setPasswordSaving(false)
+  }
+
+  const updateEmail = async () => {
+    const client = supabase as any
+    if (!client || !profile.email) return
+    setMessage('')
+    setError('')
+    const result = await client.auth.updateUser({ email: profile.email.trim() })
+    if (result.error) setError(result.error.message)
+    else setMessage('Email update requested. Check your email to confirm the new address.')
+  }
+
+  if (loading)
+    return (
+      <div className="portal-content">
+        <div className="profile-loading">Loading profile...</div>
+      </div>
+    )
+
   return (
     <div className="portal-content">
-      <div className="profile-card">
-        <div className="profile-avatar">{studentId.slice(0, 1).toUpperCase()}</div>
+      <div className="portal-heading">
+        <p className="eyebrow">ACCOUNT & STUDENT DETAILS</p>
+        <h2>My Profile</h2>
+        <p>Manage your contact details, delivery address, student information and password.</p>
+      </div>
+
+      {message && <div className="profile-message">{message}</div>}
+      {error && <div className="profile-error">{error}</div>}
+
+      <section className="profile-card profile-summary">
+        <div className="profile-avatar">
+          {(profile.full_name || student.full_name || studentId).slice(0, 1).toUpperCase()}
+        </div>
         <div>
           <span>Login ID</span>
-          <strong>{studentId}</strong>
+          <strong>{profile.login_id || studentId}</strong>
         </div>
         <div>
-          <span>Account type</span>
+          <span>Student Name</span>
+          <strong>{student.full_name || '—'}</strong>
+        </div>
+        <div>
+          <span>Student ID</span>
+          <strong>{student.student_code || studentId}</strong>
+        </div>
+        <div>
+          <span>Class / Section</span>
+          <strong>{[student.class_name, student.section].filter(Boolean).join(' / ') || '—'}</strong>
+        </div>
+        <div>
+          <span>Account Type</span>
           <strong>Parent / Student</strong>
         </div>
-        <div>
-          <span>Access</span>
-          <strong>School Store</strong>
-        </div>
+      </section>
+
+      <div className="profile-grid">
+        <section className="profile-panel">
+          <div className="profile-panel-heading">
+            <div>
+              <h3>Customer Details</h3>
+              <p>Your contact information used for orders and account communication.</p>
+            </div>
+            <UserRound size={20} />
+          </div>
+          <div className="profile-form-grid">
+            <label>
+              Full Name
+              <input value={profile.full_name || ''} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} />
+            </label>
+            <label>
+              Mobile
+              <input value={profile.phone || ''} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+            </label>
+            <label className="profile-field-full">
+              Email
+              <input value={profile.email || ''} onChange={(e) => setProfile({ ...profile, email: e.target.value })} type="email" />
+            </label>
+          </div>
+          <div className="profile-panel-actions">
+            <button className="secondary-button" onClick={updateEmail}>
+              <Mail size={15} /> Update Email
+            </button>
+            <button className="primary-button" onClick={updateProfile} disabled={saving}>
+              <Save size={15} /> {saving ? 'Saving...' : 'Save Details'}
+            </button>
+          </div>
+        </section>
+
+        <section className="profile-panel">
+          <div className="profile-panel-heading">
+            <div>
+              <h3>Student Information</h3>
+              <p>Information linked to this school account.</p>
+            </div>
+            <UserRound size={20} />
+          </div>
+          <div className="profile-readonly-grid">
+            <div><span>Student Name</span><strong>{student.full_name || '—'}</strong></div>
+            <div><span>Student ID</span><strong>{student.student_code || studentId}</strong></div>
+            <div><span>Class</span><strong>{student.class_name || '—'}</strong></div>
+            <div><span>Section</span><strong>{student.section || '—'}</strong></div>
+            <div><span>Gender</span><strong>{student.gender || '—'}</strong></div>
+            <div><span>Date of Birth</span><strong>{student.date_of_birth || '—'}</strong></div>
+          </div>
+        </section>
+
+        <section className="profile-panel profile-address-panel">
+          <div className="profile-panel-heading">
+            <div>
+              <h3>Delivery Address</h3>
+              <p>Keep the address used for uniform orders up to date.</p>
+            </div>
+            <MapPin size={20} />
+          </div>
+          <div className="profile-form-grid">
+            <label>
+              Recipient Name
+              <input value={address.recipient_name || ''} onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })} />
+            </label>
+            <label>
+              Address Mobile
+              <input value={address.phone || ''} onChange={(e) => setAddress({ ...address, phone: e.target.value })} />
+            </label>
+            <label className="profile-field-full">
+              Address Line 1
+              <input value={address.address_line1 || ''} onChange={(e) => setAddress({ ...address, address_line1: e.target.value })} />
+            </label>
+            <label className="profile-field-full">
+              Address Line 2
+              <input value={address.address_line2 || ''} onChange={(e) => setAddress({ ...address, address_line2: e.target.value })} />
+            </label>
+            <label>
+              City
+              <input value={address.city || ''} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
+            </label>
+            <label>
+              State
+              <input value={address.state || ''} onChange={(e) => setAddress({ ...address, state: e.target.value })} />
+            </label>
+            <label>
+              PIN / Postal Code
+              <input value={address.postal_code || ''} onChange={(e) => setAddress({ ...address, postal_code: e.target.value })} />
+            </label>
+          </div>
+          <div className="profile-panel-actions">
+            <button className="primary-button" onClick={updateProfile} disabled={saving}>
+              <Save size={15} /> {saving ? 'Saving...' : 'Save Address'}
+            </button>
+          </div>
+        </section>
+
+        <section className="profile-panel">
+          <div className="profile-panel-heading">
+            <div>
+              <h3>Change Password</h3>
+              <p>Choose a new password for your Parent / Student Portal login.</p>
+            </div>
+            <KeyRound size={20} />
+          </div>
+          <div className="profile-form-grid">
+            <label>
+              New Password
+              <input type="password" value={passwords.password} onChange={(e) => setPasswords({ ...passwords, password: e.target.value })} placeholder="Minimum 6 characters" />
+            </label>
+            <label>
+              Confirm Password
+              <input type="password" value={passwords.confirm} onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })} placeholder="Repeat new password" />
+            </label>
+          </div>
+          <div className="profile-panel-actions">
+            <button className="primary-button" onClick={changePassword} disabled={passwordSaving}>
+              <KeyRound size={15} /> {passwordSaving ? 'Updating...' : 'Change Password'}
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   )
