@@ -524,8 +524,7 @@ function Products() {
                 <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
                 <span>{Number(x.discount_percentage || 0)}%</span>
                 <span>₹{Number(x.offer_price ?? x.base_price ?? 0).toLocaleString('en-IN')}</span>
-                <span>
-                    </span>
+                <span></span>
                 <button
                   onClick={() => {
                     setEditing({ ...x })
@@ -592,8 +591,7 @@ function Products() {
                   0,
                   Number(editing.base_price || 0) *
                     (1 -
-                      Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) /
-                        100),
+                      Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) / 100),
                 ),
               )}
               onChange={() => undefined}
