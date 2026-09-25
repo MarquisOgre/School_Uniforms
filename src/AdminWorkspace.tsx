@@ -909,7 +909,8 @@ function Packages() {
 function OrdersAdmin({ search }: { search: string }) {
   const [rows, setRows] = useState<any[]>([]),
     [error, setError] = useState(''),
-    [loading, setLoading] = useState(true)
+    [loading, setLoading] = useState(true),
+    [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
 
   const load = async () => {
     if (!supabase) return
@@ -993,6 +994,43 @@ function OrdersAdmin({ search }: { search: string }) {
     return () => window.removeEventListener('orders:refresh', refreshHandler)
   }, [])
 
+  const orderStatusOptions = [
+    ['pending', 'Order Received'],
+    ['confirmed', 'Order Confirmed'],
+    ['processing', 'Order Processing'],
+    ['ready', 'Order Ready'],
+    ['packed', 'Order Packed'],
+    ['shipped', 'Order Shipped'],
+    ['out_for_delivery', 'Out for Delivery'],
+    ['delivered', 'Order Delivered'],
+    ['cancelled', 'Order Cancelled'],
+    ['return_requested', 'Return Requested'],
+    ['return_approved', 'Return Approved'],
+    ['returned', 'Order Returned'],
+    ['refund_processing', 'Refund Processing'],
+    ['refunded', 'Refund Completed'],
+  ]
+
+  const updateOrderStatus = async (orderId: string, status: string) => {
+    if (!supabase || !orderId) return
+    setUpdatingStatus(orderId)
+    const result = await dbFrom('orders')
+      .update({ status })
+      .eq('id', orderId)
+      .select('id,status')
+      .maybeSingle()
+
+    if (result.error) {
+      setError(result.error.message)
+    } else if (result.data) {
+      setRows((current) =>
+        current.map((row) => (row.id === orderId ? { ...row, status: result.data.status } : row)),
+      )
+    }
+
+    setUpdatingStatus(null)
+  }
+
   const filtered = rows.filter((x) =>
     [x.order_number, x.status, x.customer, x.student, x.branch, ...(x.products || [])].some((v) =>
       String(v).toLowerCase().includes(search.toLowerCase()),
@@ -1040,7 +1078,31 @@ function OrdersAdmin({ search }: { search: string }) {
                         )}
                       </div>
                     </td>
-                    <td>{x.status}</td>
+                    <td>
+                      <select
+                        value={x.status || 'pending'}
+                        disabled={updatingStatus === x.id}
+                        onChange={(e) => void updateOrderStatus(x.id, e.target.value)}
+                        aria-label={`Order status for ${x.order_number}`}
+                        style={{
+                          minWidth: '150px',
+                          height: '34px',
+                          border: '1px solid var(--line)',
+                          borderRadius: '7px',
+                          padding: '0 9px',
+                          background: '#fff',
+                          color: 'var(--ink)',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {orderStatusOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
                     <td>₹{Number(x.grand_total || 0).toLocaleString('en-IN')}</td>
                     <td>{new Date(x.created_at).toLocaleDateString('en-IN')}</td>
                   </tr>
