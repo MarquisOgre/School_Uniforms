@@ -520,7 +520,13 @@ function Products() {
                 <span>
                   ₹{Number(x.offer_price ?? x.base_price ?? 0).toLocaleString('en-IN')}
                   {x.offer_price != null && Number(x.offer_price) < Number(x.base_price || 0) ? (
-                    <small style={{ display: 'block', color: 'var(--muted)', textDecoration: 'line-through' }}>
+                    <small
+                      style={{
+                        display: 'block',
+                        color: 'var(--muted)',
+                        textDecoration: 'line-through',
+                      }}
+                    >
                       ₹{Number(x.base_price || 0).toLocaleString('en-IN')}
                     </small>
                   ) : null}
