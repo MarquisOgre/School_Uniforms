@@ -434,10 +434,11 @@ function Products() {
       description: editing.description || null,
       gender: editing.gender,
       image_url: editing.image_url || null,
-      base_price: calculatePackageBasePrice(),
-      offer_price: calculateOfferPrice(
-        calculatePackageBasePrice(),
-        Number(editing.discount_percentage || 0),
+      base_price: Number(editing.base_price || 0),
+      offer_price: Math.max(
+        0,
+        Number(editing.base_price || 0) *
+          (1 - Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) / 100),
       ),
       discount_percentage: Number(editing.discount_percentage || 0),
       status: editing.status,
@@ -509,6 +510,8 @@ function Products() {
               <span>Category</span>
               <span>Gender</span>
               <span>Base Price</span>
+              <span>Discount</span>
+              <span>Offer Price</span>
               <span>Actions</span>
             </div>
             {visible.map((x) => (
@@ -518,20 +521,11 @@ function Products() {
                   {categories.find((c) => c.id === x.category_id)?.name || 'Uncategorized'}
                 </span>
                 <span>{x.gender}</span>
+                <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
+                <span>{Number(x.discount_percentage || 0)}%</span>
+                <span>₹{Number(x.offer_price ?? x.base_price ?? 0).toLocaleString('en-IN')}</span>
                 <span>
-                  ₹{Number(x.offer_price ?? x.base_price ?? 0).toLocaleString('en-IN')}
-                  {x.offer_price != null && Number(x.offer_price) < Number(x.base_price || 0) ? (
-                    <small
-                      style={{
-                        display: 'block',
-                        color: 'var(--muted)',
-                        textDecoration: 'line-through',
-                      }}
-                    >
-                      ₹{Number(x.base_price || 0).toLocaleString('en-IN')}
-                    </small>
-                  ) : null}
-                </span>
+                    </span>
                 <button
                   onClick={() => {
                     setEditing({ ...x })
@@ -578,12 +572,34 @@ function Products() {
             options={['boys', 'girls', 'unisex']}
             onChange={(v) => setEditing({ ...editing, gender: v })}
           />
-          <Field
-            label="Base Price"
-            value={String(editing.base_price ?? 0)}
-            onChange={(v) => setEditing({ ...editing, base_price: v })}
-            type="number"
-          />
+          <div className="workspace-form-row">
+            <Field
+              label="Base Price"
+              value={String(editing.base_price ?? 0)}
+              onChange={(v) => setEditing({ ...editing, base_price: v })}
+              type="number"
+            />
+            <Field
+              label="Discount (%)"
+              value={String(editing.discount_percentage ?? 0)}
+              onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
+              type="number"
+            />
+            <Field
+              label="Offer Price"
+              value={String(
+                Math.max(
+                  0,
+                  Number(editing.base_price || 0) *
+                    (1 -
+                      Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) /
+                        100),
+                ),
+              )}
+              onChange={() => undefined}
+              type="number"
+            />
+          </div>
           <Field
             label="Image URL"
             value={editing.image_url || ''}
