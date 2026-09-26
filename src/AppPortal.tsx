@@ -377,7 +377,12 @@ function CustomerPortal({
           ) : page === 'orders' ? (
             <Orders students={students} />
           ) : (
-            <Profile studentId={studentId} schoolId={schoolId} branchId={branchId} students={students} />
+            <Profile
+              studentId={studentId}
+              schoolId={schoolId}
+              branchId={branchId}
+              students={students}
+            />
           )}
         </main>
       </div>
@@ -496,7 +501,13 @@ function CustomerPortal({
     </div>
   )
 }
-function Dashboard({ setPage, students = [] }: { setPage: (p: CustomerPage) => void; students?: any[] }) {
+function Dashboard({
+  setPage,
+  students = [],
+}: {
+  setPage: (p: CustomerPage) => void
+  students?: any[]
+}) {
   const [activeOrders, setActiveOrders] = useState<number | null>(null)
   const [savedItems, setSavedItems] = useState<number | null>(null)
 
@@ -606,10 +617,15 @@ function Dashboard({ setPage, students = [] }: { setPage: (p: CustomerPage) => v
           <div className="parent-children-grid">
             {students.map((student) => (
               <article className="parent-child-card" key={student.id}>
-                <div className="parent-child-avatar">{(student.full_name || "?").slice(0, 1).toUpperCase()}</div>
+                <div className="parent-child-avatar">
+                  {(student.full_name || '?').slice(0, 1).toUpperCase()}
+                </div>
                 <div>
-                  <strong>{student.full_name || "Student"}</strong>
-                  <span>{student.class_name || "Class"}{student.section ? ` • ${student.section}` : ""}</span>
+                  <strong>{student.full_name || 'Student'}</strong>
+                  <span>
+                    {student.class_name || 'Class'}
+                    {student.section ? ` • ${student.section}` : ''}
+                  </span>
                 </div>
               </article>
             ))}
@@ -2033,14 +2049,23 @@ function Profile({
               <div className="profile-student-card" key={child.id || child.student_code}>
                 <div className="profile-student-card-head">
                   <div>
-                    <strong>{child.full_name || "Student"}</strong>
+                    <strong>{child.full_name || 'Student'}</strong>
                     <span>{child.student_code || studentId}</span>
                   </div>
-                  <span>{child.class_name || "Class"}{child.section ? ` • ${child.section}` : ""}</span>
+                  <span>
+                    {child.class_name || 'Class'}
+                    {child.section ? ` • ${child.section}` : ''}
+                  </span>
                 </div>
                 <div className="profile-readonly-grid">
-                  <div><span>Gender</span><strong>{child.gender || "—"}</strong></div>
-                  <div><span>Date of Birth</span><strong>{child.date_of_birth || "—"}</strong></div>
+                  <div>
+                    <span>Gender</span>
+                    <strong>{child.gender || '—'}</strong>
+                  </div>
+                  <div>
+                    <span>Date of Birth</span>
+                    <strong>{child.date_of_birth || '—'}</strong>
+                  </div>
                 </div>
               </div>
             ))}
