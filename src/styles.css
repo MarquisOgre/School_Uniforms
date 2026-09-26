@@ -9688,3 +9688,122 @@ a {
 .product-benefits-accordion {
   border-top: 1px solid var(--line);
 }
+
+.parent-children-section {
+  margin: 26px 0;
+}
+
+.parent-children-section .section-row {
+  margin-bottom: 12px;
+}
+
+.parent-children-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.parent-child-card,
+.profile-student-card {
+  border: 1px solid var(--su-line);
+  border-radius: 14px;
+  background: var(--su-card);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.parent-child-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff0c9;
+  color: #9a6700;
+  font-weight: 800;
+}
+
+.parent-child-card strong,
+.profile-student-card strong {
+  display: block;
+  color: var(--su-ink);
+}
+
+.parent-child-card span,
+.profile-student-card span {
+  display: block;
+  margin-top: 3px;
+  color: var(--su-muted);
+  font-size: 12px;
+}
+
+.orders-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.orders-student-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--su-ink);
+}
+
+.orders-student-filter select {
+  min-width: 220px;
+  border: 1px solid var(--su-line);
+  border-radius: 9px;
+  background: var(--su-card);
+  padding: 9px 12px;
+  color: var(--su-ink);
+}
+
+.order-student-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--su-line);
+  color: var(--su-muted);
+  font-size: 12px;
+}
+
+.order-student-row strong {
+  color: var(--su-ink);
+}
+
+.order-student-row small {
+  color: var(--su-muted);
+}
+
+.profile-students-list {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-student-card {
+  display: block;
+}
+
+.profile-student-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profile-student-card-head > span {
+  margin-top: 0;
+  font-weight: 700;
+}
+
+.profile-student-card .profile-readonly-grid {
+  border-top: 1px solid var(--su-line);
+  padding-top: 12px;
+}
