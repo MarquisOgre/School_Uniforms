@@ -120,13 +120,15 @@ function CustomerPortal({
 
       const { data: linkedStudents } = await client
         .from('students')
-        .select('id,student_code,full_name,class_name,section,school_id,branch_id')
+        .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
         .in('id', linkedIds)
-        .eq('school_id', schoolId)
-        .eq('branch_id', branchId)
         .eq('status', 'active')
         .order('full_name')
 
+      // The parent link is the source of truth for customer access. Do not
+      // discard a valid linked student just because the portal context was
+      // restored with a stale/different school or branch value. Checkout will
+      // validate the selected student's school/branch before placing an order.
       if (!cancelled) setStudents(linkedStudents ?? [])
     }
 
