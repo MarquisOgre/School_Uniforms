@@ -1691,6 +1691,79 @@ a {
   font-size: 26px;
   margin: 20px 0;
 }
+.detail-size-selector {
+  margin-top: 18px;
+}
+
+.detail-size-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 9px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.detail-size-heading strong {
+  font-size: 15px;
+}
+
+.detail-size-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.detail-size-option {
+  position: relative;
+  min-width: 48px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #bfc0c0;
+  border-radius: 2px;
+  background: #fff;
+  color: #171717;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.detail-size-option:hover:not(:disabled) {
+  border-color: #111;
+}
+
+.detail-size-option.selected {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+  font-weight: 800;
+}
+
+.detail-size-option.unavailable {
+  color: #777;
+  background: #fff;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.detail-size-option.unavailable::before,
+.detail-size-option.unavailable::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 135%;
+  background: #f21b23;
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: none;
+}
+
+.detail-size-option.unavailable::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 .detail-copy label {
   display: flex;
   flex-direction: column;
