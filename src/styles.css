@@ -5587,7 +5587,97 @@ a {
   position: relative;
   top: auto;
   flex-shrink: 0;
+  background: #fffdf8;
+  color: var(--ink);
+  border-bottom: 1px solid #e5ddd0;
 }
+
+.global-header-customer .global-header-inner {
+  position: relative;
+  min-height: 76px;
+  padding: 14px 28px;
+}
+
+.customer-header-school {
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+}
+
+.customer-header-school strong {
+  color: var(--gold-dark, #a86f00);
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.customer-header-school span {
+  color: #68716f;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.customer-header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 27px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.customer-header-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 150px;
+  justify-content: flex-end;
+}
+
+.customer-header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f8aa0b;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.customer-header-user > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.customer-header-user strong {
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.customer-header-user span {
+  color: #8a918f;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.global-header-customer .global-header-actions {
+  margin-left: 12px;
+}
+
 
 .global-header-customer .global-header-inner {
   padding-bottom: 20px;
@@ -5909,6 +5999,29 @@ a {
   .global-header-inner {
     min-height: 68px;
     padding: 10px 18px;
+  }
+  .customer-header-school {
+    min-width: 0;
+    max-width: 42%;
+  }
+  .customer-header-school strong {
+    font-size: 8px;
+  }
+  .customer-header-school span {
+    font-size: 7px;
+  }
+  .customer-header-title {
+    font-size: 21px;
+  }
+  .customer-header-user {
+    min-width: 0;
+  }
+  .customer-header-user > div:last-child {
+    display: none;
+  }
+  .customer-header-avatar {
+    width: 34px;
+    height: 34px;
   }
   .global-brand > div {
     display: none;
