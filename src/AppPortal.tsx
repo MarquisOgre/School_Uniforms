@@ -49,6 +49,7 @@ function CustomerPortal({
   onLogout: () => void
 }) {
   const [cart, setCart] = useState<CartItem[]>([]),
+    [cartOpen, setCartOpen] = useState(false),
     [checkout, setCheckout] = useState<CheckoutStep | null>(null),
     [selected, setSelected] = useState<CartItem | null>(null),
     [students, setStudents] = useState<any[]>([])
@@ -134,7 +135,7 @@ function CustomerPortal({
       cancelled = true
     }
   }, [schoolId, branchId, studentId])
-  const add = (item: CartItem) =>
+  const add = (item: CartItem) => {
     setCart((items) => {
       const cartKey = item.id + '|' + JSON.stringify(item.selectedVariants || [])
       const normalized = { ...item, id: cartKey }
@@ -143,6 +144,8 @@ function CustomerPortal({
         ? items.map((x) => (x.id === cartKey ? { ...x, quantity: x.quantity + item.quantity } : x))
         : [...items, normalized]
     })
+    setCartOpen(true)
+  }
   const update = (id: string, d: number) =>
     setCart((items) =>
       items.map((x) => (x.id === id ? { ...x, quantity: Math.max(1, x.quantity + d) } : x)),
@@ -334,6 +337,93 @@ function CustomerPortal({
           )}
         </main>
       </div>
+
+      {cartOpen && (
+        <div className="school-cart-overlay" role="presentation" onClick={() => setCartOpen(false)}>
+          <aside
+            className="school-cart-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Your Cart"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="school-cart-header">
+              <div>
+                <p className="eyebrow">SHOPPING CART</p>
+                <h2>Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h2>
+              </div>
+              <button className="school-cart-close" onClick={() => setCartOpen(false)} aria-label="Close cart">
+                ×
+              </button>
+            </div>
+
+            {cart.length ? (
+              <>
+                <div className="school-cart-items">
+                  {cart.map((item) => (
+                    <article className="school-cart-item" key={item.id}>
+                      {item.image ? (
+                        <img src={item.image} alt={item.title} />
+                      ) : (
+                        <div className="school-cart-item-placeholder">
+                          <ShoppingBag size={20} />
+                        </div>
+                      )}
+                      <div className="school-cart-item-body">
+                        <strong>{item.title}</strong>
+                        {item.type === 'package' && item.selectedVariants?.length ? (
+                          <div className="school-cart-variants">
+                            {item.selectedVariants.map((v: any) => (
+                              <span key={v.packageItemId || v.package_item_id || v.variantId || v.variant_id}>
+                                {v.sizeLabel || v.size_label || 'Selected'}
+                              </span>
+                            ))}
+                          </div>
+                        ) : item.size ? (
+                          <span className="school-cart-size">{item.size}</span>
+                        ) : null}
+                        <div className="school-cart-item-bottom">
+                          <div className="school-cart-qty">
+                            <button onClick={() => update(item.id, -1)} aria-label="Decrease quantity">−</button>
+                            <span>{item.quantity}</span>
+                            <button onClick={() => update(item.id, 1)} aria-label="Increase quantity">+</button>
+                          </div>
+                          <strong>₹{(item.price * item.quantity).toLocaleString('en-IN')}</strong>
+                          <button className="school-cart-remove" onClick={() => remove(item.id)} aria-label="Remove item">
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="school-cart-footer">
+                  <div className="school-cart-total">
+                    <span>Total</span>
+                    <strong>₹{total.toLocaleString('en-IN')}</strong>
+                  </div>
+                  <button
+                    className="primary-button school-cart-checkout"
+                    onClick={() => {
+                      setCartOpen(false)
+                      setCheckout('cart')
+                    }}
+                  >
+                    Proceed to Checkout <ArrowRight size={17} />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="school-cart-empty">
+                <ShoppingBag size={42} />
+                <h3>Your cart is empty</h3>
+                <p>Add a uniform package or product to continue.</p>
+              </div>
+            )}
+          </aside>
+        </div>
+      )}
     </div>
   )
 }
