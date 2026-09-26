@@ -1222,7 +1222,7 @@ function Packages() {
                     })
                     setItemVariants([])
                     if (products[0]?.id) void loadItemVariants(products[0].id)
-                  }
+                  }}
                 >
                   <Plus size={14} /> Add Item
                 </button>
