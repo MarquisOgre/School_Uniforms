@@ -839,6 +839,7 @@ export default function HomePage({
   }, [])
 
   useEffect(() => {
+    if (!showLogin || schools.length) return
     let cancelled = false
     async function load() {
       const client = supabase
@@ -847,6 +848,7 @@ export default function HomePage({
         setLoadingSchools(false)
         return
       }
+      setLoadingSchools(true)
       const { data, error } = await client
         .from('schools')
         .select('id,name')
@@ -861,7 +863,7 @@ export default function HomePage({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [showLogin, schools.length])
   async function selectSchool(value: string) {
     setSchool(value)
     setBranch('')
