@@ -1771,6 +1771,129 @@ a {
   font-size: 10px;
   font-weight: 800;
 }
+.product-detail-information {
+  margin-top: 30px;
+  border-top: 1px solid var(--line);
+}
+
+.product-benefit-list {
+  display: grid;
+  gap: 14px;
+  padding: 20px 0 25px;
+}
+
+.product-benefit-list > div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 11px;
+  color: #222;
+}
+
+.product-benefit-list svg {
+  flex: 0 0 auto;
+  color: #202020;
+}
+
+.product-benefit-list .warning {
+  color: #e71920;
+}
+
+.product-benefit-list .warning svg {
+  color: #e71920;
+}
+
+.product-detail-information details {
+  border-top: 1px solid #ded8cf;
+}
+
+.product-detail-information details:last-child {
+  border-bottom: 1px solid #ded8cf;
+}
+
+.product-detail-information summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 800;
+  color: #555;
+}
+
+.product-detail-information summary::-webkit-details-marker {
+  display: none;
+}
+
+.product-detail-information summary svg {
+  transition: transform 0.2s ease;
+}
+
+.product-detail-information details[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.product-info-grid {
+  display: grid;
+  gap: 10px;
+  padding: 0 0 18px;
+}
+
+.product-info-grid > div {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #666;
+}
+
+.product-info-grid strong {
+  color: #555;
+}
+
+.product-info-text {
+  margin: 0;
+  padding: 0 0 20px;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.product-info-care span {
+  white-space: pre-line;
+}
+
+.workspace-product-benefits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 8px 0 18px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fffdf8;
+}
+
+.workspace-product-benefits label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #333;
+}
+
+.workspace-product-benefits input {
+  width: 15px;
+  height: 15px;
+  accent-color: #111;
+}
+
 .quantity {
   display: flex;
   align-items: center;
