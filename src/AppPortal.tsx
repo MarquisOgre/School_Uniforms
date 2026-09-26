@@ -1249,7 +1249,7 @@ function ProductDetail({
           {item.imageGallery?.length ? (
             <div className="detail-gallery-thumbnails">
               {[item.image, ...(item.imageGallery || [])]
-                .filter(Boolean)
+                .filter((url): url is string => Boolean(url))
                 .filter((url, index, all) => all.indexOf(url) === index)
                 .map((url, index) => (
                   <button
