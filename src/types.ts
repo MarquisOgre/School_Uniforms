@@ -94,6 +94,19 @@ type UniformPackageRow = {
   created_at: string
   updated_at: string
 }
+type EmailTemplateRow = {
+  id: string
+  template_key: string
+  name: string
+  description: string | null
+  subject: string
+  html_body: string
+  text_body: string | null
+  variables: string[]
+  enabled: boolean
+  created_at: string
+  updated_at: string
+}
 type PackageItemRow = {
   id: string
   package_id: string
@@ -117,6 +130,7 @@ export type Database = {
       product_variants: Table<ProductVariantRow>
       uniform_packages: Table<UniformPackageRow>
       package_items: Table<PackageItemRow>
+      email_templates: Table<EmailTemplateRow>
     }
     Views: Record<string, never>
     Functions: Record<string, never>
