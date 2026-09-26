@@ -1388,9 +1388,28 @@ function Profile({
       setError('Please enter a valid email address.')
       return
     }
-    const result = await client.auth.updateUser({ email })
-    if (result.error) setError(result.error.message)
-    else setMessage('Email update requested. Check your email to confirm the new address.')
+    const { data, error: functionError } = await client.functions.invoke('update-parent-email', {
+      body: { email },
+    })
+    if (functionError) {
+      setError(functionError.message || 'Unable to update email address.')
+      return
+    }
+    if (data?.error) {
+      setError(data.error)
+      return
+    }
+
+    // Refresh the Auth user so the Profile page immediately shows the
+    // newly saved email instead of the old synthetic .local address.
+    const refreshed = await client.auth.getUser()
+    if (refreshed.data?.user) {
+      setProfile((current: any) => ({
+        ...current,
+        email: refreshed.data.user.email || email,
+      }))
+    }
+    setMessage('Email address updated successfully.')
   }
 
   if (loading)
