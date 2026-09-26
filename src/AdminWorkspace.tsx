@@ -405,7 +405,6 @@ function Products() {
     if (r.error) setError(r.error.message || '')
   }
 
-
   useEffect(() => {
     void load()
   }, [])
