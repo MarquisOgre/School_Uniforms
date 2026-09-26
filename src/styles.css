@@ -7759,7 +7759,6 @@ a {
   }
 }
 
-
 /* Product reviews */
 .product-reviews {
   margin-top: 34px;
@@ -7969,7 +7968,7 @@ a {
   padding: 28px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 25px 70px rgba(0,0,0,.22);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.22);
 }
 
 .review-form h2 {
@@ -8052,7 +8051,7 @@ a {
   align-items: center;
   gap: 8px;
   font-weight: 800;
-  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .floating-chat-button:hover {
@@ -8069,7 +8068,7 @@ a {
   background: #fff;
   border: 1px solid #dedede;
   border-radius: 12px;
-  box-shadow: 0 25px 70px rgba(0,0,0,.2);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -8166,7 +8165,7 @@ a {
   display: block;
   margin-top: 4px;
   font-size: 9px;
-  opacity: .6;
+  opacity: 0.6;
 }
 
 .customer-message {
@@ -8220,7 +8219,7 @@ a {
 }
 
 .chat-composer button:disabled {
-  opacity: .45;
+  opacity: 0.45;
 }
 
 @media (max-width: 700px) {
@@ -8252,7 +8251,6 @@ a {
     bottom: 16px;
   }
 }
-
 
 .admin-support-chat {
   padding: 36px 42px;
@@ -8308,7 +8306,7 @@ a {
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .admin-support-conversations > button {
@@ -8411,7 +8409,7 @@ a {
   display: block;
   margin-top: 5px;
   font-size: 9px;
-  opacity: .65;
+  opacity: 0.65;
 }
 
 .admin-support-composer {

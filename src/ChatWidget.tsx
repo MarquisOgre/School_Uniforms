@@ -205,21 +205,28 @@ export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
           ) : !schoolId || !branchId ? (
             <div className="chat-login-prompt">
               <MessageCircle size={34} />
-              <p>Your school store is not selected yet. Open your school store to start chatting with support.</p>
+              <p>
+                Your school store is not selected yet. Open your school store to start chatting with
+                support.
+              </p>
             </div>
           ) : (
             <>
               <div className="chat-messages">
                 {loading ? <div className="chat-status">Loading chat...</div> : null}
                 {!loading && !messages.length ? (
-                  <div className="chat-status">Send us a message and our support team will reply here.</div>
+                  <div className="chat-status">
+                    Send us a message and our support team will reply here.
+                  </div>
                 ) : null}
                 {messages.map((item) => (
                   <div
                     key={item.id}
                     className={
                       'chat-message ' +
-                      (item.sender_user_id === currentUserId ? 'customer-message' : 'support-message')
+                      (item.sender_user_id === currentUserId
+                        ? 'customer-message'
+                        : 'support-message')
                     }
                   >
                     <p>{item.message}</p>

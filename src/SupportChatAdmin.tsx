@@ -48,7 +48,10 @@ export default function SupportChatAdmin() {
     const ids = [...new Set(rows.map((x) => x.customer_user_id).filter(Boolean))]
     let names: Record<string, string> = {}
     if (ids.length) {
-      const { data: profiles } = await client.from('profiles').select('id,full_name,login_id').in('id', ids)
+      const { data: profiles } = await client
+        .from('profiles')
+        .select('id,full_name,login_id')
+        .in('id', ids)
       names = Object.fromEntries(
         (profiles ?? []).map((x: any) => [x.id, x.full_name || x.login_id || 'Customer']),
       )

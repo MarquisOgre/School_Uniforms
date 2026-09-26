@@ -1355,10 +1355,7 @@ function Packages() {
                 {itemVariants.map((variant) => {
                   const selected = (itemEditing.variant_ids || []).includes(variant.id)
                   const label =
-                    variant.size_label ||
-                    variant.variant_name ||
-                    variant.color ||
-                    variant.sku
+                    variant.size_label || variant.variant_name || variant.color || variant.sku
                   return (
                     <label className="workspace-variant-option" key={variant.id}>
                       <input
@@ -1376,9 +1373,7 @@ function Packages() {
                         }
                       />
                       <span>{label}</span>
-                      {variant.color && variant.size_label ? (
-                        <small>{variant.color}</small>
-                      ) : null}
+                      {variant.color && variant.size_label ? <small>{variant.color}</small> : null}
                     </label>
                   )
                 })}

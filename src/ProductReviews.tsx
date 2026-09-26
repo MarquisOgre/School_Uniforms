@@ -171,7 +171,11 @@ export default function ProductReviews({ productId }: { productId?: string }) {
             <article className="review-item" key={item.id}>
               <div className="review-stars" aria-label={item.rating + ' out of 5 stars'}>
                 {Array.from({ length: 5 }).map((_, index) => (
-                  <Star key={index} size={23} fill={index < item.rating ? 'currentColor' : 'none'} />
+                  <Star
+                    key={index}
+                    size={23}
+                    fill={index < item.rating ? 'currentColor' : 'none'}
+                  />
                 ))}
               </div>
               <div className="review-author">
@@ -208,7 +212,11 @@ export default function ProductReviews({ productId }: { productId?: string }) {
       {openForm ? (
         <div className="review-form-overlay" role="dialog" aria-modal="true">
           <div className="review-form">
-            <button className="review-form-close" onClick={() => setOpenForm(false)} aria-label="Close">
+            <button
+              className="review-form-close"
+              onClick={() => setOpenForm(false)}
+              aria-label="Close"
+            >
               <X size={18} />
             </button>
             <h2>Write a review</h2>
@@ -216,13 +224,21 @@ export default function ProductReviews({ productId }: { productId?: string }) {
             <label>Rating</label>
             <div className="review-rating-picker">
               {Array.from({ length: 5 }).map((_, index) => (
-                <button key={index} onClick={() => setRating(index + 1)} aria-label={index + 1 + ' stars'}>
+                <button
+                  key={index}
+                  onClick={() => setRating(index + 1)}
+                  aria-label={index + 1 + ' stars'}
+                >
                   <Star size={29} fill={index < rating ? 'currentColor' : 'none'} />
                 </button>
               ))}
             </div>
             <label>Title</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Very good quality" />
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Very good quality"
+            />
             <label>Review</label>
             <textarea
               value={body}
@@ -231,7 +247,11 @@ export default function ProductReviews({ productId }: { productId?: string }) {
               rows={5}
             />
             {message ? <p className="review-message">{message}</p> : null}
-            <button className="review-submit-button" onClick={() => void submit()} disabled={saving}>
+            <button
+              className="review-submit-button"
+              onClick={() => void submit()}
+              disabled={saving}
+            >
               {saving ? 'Submitting...' : 'Submit review'}
             </button>
           </div>
