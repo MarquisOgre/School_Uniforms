@@ -478,6 +478,52 @@ function CustomerPortal({
   )
 }
 function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
+  const [activeOrders, setActiveOrders] = useState<number | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadActiveOrders() {
+      const client = supabase as any
+      if (!client) return
+
+      const { data: auth } = await client.auth.getUser()
+      const userId = auth?.user?.id
+      if (!userId) {
+        if (!cancelled) setActiveOrders(0)
+        return
+      }
+
+      // An order remains active until it reaches a terminal state. This keeps
+      // shipped / out-for-delivery orders visible on the dashboard.
+      const activeStatuses = [
+        'pending',
+        'confirmed',
+        'processing',
+        'ready',
+        'packed',
+        'shipped',
+        'out_for_delivery',
+        'return_requested',
+        'return_approved',
+        'refund_processing',
+      ]
+
+      const { data, error } = await client
+        .from('orders')
+        .select('id')
+        .eq('customer_user_id', userId)
+        .in('status', activeStatuses)
+
+      if (!cancelled) setActiveOrders(error ? 0 : (data ?? []).length)
+    }
+
+    void loadActiveOrders()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <div className="portal-content">
       <div className="welcome-banner">
@@ -494,7 +540,11 @@ function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
         </div>
       </div>
       <div className="portal-grid">
-        <Stat title="Active orders" value="0" icon={<ClipboardList />} />
+        <Stat
+          title="Active orders"
+          value={activeOrders === null ? '—' : String(activeOrders)}
+          icon={<ClipboardList />}
+        />
         <Stat title="Saved items" value="0" icon={<Package />} />
         <Stat title="School branch" value="Active" icon={<Building2 />} />
       </div>
