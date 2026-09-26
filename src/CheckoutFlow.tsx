@@ -442,6 +442,12 @@ export default function CheckoutFlow({
       if (rpcError) throw rpcError
       if (!data?.order_number) throw new Error('The order was not created.')
 
+      // Send the configurable system email using the template selected by the admin.
+      // Do not block checkout if email delivery is unavailable.
+      void client.functions.invoke('send-system-email', {
+        body: { order_id: data.order_id, template_key: 'order_received' },
+      })
+
       if (paymentMethod === 'razorpay') {
         const { data: razorpayOrder, error: createPaymentError } = await client.functions.invoke(
           'razorpay-create-order',
@@ -479,6 +485,9 @@ export default function CheckoutFlow({
                 throw new Error(
                   'Payment is not captured yet. Please wait a moment and check your order.',
                 )
+              void client.functions.invoke('send-system-email', {
+                body: { order_id: data.order_id, template_key: 'order_processing' },
+              })
               setSuccessOrder({ ...data, payment_status: 'paid' })
               onComplete({ ...data, payment_status: 'paid' })
             } catch (e: any) {
@@ -492,6 +501,9 @@ export default function CheckoutFlow({
           },
         })
         checkout.on('payment.failed', (response: any) => {
+          void client.functions.invoke('send-system-email', {
+            body: { order_id: data.order_id, template_key: 'payment_failed' },
+          })
           setError(
             response?.error?.description ||
               'Razorpay payment failed. Your order remains pending and can be retried.',
