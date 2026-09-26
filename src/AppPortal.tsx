@@ -846,6 +846,7 @@ function Products({
             text: x.description || 'School-approved individual product',
             productType: x.product_type || '',
             occasionType: x.occasion_type || '',
+            gender: x.gender || '',
             material: x.material || '',
             brand: x.brand || '',
             quality: x.quality || '',
