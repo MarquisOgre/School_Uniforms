@@ -404,6 +404,22 @@ function Products() {
     if (r.error) setError(r.error.message || '')
   }
 
+  const loadItemVariants = async (productId: string) => {
+    if (!supabase || !productId) {
+      setItemVariants([])
+      return
+    }
+
+    const r = await dbFrom('product_variants')
+      .select('id,sku,size_label,color,variant_name,status')
+      .eq('product_id', productId)
+      .eq('status', 'active')
+      .order('size_label')
+
+    setItemVariants(r.data ?? [])
+    if (r.error) setError(r.error.message || '')
+  }
+
   useEffect(() => {
     void load()
   }, [])
@@ -936,6 +952,7 @@ function Packages() {
     [items, setItems] = useState<any[]>([]),
     [editing, setEditing] = useState<any>(null),
     [itemEditing, setItemEditing] = useState<any>(null),
+    [itemVariants, setItemVariants] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true)
   const load = async () => {
@@ -1061,6 +1078,7 @@ function Packages() {
       requires_size: itemEditing.requires_size !== false,
       selection_group: itemEditing.selection_group || null,
       sort_order: Number(itemEditing.sort_order || 0),
+      variant_ids: Array.isArray(itemEditing.variant_ids) ? itemEditing.variant_ids : [],
     }
     const r = itemEditing.id
       ? await dbFrom('package_items').update(p).eq('id', itemEditing.id)
@@ -1200,7 +1218,10 @@ function Packages() {
                       requires_size: true,
                       selection_group: '',
                       sort_order: items.length,
+                      variant_ids: [],
                     })
+                    setItemVariants([])
+                    if (products[0]?.id) void loadItemVariants(products[0].id)
                   }
                 >
                   <Plus size={14} /> Add Item
@@ -1216,15 +1237,26 @@ function Packages() {
                           {products.find((p) => p.id === i.product_id)?.name || i.product_id}
                         </strong>
                         {i.requires_size ? (
-                          <select aria-label="Select size" defaultValue="">
-                            <option value="">Select Size</option>
-                            <option value="__customer_select__">Customer selects size</option>
-                          </select>
+                          <span className="package-variant-summary">
+                            {Array.isArray(i.variant_ids) && i.variant_ids.length
+                              ? `${i.variant_ids.length} Variant${i.variant_ids.length === 1 ? '' : 's'} configured`
+                              : 'No variants configured'}
+                          </span>
                         ) : (
                           <span className="package-size-not-required">No size selection</span>
                         )}
                       </div>
-                      <button className="secondary-button" onClick={() => setItemEditing({ ...i })}>
+                      <button
+                        className="secondary-button"
+                        onClick={() => {
+                          setError('')
+                          setItemEditing({
+                            ...i,
+                            variant_ids: Array.isArray(i.variant_ids) ? i.variant_ids : [],
+                          })
+                          void loadItemVariants(i.product_id)
+                        }}
+                      >
                         Edit
                       </button>
                     </div>
@@ -1250,7 +1282,10 @@ function Packages() {
             value={itemEditing.product_id}
             options={products.map((x) => x.id)}
             labels={Object.fromEntries(products.map((x) => [x.id, x.name]))}
-            onChange={(v) => setItemEditing({ ...itemEditing, product_id: v })}
+            onChange={(v) => {
+              setItemEditing({ ...itemEditing, product_id: v, variant_ids: [] })
+              void loadItemVariants(v)
+            }}
           />
           <Field
             label="Quantity"
@@ -1281,6 +1316,80 @@ function Packages() {
             options={['yes', 'no']}
             onChange={(v) => setItemEditing({ ...itemEditing, requires_size: v === 'yes' })}
           />
+
+          <div className="workspace-variant-config">
+            <div className="workspace-variant-config-header">
+              <div>
+                <span className="workspace-field-label">Variants</span>
+                <p className="workspace-muted">
+                  Select the sizes/variants customers can choose for this package item.
+                </p>
+              </div>
+              {itemVariants.length ? (
+                <div className="workspace-variant-config-actions">
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() =>
+                      setItemEditing({
+                        ...itemEditing,
+                        variant_ids: itemVariants.map((variant) => variant.id),
+                      })
+                    }
+                  >
+                    Select All
+                  </button>
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() => setItemEditing({ ...itemEditing, variant_ids: [] })}
+                  >
+                    Clear
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {itemVariants.length ? (
+              <div className="workspace-variant-grid">
+                {itemVariants.map((variant) => {
+                  const selected = (itemEditing.variant_ids || []).includes(variant.id)
+                  const label =
+                    variant.size_label ||
+                    variant.variant_name ||
+                    variant.color ||
+                    variant.sku
+                  return (
+                    <label className="workspace-variant-option" key={variant.id}>
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={(e) =>
+                          setItemEditing({
+                            ...itemEditing,
+                            variant_ids: e.target.checked
+                              ? [...(itemEditing.variant_ids || []), variant.id]
+                              : (itemEditing.variant_ids || []).filter(
+                                  (id: string) => id !== variant.id,
+                                ),
+                          })
+                        }
+                      />
+                      <span>{label}</span>
+                      {variant.color && variant.size_label ? (
+                        <small>{variant.color}</small>
+                      ) : null}
+                    </label>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="workspace-variant-empty">
+                No variants are configured for this product. Create them first in{' '}
+                <strong>Products &amp; Variants</strong>.
+              </div>
+            )}
+          </div>
         </EditModal>
       )}
     </>
