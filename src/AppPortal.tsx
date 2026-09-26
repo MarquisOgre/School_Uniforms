@@ -1079,6 +1079,8 @@ function ProductCard({
   id,
   type,
   image,
+  saved = false,
+  onToggleSaved,
 }: {
   badge?: string
   title: string
