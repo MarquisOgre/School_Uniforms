@@ -9626,3 +9626,66 @@ a {
   padding: 2px 0 14px;
   border-top: 0;
 }
+
+
+.detail-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-gallery .detail-image {
+  width: 100%;
+}
+
+.detail-gallery-thumbnails {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 2px 3px;
+}
+
+.detail-gallery-thumb {
+  flex: 0 0 74px;
+  width: 74px;
+  height: 74px;
+  padding: 0;
+  border: 1px solid #d8d0c4;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #fffdf8;
+  cursor: pointer;
+}
+
+.detail-gallery-thumb:hover,
+.detail-gallery-thumb.selected {
+  border-color: #17272d;
+  box-shadow: 0 0 0 1px #17272d;
+}
+
+.detail-gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-purchase-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.detail-purchase-actions .primary-button,
+.detail-purchase-actions .detail-buy-now {
+  flex: 1;
+}
+
+.product-detail-information {
+  margin-top: 18px;
+  border-top: 0;
+}
+
+.product-benefits-accordion {
+  border-top: 1px solid var(--line);
+}
