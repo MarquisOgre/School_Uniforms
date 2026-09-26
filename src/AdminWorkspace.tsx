@@ -377,6 +377,7 @@ function Products() {
     [editing, setEditing] = useState<any>(null),
     [variantEditing, setVariantEditing] = useState<any>(null),
     [variants, setVariants] = useState<any[]>([]),
+    [itemVariants, setItemVariants] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState('')
