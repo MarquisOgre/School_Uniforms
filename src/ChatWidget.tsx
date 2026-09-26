@@ -17,6 +17,7 @@ type Message = {
 export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
   const [open, setOpen] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [draft, setDraft] = useState('')
@@ -29,10 +30,14 @@ export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
     if (!supabase) return
     let active = true
     void (supabase as any).auth.getUser().then(({ data }: any) => {
-      if (active) setAuthenticated(Boolean(data?.user))
+      if (active) {
+        setAuthenticated(Boolean(data?.user))
+        setCurrentUserId(data?.user?.id ?? null)
+      }
     })
     const { data } = (supabase as any).auth.onAuthStateChange((_event: string, session: any) => {
       setAuthenticated(Boolean(session?.user))
+      setCurrentUserId(session?.user?.id ?? null)
       if (!session?.user) {
         setConversationId(null)
         setMessages([])
@@ -212,7 +217,10 @@ export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
                 {messages.map((item) => (
                   <div
                     key={item.id}
-                    className={'chat-message ' + (item.sender_user_id ? 'customer-message' : 'support-message')}
+                    className={
+                      'chat-message ' +
+                      (item.sender_user_id === currentUserId ? 'customer-message' : 'support-message')
+                    }
                   >
                     <p>{item.message}</p>
                     <time>
