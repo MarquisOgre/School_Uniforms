@@ -814,9 +814,30 @@ function Packages({
       cancelled = true
     }
   }, [branchId])
+  const studentById = new Map(students.map((student) => [student.id, student]))
+  const filteredRows =
+    studentFilter === 'all'
+      ? rows
+      : rows.filter((order) => order.student_id === studentFilter)
+
   return (
     <div className="portal-content">
-      {error && <p className="workspace-error">{error}</p>}
+      {students.length > 1 ? (
+        <div className="orders-toolbar">
+          <label className="orders-student-filter">
+            <span>View orders for</span>
+            <select value={studentFilter} onChange={(e) => setStudentFilter(e.target.value)}>
+              <option value="all">All Students</option>
+              {students.map((student) => (
+                <option value={student.id} key={student.id}>
+                  {student.full_name} — {student.class_name || ''}{student.section ? ` • ${student.section}` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      ) : null}
+      {error && <p className="workspace-error">{error}</p>
       {loading ? (
         <div className="empty-state">Loading school packages...</div>
       ) : (
@@ -1464,7 +1485,8 @@ function ProductDetail({
   )
 }
 
-function Orders() {
+function Orders({ students = [] }: { students?: any[] }) {
+  const [studentFilter, setStudentFilter] = useState('all')
   const [rows, setRows] = useState<any[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState('')
@@ -1538,7 +1560,7 @@ function Orders() {
         <div className="empty-state">Loading orders...</div>
       ) : rows.length ? (
         <div className="orders-list">
-          {rows.map((x) => (
+          {filteredRows.map((x) => (
             <article className="order-card" key={x.id}>
               <div className="order-card-head">
                 <div>
@@ -1553,6 +1575,19 @@ function Orders() {
                 </div>
                 <span className={'order-status ' + x.status}>{x.status}</span>
               </div>
+              {studentById.get(x.student_id) ? (
+                <div className="order-student-row">
+                  <UserRound size={15} />
+                  <span>Student</span>
+                  <strong>{studentById.get(x.student_id)?.full_name}</strong>
+                  <small>
+                    {studentById.get(x.student_id)?.class_name || 'Class'}
+                    {studentById.get(x.student_id)?.section
+                      ? ` • ${studentById.get(x.student_id).section}`
+                      : ''}
+                  </small>
+                </div>
+              ) : null}
               <div className="order-card-items">
                 {x.items.map((i: any) => (
                   <div key={i.order_id + '-' + i.item_name_snapshot}>
@@ -1573,8 +1608,8 @@ function Orders() {
       ) : (
         <div className="empty-state">
           <ClipboardList size={42} />
-          <h3>No orders yet</h3>
-          <p>Your completed orders will appear here.</p>
+          <h3>No orders found</h3>
+          <p>No orders match the selected student.</p>
         </div>
       )}
     </div>
