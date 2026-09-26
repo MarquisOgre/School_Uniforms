@@ -1135,6 +1135,27 @@ a {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
+.required-star {
+  color: #c63d34;
+  font-weight: 800;
+  margin-left: 2px;
+}
+
+.profile-input-invalid,
+.profile-input-invalid:focus {
+  border-color: #d44a3e !important;
+  box-shadow: 0 0 0 3px rgba(212, 74, 62, 0.08);
+}
+
+.profile-field-error {
+  display: block;
+  margin-top: 5px;
+  color: #c63d34;
+  font-size: 10px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
 .profile-form-grid label {
   display: grid;
   gap: 7px;
