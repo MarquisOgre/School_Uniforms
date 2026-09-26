@@ -1556,11 +1556,21 @@ a {
   gap: 17px;
 }
 .checkout-form-grid label {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: baseline;
+  gap: 7px 0;
   font-size: 10px;
   font-weight: 800;
+}
+.checkout-form-grid label > span {
+  margin-left: 4px;
+  color: #b57a05;
+}
+.checkout-form-grid label > input,
+.checkout-form-grid label > select {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 .checkout-form-grid label:nth-child(3) {
   grid-column: span 2;
