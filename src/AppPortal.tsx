@@ -648,6 +648,9 @@ function Packages({
           variantsByProduct[x.product_id].push({ id: x.id, label: x.size_label })
       })
       const priceMap = Object.fromEntries(branchPackages.map((x) => [x.package_id, x.branch_price]))
+      Object.values(variantOptions).forEach((options) =>
+        options.sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' })),
+      )
       if (!cancelled)
         setItems(
           packages.map((x) => {
@@ -770,15 +773,15 @@ function Products({
       const priceMap = Object.fromEntries(branchProducts.map((x) => [x.product_id, x.branch_price]))
       const pv = await client
         .from('product_variants')
-        .select('id,product_id,size_label,variant_name')
+        .select('id,product_id,size_label,variant_name,status')
         .in('product_id', ids)
-        .eq('status', 'active')
         .order('size_label')
       const variants = (pv.data ?? []) as Array<{
         id: string
         product_id: string
         size_label: string | null
         variant_name: string | null
+        status: string | null
       }>
       const sizes: Record<string, string[]> = Object.fromEntries(ids.map((id) => [id, []]))
       const variantOptions: Record<string, { id: string; label: string }[]> = Object.fromEntries(
@@ -787,7 +790,11 @@ function Products({
       variants.forEach((x) => {
         if (x.size_label && sizes[x.product_id] && !sizes[x.product_id].includes(x.size_label)) {
           sizes[x.product_id].push(x.size_label)
-          variantOptions[x.product_id].push({ id: x.id, label: x.size_label })
+          variantOptions[x.product_id].push({
+          id: x.id,
+          label: x.size_label,
+          disabled: x.status !== 'active',
+        })
         }
       })
       if (!cancelled)
@@ -1005,17 +1012,34 @@ function ProductDetail({
           ) : null}
           <strong className="detail-price">₹{item.price.toLocaleString('en-IN')}</strong>
           {item.type === 'product' ? (
-            <label>
-              Size
-              <select value={size} onChange={(e) => setSize(e.target.value)}>
-                <option value="">Select size</option>
-                {productOptions.map((x) => (
-                  <option key={x.id} value={x.id}>
-                    {x.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="detail-size-selector">
+              <div className="detail-size-heading">
+                <span>Size</span>
+                <strong>{productOptions.find((x: any) => x.id === size)?.label || '—'}</strong>
+              </div>
+              <div className="detail-size-options" role="radiogroup" aria-label="Select size">
+                {productOptions.map((x: any) => {
+                  const unavailable = Boolean(x.disabled)
+                  const selectedSize = size === x.id
+                  return (
+                    <button
+                      key={x.id}
+                      type="button"
+                      className={
+                        'detail-size-option' +
+                        (selectedSize ? ' selected' : '') +
+                        (unavailable ? ' unavailable' : '')
+                      }
+                      disabled={unavailable}
+                      aria-pressed={selectedSize}
+                      onClick={() => setSize(x.id)}
+                    >
+                      <span>{x.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           ) : null}
           <div className="quantity">
             <span>Quantity</span>
