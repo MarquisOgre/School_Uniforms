@@ -9591,3 +9591,39 @@ a {
 .product-save-button svg {
   stroke-width: 2;
 }
+
+
+.product-benefits-accordion {
+  margin-top: 18px;
+  border-top: 1px solid var(--su-line);
+  border-bottom: 1px solid var(--su-line);
+}
+
+.product-benefits-accordion > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 0;
+  cursor: pointer;
+  color: var(--su-ink);
+  font-weight: 800;
+}
+
+.product-benefits-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.product-benefits-accordion > summary svg {
+  transition: transform .2s ease;
+}
+
+.product-benefits-accordion[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.product-benefits-accordion .product-benefit-list {
+  padding: 2px 0 14px;
+  border-top: 0;
+}
