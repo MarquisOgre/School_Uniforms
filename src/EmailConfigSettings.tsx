@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Mail, Save } from 'lucide-react'
+import { Save } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
 export default function EmailConfigSettings() {
@@ -41,7 +41,7 @@ export default function EmailConfigSettings() {
     else {setConfigured(!!data?.api_key_configured);setApiKey('');setMessage('Email settings saved successfully.')}
     setSaving(false)
   }
-  return <Panel title="Email Settings" icon={<Mail size={16}/>}>
+  return <section className="workspace-panel">
     {loading ? <Loading/> : <>
       <div className="panel-heading">
         <div>
@@ -53,12 +53,12 @@ export default function EmailConfigSettings() {
         </span>
       </div>
       <div className="workspace-form-row">
-        <Select label="Email Provider" value="resend" options={['resend']} labels={{resend:'Resend'}} onChange={()=>{}}/>
-        <Field label="From Name" value={fromName} onChange={setFromName} placeholder="School Uniforms"/>
+        <label className="workspace-field"><span>Email Provider</span><input value="Resend" readOnly /></label>
+        <label className="workspace-field"><span>From Name</span><input value={fromName} onChange={e=>setFromName(e.target.value)} placeholder="School Uniforms" /></label>
       </div>
       <div className="workspace-form-row">
-        <Field label="From Email" value={fromEmail} onChange={setFromEmail} placeholder="orders@yourdomain.com"/>
-        <Field label="Reply-To Email" value={replyTo} onChange={setReplyTo} placeholder="support@yourdomain.com"/>
+        <label className="workspace-field"><span>From Email</span><input value={fromEmail} onChange={e=>setFromEmail(e.target.value)} placeholder="orders@yourdomain.com" /></label>
+        <label className="workspace-field"><span>Reply-To Email</span><input value={replyTo} onChange={e=>setReplyTo(e.target.value)} placeholder="support@yourdomain.com" /></label>
       </div>
       <label className="workspace-field">
         <span>Resend API Key</span>
@@ -74,5 +74,5 @@ export default function EmailConfigSettings() {
         <button className="primary-button" disabled={saving} onClick={()=>void save()}><Save size={15}/>{saving?'Saving...':'Save Email Settings'}</button>
       </div>
     </>}
-  </Panel>
+  </section>
 }
