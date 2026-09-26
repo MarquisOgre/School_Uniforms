@@ -221,8 +221,9 @@ export default function CheckoutFlow({
         setStudentId(resolvedStudents[0].id)
         const onlyStudent = resolvedStudents[0]
         setStudentLoadError(
-          onlyStudent.school_id && onlyStudent.branch_id &&
-          (onlyStudent.school_id !== schoolId || onlyStudent.branch_id !== branchId)
+          onlyStudent.school_id &&
+            onlyStudent.branch_id &&
+            (onlyStudent.school_id !== schoolId || onlyStudent.branch_id !== branchId)
             ? 'Your linked student is active, but the student is assigned to a different school or branch. Please contact the school administrator to correct the student assignment.'
             : '',
         )
@@ -282,7 +283,9 @@ export default function CheckoutFlow({
       '&cu=INR'
     )
   }, [settings, payable])
-  const selectedStudent = checkoutStudents.find((s) => s.id === (checkoutStudents.length === 1 ? checkoutStudents[0].id : studentId))
+  const selectedStudent = checkoutStudents.find(
+    (s) => s.id === (checkoutStudents.length === 1 ? checkoutStudents[0].id : studentId),
+  )
   const selectedStudentId = selectedStudent?.id || ''
   const selectedStudentMatchesContext = Boolean(
     selectedStudent &&
