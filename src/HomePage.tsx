@@ -250,7 +250,7 @@ function Landing({ onLogin }: { onLogin: () => void }) {
           </div>
         </div>
         <div className="exact-hero-image">
-          <img key={slide} src={current.image} alt="Students wearing school uniforms" />
+          <img key={slide} src={current.image} alt="Students wearing school uniforms" loading="eager" fetchPriority="high" decoding="async" />
         </div>
       </section>
 
@@ -335,7 +335,7 @@ function Landing({ onLogin }: { onLogin: () => void }) {
               {home.afterFold.button} <ArrowRight />
             </button>
           </div>
-          <img src={home.afterFold.image} alt="Artisan school uniforms" />
+          <img src={home.afterFold.image} alt="Artisan school uniforms" loading="lazy" decoding="async" />
         </section>
       )}
       <section
@@ -517,7 +517,7 @@ function PublicPage({
                 : [['/category-accessories.jpg', 'Accessories']]
             ).map(([img, title]) => (
               <button key={title} onClick={onLogin}>
-                <img src={img} alt="" />
+                <img src={img} alt="" loading="lazy" decoding="async" />
                 <strong>{title}</strong>
                 <span>
                   Sign in to shop <ArrowRight />
@@ -739,7 +739,7 @@ function ExactCategory({
 }) {
   return (
     <button className="exact-category" onClick={onClick}>
-      <img src={image} alt="" />
+      <img src={image} alt="" loading="lazy" decoding="async" />
       <div>
         <strong>{title}</strong>
         <span>
