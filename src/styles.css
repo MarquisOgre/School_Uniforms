@@ -1157,11 +1157,20 @@ a {
 }
 
 .profile-form-grid label {
-  display: grid;
-  gap: 7px;
+  display: block;
   font-size: 10px;
   font-weight: 800;
   color: var(--su-ink);
+  line-height: 1.35;
+}
+
+.profile-form-grid label > input {
+  display: block;
+  margin-top: 7px;
+}
+
+.profile-form-grid label > .profile-field-error {
+  display: block;
 }
 .profile-form-grid input {
   width: 100%;
