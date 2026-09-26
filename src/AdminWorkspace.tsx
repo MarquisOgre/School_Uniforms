@@ -1862,6 +1862,7 @@ function PaymentsAdmin() {
       branch_id: branchId,
       pay_at_school_enabled: true,
       upi_enabled: false,
+      razorpay_enabled: false,
       upi_id: '',
       upi_payee_name: '',
       shipping_fee: 0,
@@ -1924,6 +1925,7 @@ function PaymentsAdmin() {
                 <strong>Branch</strong>
                 <span>Pay at School</span>
                 <span>UPI</span>
+                <span>Razorpay</span>
                 <span>UPI ID</span>
                 <span>Payee Name</span>
                 <span>Shipping</span>
@@ -1960,6 +1962,19 @@ function PaymentsAdmin() {
                         }
                       />{' '}
                       UPI
+                    </label>
+                    <label className="admin-inline-check">
+                      <input
+                        type="checkbox"
+                        checked={!!row.razorpay_enabled}
+                        onChange={(e) =>
+                          setSettings((v) => [
+                            ...v.filter((x) => x.branch_id !== b.id),
+                            { ...row, razorpay_enabled: e.target.checked },
+                          ])
+                        }
+                      />{' '}
+                      Razorpay
                     </label>
                     <input
                       className="admin-mini-input"
