@@ -833,30 +833,9 @@ function Packages({
       cancelled = true
     }
   }, [branchId])
-  const studentById = new Map(students.map((student) => [student.id, student]))
-  const filteredRows =
-    studentFilter === 'all'
-      ? rows
-      : rows.filter((order) => order.student_id === studentFilter)
-
   return (
     <div className="portal-content">
-      {students.length > 1 ? (
-        <div className="orders-toolbar">
-          <label className="orders-student-filter">
-            <span>View orders for</span>
-            <select value={studentFilter} onChange={(e) => setStudentFilter(e.target.value)}>
-              <option value="all">All Students</option>
-              {students.map((student) => (
-                <option value={student.id} key={student.id}>
-                  {student.full_name} — {student.class_name || ''}{student.section ? ` • ${student.section}` : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      ) : null}
-      {error && <p className="workspace-error">{error}</p>
+      {error && <p className="workspace-error">{error}</p>}
       {loading ? (
         <div className="empty-state">Loading school packages...</div>
       ) : (
