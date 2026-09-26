@@ -380,6 +380,7 @@ function Products() {
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState('')
+
   const load = async () => {
     if (!supabase) return
     setLoading(true)
@@ -392,8 +393,9 @@ function Products() {
     setError(p.error?.message || c.error?.message || '')
     setLoading(false)
   }
+
   const loadVariants = async (productId: string) => {
-    if (!supabase) return
+    if (!supabase || !productId) return
     const r = await dbFrom('product_variants')
       .select('*')
       .eq('product_id', productId)
@@ -401,62 +403,98 @@ function Products() {
     setVariants(r.data ?? [])
     if (r.error) setError(r.error.message || '')
   }
+
   useEffect(() => {
     void load()
   }, [])
+
   const save = async () => {
     if (!supabase || !editing) return
-    const slug = (editing.slug || editing.name || '')
+
+    const name = String(editing.name || '').trim()
+    if (!name) {
+      setError('Product Name is required.')
+      return
+    }
+
+    const slug = (editing.slug || name)
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
+
     const p = {
       category_id: editing.category_id || null,
-      name: editing.name,
+      name,
       slug,
       description: editing.description || null,
       gender: editing.gender,
       image_url: editing.image_url || null,
       base_price: Number(editing.base_price || 0),
-      offer_price: Math.max(
-        0,
-        Number(editing.base_price || 0) *
-          (1 - Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) / 100),
-      ),
+      offer_price:
+        editing.offer_price === '' || editing.offer_price == null
+          ? null
+          : Number(editing.offer_price),
       discount_percentage: Number(editing.discount_percentage || 0),
       status: editing.status,
     }
+
     const r = editing.id
       ? await dbFrom('products').update(p).eq('id', editing.id)
       : await dbFrom('products').insert(p)
-    if (r.error) setError(r.error.message)
-    else {
+
+    if (r.error) {
+      setError(r.error.message)
+    } else {
       setEditing(null)
+      setVariants([])
       await load()
     }
   }
+
   const saveVariant = async () => {
     if (!supabase || !variantEditing) return
+
+    const sku = String(variantEditing.sku || '').trim()
+    if (!sku) {
+      setError('Variant SKU is required.')
+      return
+    }
+    if (!variantEditing.product_id) {
+      setError('Variant must be linked to a saved product.')
+      return
+    }
+
     const p = {
       product_id: variantEditing.product_id,
-      sku: variantEditing.sku,
-      size_label: variantEditing.size_label || null,
-      color: variantEditing.color || null,
-      variant_name: variantEditing.variant_name || null,
-      price: variantEditing.price === '' ? null : Number(variantEditing.price || 0),
+      sku,
+      size_label: String(variantEditing.size_label || '').trim() || null,
+      color: String(variantEditing.color || '').trim() || null,
+      variant_name: String(variantEditing.variant_name || '').trim() || null,
+      price:
+        variantEditing.price === '' || variantEditing.price == null
+          ? null
+          : Number(variantEditing.price),
       status: variantEditing.status,
     }
+
     const r = variantEditing.id
       ? await dbFrom('product_variants').update(p).eq('id', variantEditing.id)
       : await dbFrom('product_variants').insert(p)
-    if (r.error) setError(r.error.message)
-    else {
+
+    if (r.error) {
+      setError(r.error.message)
+    } else {
       setVariantEditing(null)
+      setError('')
       await loadVariants(variantEditing.product_id)
     }
   }
-  const visible = rows.filter((x) => x.name.toLowerCase().includes(search.toLowerCase()))
+
+  const visible = rows.filter((x) =>
+    String(x.name || '').toLowerCase().includes(search.toLowerCase()),
+  )
+
   return (
     <>
       <Toolbar onRefresh={load}>
@@ -473,8 +511,12 @@ function Products() {
           onClick={() =>
             setEditing({
               name: '',
+              description: '',
               gender: 'unisex',
-              base_price: 0,
+              base_price: '',
+              discount_percentage: '',
+              offer_price: '',
+              image_url: '',
               status: 'active',
               category_id: categories[0]?.id || '',
             })
@@ -483,7 +525,9 @@ function Products() {
           <Plus size={15} /> Add Product
         </button>
       </Toolbar>
+
       <ErrorBox text={error} />
+
       {loading ? (
         <Loading />
       ) : (
@@ -510,7 +554,13 @@ function Products() {
                 <span>₹{Number(x.offer_price ?? x.base_price ?? 0).toLocaleString('en-IN')}</span>
                 <button
                   onClick={() => {
-                    setEditing({ ...x })
+                    setError('')
+                    setEditing({
+                      ...x,
+                      base_price: x.base_price ?? '',
+                      discount_percentage: x.discount_percentage ?? '',
+                      offer_price: x.offer_price ?? x.base_price ?? '',
+                    })
                     void loadVariants(x.id)
                   }}
                 >
@@ -521,103 +571,118 @@ function Products() {
           </div>
         </Panel>
       )}
+
       {editing && (
         <EditModal
           title={editing.id ? 'Edit Product' : 'Add Product'}
           onClose={() => {
             setEditing(null)
             setVariants([])
+            setVariantEditing(null)
           }}
           onSave={save}
         >
-          <Field
-            label="Name"
-            value={editing.name}
-            onChange={(v) => setEditing({ ...editing, name: v })}
-          />
-          <Select
-            label="Category"
-            value={editing.category_id || ''}
-            options={categories.map((x) => x.id)}
-            labels={Object.fromEntries(categories.map((x) => [x.id, x.name]))}
-            onChange={(v) => setEditing({ ...editing, category_id: v })}
-          />
-          <Field
-            label="Description"
-            value={editing.description || ''}
-            onChange={(v) => setEditing({ ...editing, description: v })}
-            area
-          />
-          <Select
-            label="Gender"
-            value={editing.gender}
-            options={['boys', 'girls', 'unisex']}
-            onChange={(v) => setEditing({ ...editing, gender: v })}
-          />
           <div className="workspace-form-row">
             <Field
+              label="Name"
+              value={editing.name}
+              onChange={(v) => setEditing({ ...editing, name: v })}
+            />
+            <Select
+              label="Category"
+              value={editing.category_id || ''}
+              options={categories.map((x) => x.id)}
+              labels={Object.fromEntries(categories.map((x) => [x.id, x.name]))}
+              onChange={(v) => setEditing({ ...editing, category_id: v })}
+            />
+          </div>
+
+          <div className="workspace-form-row workspace-form-row-description-gender">
+            <Field
+              label="Description"
+              value={editing.description || ''}
+              onChange={(v) => setEditing({ ...editing, description: v })}
+              area
+            />
+            <Select
+              label="Gender"
+              value={editing.gender}
+              options={['boys', 'girls', 'unisex']}
+              onChange={(v) => setEditing({ ...editing, gender: v })}
+            />
+          </div>
+
+          <div className="workspace-form-row workspace-form-row-pricing">
+            <Field
               label="Base Price"
-              value={String(editing.base_price ?? 0)}
+              value={String(editing.base_price ?? '')}
               onChange={(v) => setEditing({ ...editing, base_price: v })}
               type="number"
+              clearZeroOnFocus
             />
             <Field
               label="Discount (%)"
-              value={String(editing.discount_percentage ?? 0)}
+              value={String(editing.discount_percentage ?? '')}
               onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
               type="number"
+              clearZeroOnFocus
             />
             <Field
               label="Offer Price"
-              value={String(
-                Math.max(
-                  0,
-                  Number(editing.base_price || 0) *
-                    (1 -
-                      Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) / 100),
-                ),
-              )}
-              onChange={() => undefined}
+              value={String(editing.offer_price ?? '')}
+              onChange={(v) => setEditing({ ...editing, offer_price: v })}
               type="number"
+              min="0"
             />
           </div>
-          <label className="workspace-field">
-            <span>Product Image</span>
-            <ImagePicker
-              value={editing.image_url || ''}
-              folder="products"
-              alt="Selected product"
-              onChange={(v) => setEditing({ ...editing, image_url: v })}
+
+          <div className="workspace-form-row workspace-form-row-image-status">
+            <label className="workspace-field">
+              <span>Product Image</span>
+              <ImagePicker
+                value={editing.image_url || ''}
+                folder="products"
+                alt="Selected product"
+                onChange={(v) => setEditing({ ...editing, image_url: v })}
+              />
+            </label>
+
+            <Select
+              label="Status"
+              value={editing.status}
+              options={['active', 'inactive', 'suspended']}
+              onChange={(v) => setEditing({ ...editing, status: v })}
             />
-          </label>
-          <Select
-            label="Status"
-            value={editing.status}
-            options={['active', 'inactive', 'suspended']}
-            onChange={(v) => setEditing({ ...editing, status: v })}
-          />
+          </div>
+
           {editing.id && (
             <>
               <div className="panel-heading">
-                <h3>Variants</h3>
+                <div>
+                  <h3>Variants</h3>
+                  <p className="workspace-muted">Add sizes, colors, SKUs and variant-specific prices.</p>
+                </div>
                 <button
+                  type="button"
                   className="secondary-button"
-                  onClick={() =>
+                  onClick={() => {
+                    setError('')
                     setVariantEditing({
                       product_id: editing.id,
                       sku: '',
                       size_label: '',
                       color: '',
                       variant_name: '',
-                      price: editing.base_price,
+                      price: editing.base_price ?? '',
                       status: 'active',
                     })
-                  }
+                  }}
                 >
                   <Plus size={14} /> Add Variant
                 </button>
               </div>
-              <div className="workspace-table">
+
+              <div className="workspace-table workspace-scroll">
                 <div className="workspace-row product-row variant-row admin-table-header">
                   <strong>SKU</strong>
                   <span>Size</span>
@@ -630,53 +695,80 @@ function Products() {
                     <strong>{v.sku}</strong>
                     <span>{v.size_label || '—'}</span>
                     <span>{v.color || '—'}</span>
-                    <span>₹{Number(v.price ?? editing.base_price).toLocaleString('en-IN')}</span>
-                    <button onClick={() => setVariantEditing({ ...v })}>Edit</button>
+                    <span>₹{Number(v.price ?? editing.base_price ?? 0).toLocaleString('en-IN')}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError('')
+                        setVariantEditing({ ...v, price: v.price ?? '' })
+                      }}
+                    >
+                      Edit
+                    </button>
                   </div>
                 ))}
+                {!variants.length && (
+                  <div className="workspace-empty">No variants added yet.</div>
+                )}
               </div>
             </>
           )}
+
+          {!editing.id && (
+            <div className="workspace-note">
+              Save the product first, then use <strong>Edit → Add Variant</strong> to add its size,
+              color and SKU variants.
+            </div>
+          )}
         </EditModal>
       )}
+
       {variantEditing && (
         <EditModal
           title={variantEditing.id ? 'Edit Variant' : 'Add Variant'}
           onClose={() => setVariantEditing(null)}
           onSave={saveVariant}
         >
-          <Field
-            label="SKU"
-            value={variantEditing.sku}
-            onChange={(v) => setVariantEditing({ ...variantEditing, sku: v })}
-          />
-          <Field
-            label="Size"
-            value={variantEditing.size_label || ''}
-            onChange={(v) => setVariantEditing({ ...variantEditing, size_label: v })}
-          />
-          <Field
-            label="Color"
-            value={variantEditing.color || ''}
-            onChange={(v) => setVariantEditing({ ...variantEditing, color: v })}
-          />
-          <Field
-            label="Variant Name"
-            value={variantEditing.variant_name || ''}
-            onChange={(v) => setVariantEditing({ ...variantEditing, variant_name: v })}
-          />
-          <Field
-            label="Price"
-            value={String(variantEditing.price ?? '')}
-            onChange={(v) => setVariantEditing({ ...variantEditing, price: v })}
-            type="number"
-          />
-          <Select
-            label="Status"
-            value={variantEditing.status}
-            options={['active', 'inactive', 'suspended']}
-            onChange={(v) => setVariantEditing({ ...variantEditing, status: v })}
-          />
+          <div className="workspace-form-row">
+            <Field
+              label="SKU"
+              value={variantEditing.sku || ''}
+              onChange={(v) => setVariantEditing({ ...variantEditing, sku: v })}
+            />
+            <Field
+              label="Size"
+              value={variantEditing.size_label || ''}
+              onChange={(v) => setVariantEditing({ ...variantEditing, size_label: v })}
+            />
+          </div>
+          <div className="workspace-form-row">
+            <Field
+              label="Color"
+              value={variantEditing.color || ''}
+              onChange={(v) => setVariantEditing({ ...variantEditing, color: v })}
+            />
+            <Field
+              label="Variant Name"
+              value={variantEditing.variant_name || ''}
+              onChange={(v) => setVariantEditing({ ...variantEditing, variant_name: v })}
+            />
+          </div>
+          <div className="workspace-form-row">
+            <Field
+              label="Price"
+              value={String(variantEditing.price ?? '')}
+              onChange={(v) => setVariantEditing({ ...variantEditing, price: v })}
+              type="number"
+              min="0"
+              clearZeroOnFocus
+            />
+            <Select
+              label="Status"
+              value={variantEditing.status || 'active'}
+              options={['active', 'inactive', 'suspended']}
+              onChange={(v) => setVariantEditing({ ...variantEditing, status: v })}
+            />
+          </div>
         </EditModal>
       )}
     </>
@@ -2394,20 +2486,34 @@ function Field({
   onChange,
   type = 'text',
   area = false,
+  min,
+  clearZeroOnFocus = false,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   type?: string
   area?: boolean
+  min?: string
+  clearZeroOnFocus?: boolean
 }) {
+  const handleFocus = () => {
+    if (clearZeroOnFocus && type === 'number' && String(value) === '0') onChange('')
+  }
+
   return (
     <label className="workspace-field">
       <span>{label}</span>
       {area ? (
         <textarea value={value} onChange={(e) => onChange(e.target.value)} />
       ) : (
-        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+        <input
+          type={type}
+          min={min}
+          value={value}
+          onFocus={handleFocus}
+          onChange={(e) => onChange(e.target.value)}
+        />
       )}
     </label>
   )
