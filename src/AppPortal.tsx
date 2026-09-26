@@ -205,7 +205,7 @@ function CustomerPortal({
   if (checkout)
     return (
       <CustomerPageFrame
-        title=""
+        title="Checkout"
         onBack={() => setPage('dashboard')}
         onLogout={onLogout}
         cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
