@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ArrowLeft, LogOut, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, LogOut, ShoppingCart, Home, Package, ShoppingBag, ClipboardList, UserRound } from 'lucide-react'
 
 type GlobalHeaderProps = {
   portal: 'customer' | 'admin'
@@ -31,34 +31,15 @@ export function GlobalHeader({
   return (
     <header className={`global-header global-header-${portal}`}>
       <div className="global-header-inner">
-        {portal === 'customer' && schoolName ? (
-          <div className="customer-header-school">
-            <strong>{schoolName}</strong>
-            {branchName && <span>{branchName}</span>}
-          </div>
-        ) : (
-          <div className="global-brand">
-            <img src="/logo.png" alt="Artisan" />
+        <div className="global-brand">
+          <img src="/logo.png" alt="Artisan" />
+          {portal === 'admin' && (
             <div>
               <strong>{title}</strong>
               {subtitle && <span>{subtitle}</span>}
             </div>
-          </div>
-        )}
-        {portal === 'customer' && schoolName && (
-          <div className="customer-header-title">{title}</div>
-        )}
-        {portal === 'customer' && schoolName && (
-          <div className="customer-header-user">
-            <div className="customer-header-avatar">
-              {(userLabel || 'U').slice(0, 1).toUpperCase()}
-            </div>
-            <div>
-              <strong>{userLabel || 'Parent / Student'}</strong>
-              <span>Parent / Student</span>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
         <div className="global-header-actions">
           {onCart && (
             <button className="global-button global-button-light" onClick={onCart}>
@@ -110,6 +91,80 @@ export function CustomerPageFrame({
   branchName,
   userLabel,
   children,
+}: {
+  title: string
+  subtitle?: string
+  onBack: () => void
+  onLogout: () => void
+  cartCount: number
+  onCart: () => void
+  schoolName: string
+  branchName: string
+  userLabel: string
+  children: ReactNode
+}) {
+  const nav = [
+    ['dashboard', 'Dashboard', Home],
+    ['packages', 'Uniform Packages', Package],
+    ['products', 'Individual Products', ShoppingBag],
+    ['orders', 'My Orders', ClipboardList],
+    ['profile', 'Profile', UserRound],
+  ] as const
+
+  return (
+    <div className="portal">
+      <GlobalHeader
+        portal="customer"
+        title=""
+        subtitle={subtitle}
+        onBack={onBack}
+        backLabel="Dashboard"
+        onLogout={onLogout}
+        cartCount={cartCount}
+        onCart={onCart}
+        schoolName={schoolName}
+        branchName={branchName}
+        userLabel={userLabel}
+      />
+      <div className="portal-layout">
+        <aside className="sidebar">
+          <nav>
+            {nav.map(([key, label, Icon]) => (
+              <button
+                key={key}
+                onClick={() => {
+                  if (key === 'dashboard') window.location.href = '/app'
+                  else window.location.href = '/app/' + key
+                }}
+              >
+                <Icon size={18} />
+                {label}
+              </button>
+            ))}
+          </nav>
+          <button className="sidebar-logout" onClick={onLogout}>
+            <LogOut size={17} /> Logout
+          </button>
+        </aside>
+        <main className="portal-main">
+          <div className="portal-header checkout-portal-header">
+            <div>
+              <p className="eyebrow">{schoolName} — {branchName}</p>
+              <h1>{title}</h1>
+            </div>
+            <div className="header-user">
+              <div className="avatar">{(userLabel || 'U').slice(0, 1).toUpperCase()}</div>
+              <div>
+                <strong>{userLabel || 'Parent / Student'}</strong>
+                <span>Parent / Student</span>
+              </div>
+            </div>
+          </div>
+          <div className="customer-page-frame-content">{children}</div>
+        </main>
+      </div>
+    </div>
+  )
 }: {
   title: string
   subtitle?: string
