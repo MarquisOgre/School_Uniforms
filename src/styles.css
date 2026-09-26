@@ -9556,3 +9556,39 @@ a {
   min-height: auto;
   padding: 28px 42px 42px;
 }
+
+
+.product-card {
+  position: relative;
+}
+
+.product-save-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 50%;
+  background: rgba(255,253,248,.96);
+  color: #5d6864;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(23,39,45,.14);
+  cursor: pointer;
+}
+
+.product-save-button:hover,
+.product-save-button.saved {
+  color: #c48a00;
+}
+
+.product-save-button.saved {
+  background: #fff4d7;
+  border-color: #e8c66e;
+}
+
+.product-save-button svg {
+  stroke-width: 2;
+}
