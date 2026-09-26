@@ -50,6 +50,34 @@ type StudentOption = {
   status?: string | null
 }
 type Step = 'cart' | 'details' | 'payment' | 'success'
+type RazorpayResponse = {
+  razorpay_payment_id: string
+  razorpay_order_id: string
+  razorpay_signature: string
+}
+declare global {
+  interface Window {
+    Razorpay?: new (options: any) => { open: () => void; on: (event: string, handler: (response: any) => void) => void }
+  }
+}
+async function loadRazorpayScript() {
+  if (window.Razorpay) return true
+  await new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')
+    if (existing) {
+      existing.addEventListener('load', () => resolve(), { once: true })
+      existing.addEventListener('error', () => reject(new Error('Could not load Razorpay Checkout.')), { once: true })
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Could not load Razorpay Checkout.'))
+    document.head.appendChild(script)
+  })
+  return Boolean(window.Razorpay)
+}
 type Address = {
   name: string
   phone: string
@@ -95,12 +123,13 @@ export default function CheckoutFlow({
   const [studentId, setStudentId] = useState('')
   const [checkoutStudents, setCheckoutStudents] = useState<StudentOption[]>(students)
   const [studentLoadError, setStudentLoadError] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'pay_at_school'>('pay_at_school')
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'pay_at_school' | 'razorpay'>('pay_at_school')
   const [paymentReference, setPaymentReference] = useState('')
   const [settings, setSettings] = useState<any>({
     pay_at_school_enabled: true,
     upi_enabled: false,
     upi_id: '',
+    razorpay_enabled: false,
     upi_payee_name: '',
     shipping_fee: 0,
     free_shipping_above: 0,
@@ -274,6 +303,7 @@ export default function CheckoutFlow({
 
   useEffect(() => {
     if (settings.upi_enabled && !settings.pay_at_school_enabled) setPaymentMethod('upi')
+    else if (!settings.pay_at_school_enabled && settings.razorpay_enabled) setPaymentMethod('razorpay')
     else if (!settings.pay_at_school_enabled) setPaymentMethod('upi')
   }, [settings.upi_enabled, settings.pay_at_school_enabled])
 
@@ -349,7 +379,10 @@ export default function CheckoutFlow({
       address.state.trim() &&
       /^[0-9]{6}$/.test(address.pincode.trim()),
   )
-  const paymentValid = paymentMethod === 'pay_at_school' || paymentReference.trim().length >= 4
+  const paymentValid =
+    paymentMethod === 'pay_at_school' ||
+    paymentMethod === 'razorpay' ||
+    paymentReference.trim().length >= 4
 
   const placeOrder = async () => {
     if (!detailsValid || !paymentValid || loading) return
@@ -396,6 +429,57 @@ export default function CheckoutFlow({
       })
       if (rpcError) throw rpcError
       if (!data?.order_number) throw new Error('The order was not created.')
+
+      if (paymentMethod === 'razorpay') {
+        const { data: razorpayOrder, error: createPaymentError } = await client.functions.invoke(
+          'razorpay-create-order',
+          { body: { order_id: data.order_id } },
+        )
+        if (createPaymentError) throw createPaymentError
+        if (!razorpayOrder?.razorpay_order_id || !razorpayOrder?.key_id) {
+          throw new Error(razorpayOrder?.error || 'Could not initialize Razorpay checkout.')
+        }
+
+        await loadRazorpayScript()
+        if (!window.Razorpay) throw new Error('Razorpay Checkout is unavailable.')
+        const checkout = new window.Razorpay({
+          key: razorpayOrder.key_id,
+          amount: razorpayOrder.amount,
+          currency: razorpayOrder.currency || 'INR',
+          name: 'School Uniforms',
+          description: `School Uniform Order ${data.order_number}`,
+          order_id: razorpayOrder.razorpay_order_id,
+          prefill: {
+            name: address.name.trim(),
+            contact: '+91' + address.phone.trim(),
+          },
+          notes: { order_number: data.order_number },
+          theme: { color: '#eab308' },
+          handler: async (response: RazorpayResponse) => {
+            try {
+              setLoading(true)
+              const { data: verified, error: verifyError } = await client.functions.invoke(
+                'razorpay-verify-payment',
+                { body: response },
+              )
+              if (verifyError) throw verifyError
+              if (!verified?.success) throw new Error('Payment is not captured yet. Please wait a moment and check your order.')
+              setSuccessOrder({ ...data, payment_status: 'paid' })
+              onComplete({ ...data, payment_status: 'paid' })
+            } catch (e: any) {
+              setError(e?.message || 'Payment verification failed. Please do not pay again until the order status is checked.')
+            } finally {
+              setLoading(false)
+            }
+          },
+        })
+        checkout.on('payment.failed', (response: any) => {
+          setError(response?.error?.description || 'Razorpay payment failed. Your order remains pending and can be retried.')
+        })
+        checkout.open()
+        return
+      }
+
       setSuccessOrder(data)
       onComplete(data)
     } catch (e: any) {
@@ -617,7 +701,40 @@ export default function CheckoutFlow({
                   </label>
                 )}
 
-                {settings.upi_enabled && settings.upi_id && (
+                {settings.razorpay_enabled && (
+                  <label
+                    className={`school-payment-option ${paymentMethod === 'razorpay' ? 'active' : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="school-payment"
+                      checked={paymentMethod === 'razorpay'}
+                      onChange={() => setPaymentMethod('razorpay')}
+                    />
+                    <CreditCard size={20} />
+                    <div>
+                      <strong>Pay Online with Razorpay</strong>
+                      <span>UPI, cards, net banking and other Razorpay payment methods.</span>
+                    </div>
+                  </label>
+                )}
+
+                {settings.razorpay_enabled && (
+          <label className="payment-option">
+            <input
+              type="radio"
+              name="payment"
+              checked={paymentMethod === 'razorpay'}
+              onChange={() => setPaymentMethod('razorpay')}
+            />
+            <CreditCard />
+            <div>
+              <strong>Pay Online with Razorpay</strong>
+              <span>UPI, cards, net banking and other Razorpay payment methods.</span>
+            </div>
+          </label>
+        )}
+        {settings.upi_enabled && settings.upi_id && (
                   <label
                     className={`school-payment-option ${paymentMethod === 'upi' ? 'active' : ''}`}
                   >
@@ -676,7 +793,7 @@ export default function CheckoutFlow({
                   disabled={
                     loading ||
                     !paymentValid ||
-                    (!settings.pay_at_school_enabled && !settings.upi_enabled)
+                    (!settings.pay_at_school_enabled && !settings.upi_enabled && !settings.razorpay_enabled)
                   }
                   onClick={() => void placeOrder()}
                 >
