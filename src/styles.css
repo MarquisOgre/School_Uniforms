@@ -9512,3 +9512,48 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Customer portal chrome: one consistent dark global header on every page */
+.global-header-customer {
+  background: var(--ink);
+  color: #fff;
+  border-bottom: 1px solid #31474e;
+}
+
+.global-header-customer .global-header-inner {
+  min-height: 76px;
+  padding: 20px 28px;
+}
+
+.global-header-customer .global-brand {
+  display: flex;
+}
+
+.global-header-customer .global-brand img {
+  width: clamp(145px, 11vw, 175px);
+  max-height: 48px;
+  object-fit: contain;
+}
+
+.global-header-customer .global-header-actions {
+  margin-left: auto;
+}
+
+.global-header-customer .global-button {
+  color: var(--ink);
+}
+
+.global-header-customer .global-button-outline {
+  color: #fff;
+}
+
+.checkout-portal-header {
+  padding-top: 25px;
+  padding-bottom: 25px;
+}
+
+.customer-page-frame-content .checkout-page {
+  min-height: auto;
+  padding: 28px 42px 42px;
+}
