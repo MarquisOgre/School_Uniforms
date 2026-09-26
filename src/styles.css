@@ -9592,7 +9592,6 @@ a {
   stroke-width: 2;
 }
 
-
 .product-benefits-accordion {
   margin-top: 18px;
   border-top: 1px solid var(--su-line);
@@ -9616,7 +9615,7 @@ a {
 }
 
 .product-benefits-accordion > summary svg {
-  transition: transform .2s ease;
+  transition: transform 0.2s ease;
 }
 
 .product-benefits-accordion[open] > summary svg {
