@@ -3,6 +3,7 @@ import { supabase } from './lib/supabase'
 import HomePage from './HomePage'
 import AppPortal, { type CustomerPage } from './AppPortal'
 import AdminPortal from './AdminPortal'
+import ChatWidget from './ChatWidget'
 
 type PortalMode = 'home' | 'store' | 'admin'
 
@@ -89,21 +90,24 @@ function App() {
     )
   if (mode === 'store')
     return (
-      <AppPortal
-        schoolId={school}
-        schoolName={schoolName}
-        branchName={branchName}
-        branchId={branch}
-        studentId={studentId}
-        page={customerPage}
-        setPage={setCustomerPage}
-        onLogout={() => {
-          void supabase?.auth.signOut({ scope: 'local' })
-          localStorage.removeItem('school_uniform_portal_context')
-          window.history.replaceState({}, '', '/')
-          setMode('home')
-        }}
-      />
+      <>
+        <AppPortal
+          schoolId={school}
+          schoolName={schoolName}
+          branchName={branchName}
+          branchId={branch}
+          studentId={studentId}
+          page={customerPage}
+          setPage={setCustomerPage}
+          onLogout={() => {
+            void supabase?.auth.signOut({ scope: 'local' })
+            localStorage.removeItem('school_uniform_portal_context')
+            window.history.replaceState({}, '', '/')
+            setMode('home')
+          }}
+        />
+        <ChatWidget schoolId={school} branchId={branch} />
+      </>
     )
   if (mode === 'admin')
     return (
@@ -115,23 +119,26 @@ function App() {
       />
     )
   return (
-    <HomePage
-      onLoginSuccess={(s, b, id, sn, bn) => {
-        setSchool(s)
-        setBranch(b)
-        setStudentId(id)
-        setSchoolName(sn)
-        setBranchName(bn)
-        setCustomerPage('dashboard')
-        window.history.pushState(
-          { schoolUniformApp: 'customer', screen: 'page:dashboard', page: 'dashboard' },
-          '',
-          '/app',
-        )
-        setMode('store')
-      }}
-      onAdmin={() => setMode('admin')}
-    />
+    <>
+      <HomePage
+        onLoginSuccess={(s, b, id, sn, bn) => {
+          setSchool(s)
+          setBranch(b)
+          setStudentId(id)
+          setSchoolName(sn)
+          setBranchName(bn)
+          setCustomerPage('dashboard')
+          window.history.pushState(
+            { schoolUniformApp: 'customer', screen: 'page:dashboard', page: 'dashboard' },
+            '',
+            '/app',
+          )
+          setMode('store')
+        }}
+        onAdmin={() => setMode('admin')}
+      />
+      <ChatWidget />
+    </>
   )
 }
 
