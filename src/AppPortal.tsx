@@ -190,6 +190,9 @@ function CustomerPortal({
         onLogout={onLogout}
         cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
         onCart={() => setCheckout('cart')}
+        schoolName={schoolName}
+        branchName={branchName}
+        userLabel={studentId}
       >
         <CheckoutFlow
           schoolId={schoolId}
@@ -213,13 +216,16 @@ function CustomerPortal({
       <div className="portal">
         <GlobalHeader
           portal="customer"
-          title="Parent / Student Portal"
+          title="Product Details"
           subtitle={schoolName + ' • ' + branchName}
           onBack={() => setPage('dashboard')}
           backLabel="Dashboard"
           onLogout={onLogout}
           cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
           onCart={() => setCheckout('cart')}
+          schoolName={schoolName}
+          branchName={branchName}
+          userLabel={studentId}
         />
         <div className="portal-layout">
           <aside className="sidebar">
@@ -243,19 +249,6 @@ function CustomerPortal({
             </button>
           </aside>
           <main className="portal-main">
-            <div className="portal-header">
-              <div>
-                <p className="eyebrow">{branchName}</p>
-                <h1>Product Details</h1>
-              </div>
-              <div className="header-user">
-                <div className="avatar">{studentId.slice(0, 1).toUpperCase()}</div>
-                <div>
-                  <strong>{studentId}</strong>
-                  <span>Parent / Student</span>
-                </div>
-              </div>
-            </div>
             <ProductDetail
               item={selected}
               onBack={() => {
@@ -275,7 +268,17 @@ function CustomerPortal({
     <div className="portal">
       <GlobalHeader
         portal="customer"
-        title="Parent / Student Portal"
+        title={
+          page === 'dashboard'
+            ? 'Good morning'
+            : page === 'packages'
+              ? 'Uniform Packages'
+              : page === 'products'
+                ? 'Individual Products'
+                : page === 'orders'
+                  ? 'My Orders'
+                  : 'My Profile'
+        }
         subtitle={schoolName + ' • ' + branchName}
         onBack={() => setPage('dashboard')}
         backLabel="Dashboard"
@@ -1399,12 +1402,6 @@ function Profile({
 
   return (
     <div className="portal-content">
-      <div className="portal-heading">
-        <p className="eyebrow">ACCOUNT & STUDENT DETAILS</p>
-        <h2>My Profile</h2>
-        <p>Manage your contact details, delivery address, student information and password.</p>
-      </div>
-
       {message && <div className="profile-message">{message}</div>}
       {error && <div className="profile-error">{error}</div>}
 
