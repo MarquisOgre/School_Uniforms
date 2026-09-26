@@ -369,7 +369,7 @@ function CustomerPortal({
             </div>
           </div>
           {page === 'dashboard' ? (
-            <Dashboard setPage={setPage} />
+            <Dashboard setPage={setPage} students={students} />
           ) : page === 'packages' ? (
             <Packages branchId={branchId} onView={setSelected} onAdd={add} />
           ) : page === 'products' ? (
@@ -496,7 +496,7 @@ function CustomerPortal({
     </div>
   )
 }
-function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
+function Dashboard({ setPage, students = [] }: { setPage: (p: CustomerPage) => void; students?: any[] }) {
   const [activeOrders, setActiveOrders] = useState<number | null>(null)
   const [savedItems, setSavedItems] = useState<number | null>(null)
 
@@ -597,6 +597,25 @@ function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
         <p className="eyebrow">SHOP</p>
         <h2>Start with what you need</h2>
       </div> */}
+      {students.length ? (
+        <section className="parent-children-section">
+          <div className="section-row">
+            <p className="eyebrow">FAMILY ACCOUNT</p>
+            <h2>My Children</h2>
+          </div>
+          <div className="parent-children-grid">
+            {students.map((student) => (
+              <article className="parent-child-card" key={student.id}>
+                <div className="parent-child-avatar">{(student.full_name || "?").slice(0, 1).toUpperCase()}</div>
+                <div>
+                  <strong>{student.full_name || "Student"}</strong>
+                  <span>{student.class_name || "Class"}{student.section ? ` • ${student.section}` : ""}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <div className="shop-cards">
         <ShopCard
           icon={<Package />}
