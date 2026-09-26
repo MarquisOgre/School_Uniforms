@@ -3039,6 +3039,7 @@ function Coupons() {
             <strong>Coupon</strong>
             <span>Discount Type</span>
             <span>Value</span>
+            <span>Allowed</span>
             <span>Used</span>
             <span>Remaining</span>
             <span>Status</span>
@@ -3091,7 +3092,7 @@ function Coupons() {
             type="number"
           />
           <Field
-            label="Usage Limit"
+            label="Allowed Uses"
             value={String(editing.usage_limit || '')}
             onChange={(v) => setEditing({ ...editing, usage_limit: v })}
             type="number"
