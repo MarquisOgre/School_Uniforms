@@ -270,10 +270,21 @@ export default function EmailTemplates() {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: '#a27a16', textTransform: 'uppercase' }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      letterSpacing: 1.5,
+                      color: '#a27a16',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     Email System
                   </div>
-                  <h2 id="email-template-title" style={{ margin: '5px 0 4px', fontSize: 25, lineHeight: 1.15 }}>
+                  <h2
+                    id="email-template-title"
+                    style={{ margin: '5px 0 4px', fontSize: 25, lineHeight: 1.15 }}
+                  >
                     {editing.id ? 'Edit Email Template' : 'Add Email Template'}
                   </h2>
                   <p style={{ margin: 0, color: '#6d7780', fontSize: 13 }}>
@@ -371,7 +382,15 @@ export default function EmailTemplates() {
                     marginBottom: 16,
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center', marginBottom: 12 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: 16,
+                      alignItems: 'center',
+                      marginBottom: 12,
+                    }}
+                  >
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 850 }}>Email Content</div>
                       <div style={{ fontSize: 12, color: '#737d84', marginTop: 3 }}>
@@ -411,7 +430,13 @@ export default function EmailTemplates() {
                         value={editing.text_body || ''}
                         onChange={(e) => setEditing({ ...editing, text_body: e.target.value })}
                         rows={18}
-                        style={{ ...textareaStyle, minHeight: 340, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55 }}
+                        style={{
+                          ...textareaStyle,
+                          minHeight: 340,
+                          fontFamily: 'inherit',
+                          fontSize: 13,
+                          lineHeight: 1.55,
+                        }}
                       />
                     </label>
                   </div>
@@ -432,14 +457,18 @@ export default function EmailTemplates() {
                       onChange={(e) =>
                         setEditing({
                           ...editing,
-                          variables: e.target.value.split(',').map((x) => x.trim()).filter(Boolean),
+                          variables: e.target.value
+                            .split(',')
+                            .map((x) => x.trim())
+                            .filter(Boolean),
                         })
                       }
                       placeholder="site_name, customer_name, order_number"
                       style={inputStyle}
                     />
                     <small style={hintStyle}>
-                      Use variables inside the subject or body like <code>{'{{customer_name}}'}</code>.
+                      Use variables inside the subject or body like{' '}
+                      <code>{'{{customer_name}}'}</code>.
                     </small>
                   </label>
 
@@ -475,7 +504,15 @@ export default function EmailTemplates() {
                       overflow: 'hidden',
                     }}
                   >
-                    <div style={{ padding: '12px 15px', background: '#f7f5f0', borderBottom: '1px solid #e4dfd6', fontWeight: 800, fontSize: 12 }}>
+                    <div
+                      style={{
+                        padding: '12px 15px',
+                        background: '#f7f5f0',
+                        borderBottom: '1px solid #e4dfd6',
+                        fontWeight: 800,
+                        fontSize: 12,
+                      }}
+                    >
                       EMAIL PREVIEW
                     </div>
                     <div style={{ padding: 15, background: '#fff' }}>
@@ -487,14 +524,31 @@ export default function EmailTemplates() {
                         title="Email preview"
                         sandbox=""
                         srcDoc={replacePreview(editing.html_body, editing.variables)}
-                        style={{ width: '100%', height: 440, border: '1px solid #ddd8cf', borderRadius: 8, background: '#fff', display: 'block' }}
+                        style={{
+                          width: '100%',
+                          height: 440,
+                          border: '1px solid #ddd8cf',
+                          borderRadius: 8,
+                          background: '#fff',
+                          display: 'block',
+                        }}
                       />
                     </div>
                   </div>
                 )}
 
                 {error && (
-                  <div style={{ marginTop: 16, padding: '11px 13px', borderRadius: 8, background: '#fff1f1', color: '#a32929', border: '1px solid #efcaca', fontSize: 13 }}>
+                  <div
+                    style={{
+                      marginTop: 16,
+                      padding: '11px 13px',
+                      borderRadius: 8,
+                      background: '#fff1f1',
+                      color: '#a32929',
+                      border: '1px solid #efcaca',
+                      fontSize: 13,
+                    }}
+                  >
                     {error}
                   </div>
                 )}
@@ -510,10 +564,19 @@ export default function EmailTemplates() {
                     borderTop: '1px solid #e7e2d8',
                   }}
                 >
-                  <button type="button" className="secondary-button" onClick={() => setEditing(null)}>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setEditing(null)}
+                  >
                     Cancel
                   </button>
-                  <button type="button" className="primary-button" disabled={saving} onClick={() => void save()}>
+                  <button
+                    type="button"
+                    className="primary-button"
+                    disabled={saving}
+                    onClick={() => void save()}
+                  >
                     <Save size={15} /> {saving ? 'Saving...' : 'Save Template'}
                   </button>
                 </div>
