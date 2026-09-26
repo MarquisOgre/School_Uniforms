@@ -514,28 +514,27 @@ function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
         return
       }
 
-      // An order remains active until it reaches a terminal state. This keeps
-      // shipped / out-for-delivery orders visible on the dashboard.
-      const activeStatuses = [
-        'pending',
-        'confirmed',
-        'processing',
-        'ready',
-        'packed',
-        'shipped',
-        'out_for_delivery',
-        'return_requested',
-        'return_approved',
-        'refund_processing',
-      ]
+      // Load the customer's orders and count everything that has not
+      // reached a terminal state. This keeps confirmed/processing/shipped
+      // orders visible while excluding delivered/cancelled orders.
+      const terminalStatuses = new Set(['delivered', 'cancelled', 'refunded'])
 
       const { data, error } = await client
         .from('orders')
-        .select('id')
+        .select('id,status')
         .eq('customer_user_id', userId)
-        .in('status', activeStatuses)
 
-      if (!cancelled) setActiveOrders(error ? 0 : (data ?? []).length)
+      if (!cancelled) {
+        if (error) {
+          setActiveOrders(0)
+        } else {
+          const activeCount = (data ?? []).filter(
+            (order: { status: string | null }) =>
+              !terminalStatuses.has(String(order.status || '').toLowerCase()),
+          ).length
+          setActiveOrders(activeCount)
+        }
+      }
     }
 
     void loadActiveOrders()
