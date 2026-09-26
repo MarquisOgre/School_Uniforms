@@ -267,6 +267,12 @@ export default function CheckoutFlow({
     }
   }, [branchId, schoolId, students])
   useEffect(() => {
+    if (step === 'success') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    }
+  }, [step])
+
+  useEffect(() => {
     if (settings.upi_enabled && !settings.pay_at_school_enabled) setPaymentMethod('upi')
     else if (!settings.pay_at_school_enabled) setPaymentMethod('upi')
   }, [settings.upi_enabled, settings.pay_at_school_enabled])
