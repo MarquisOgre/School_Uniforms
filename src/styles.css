@@ -8696,3 +8696,432 @@ a {
     padding-right: 14px;
   }
 }
+
+
+/* Unified three-column School Uniform checkout */
+.school-checkout-unified {
+  min-height: 100vh;
+  padding: 24px 24px 32px;
+  background: #f7f8f5;
+}
+
+.school-checkout-heading {
+  max-width: 1400px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.school-checkout-heading h1 {
+  margin: 0;
+  color: #286b45;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 32px;
+}
+
+.school-checkout-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #dce3dc;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #fff;
+  color: #243d34;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.school-checkout-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.school-checkout-card {
+  min-height: 455px;
+  padding: 28px 24px;
+  border: 1px solid #dfe4df;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(29, 45, 37, 0.05);
+}
+
+.school-checkout-card h2 {
+  margin: 0 0 20px;
+  color: #132f3a;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 20px;
+}
+
+.school-order-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.school-order-item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e6e8e4;
+}
+
+.school-order-thumb {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #f4f5f1;
+  color: #58705f;
+}
+
+.school-order-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.school-order-info {
+  min-width: 0;
+}
+
+.school-order-info > strong {
+  display: block;
+  color: #182f36;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.school-order-info > small {
+  display: block;
+  margin-top: 3px;
+  color: #697672;
+  font-size: 10px;
+}
+
+.school-order-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.school-order-controls button {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d9dfda;
+  border-radius: 50%;
+  background: #fff;
+  color: #30463e;
+  cursor: pointer;
+}
+
+.school-order-controls span {
+  min-width: 13px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.school-order-controls .school-order-remove {
+  margin-left: 2px;
+  border: 0;
+  color: #d34138;
+}
+
+.school-order-price {
+  color: #19363e;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.school-order-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 17px;
+  border-top: 1px solid #e2e6e1;
+  color: #1c343a;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.school-order-total strong {
+  color: #286b45;
+}
+
+.school-details-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 16px;
+}
+
+.school-field {
+  min-width: 0;
+}
+
+.school-field-full {
+  grid-column: 1 / -1;
+}
+
+.school-field-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #162e38;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.school-field-label em {
+  margin-left: 3px;
+  color: #d44a3e;
+  font-style: normal;
+}
+
+.school-field input,
+.school-field select {
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+  border: 1px solid #d8ded9;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fbfcfa;
+  color: #183039;
+  outline: 0;
+  font-size: 12px;
+}
+
+.school-field input:focus,
+.school-field select:focus {
+  border-color: #76a98a;
+  box-shadow: 0 0 0 3px rgba(62, 125, 83, 0.08);
+}
+
+.school-selected-student {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #d8ded9;
+  border-radius: 8px;
+  background: #fbfcfa;
+  color: #286b45;
+}
+
+.school-selected-student > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.school-selected-student span {
+  font-size: 9px;
+  color: #697672;
+}
+
+.school-selected-student strong {
+  font-size: 12px;
+  color: #17333a;
+}
+
+.school-selected-student small {
+  color: #71807a;
+  font-size: 9px;
+}
+
+.school-checkout-hint {
+  margin: 18px 0 0;
+  color: #78827f;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.school-payment-locked {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  border: 1px dashed #d9ded9;
+  border-radius: 12px;
+  text-align: center;
+  color: #68736f;
+  font-size: 12px;
+}
+
+.school-payment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 16px;
+  border: 1px solid #dce2dd;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.school-payment-option.active {
+  border-color: #287447;
+  background: #f2f8f4;
+}
+
+.school-payment-option input {
+  accent-color: #2b7950;
+}
+
+.school-payment-option svg {
+  color: #b17b00;
+  flex: 0 0 auto;
+}
+
+.school-payment-option strong,
+.school-payment-option span {
+  display: block;
+}
+
+.school-payment-option strong {
+  color: #1a3239;
+  font-size: 13px;
+}
+
+.school-payment-option span {
+  margin-top: 3px;
+  color: #76817c;
+  font-size: 9px;
+}
+
+.school-upi-panel {
+  margin-top: 8px;
+  padding: 16px;
+  border: 1px solid #dce2dd;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.school-upi-qr {
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+}
+
+.school-upi-panel > strong {
+  display: block;
+  color: #1b363c;
+  font-size: 16px;
+}
+
+.school-upi-panel > p {
+  margin: 4px 0;
+  color: #74807b;
+  font-size: 9px;
+}
+
+.school-upi-reference {
+  display: block;
+  margin-top: 12px;
+  text-align: left;
+  color: #1b343a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.school-upi-reference span {
+  margin-left: 3px;
+  color: #d44a3e;
+}
+
+.school-upi-reference input {
+  width: 100%;
+  height: 38px;
+  box-sizing: border-box;
+  margin-top: 7px;
+  border: 1px solid #d8ded9;
+  border-radius: 8px;
+  padding: 0 10px;
+}
+
+.school-payment-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid #e2e6e1;
+  color: #1b343a;
+  font-size: 16px;
+}
+
+.school-payment-total strong {
+  color: #286b45;
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.school-place-order {
+  width: 100%;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+@media (max-width: 1050px) {
+  .school-checkout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .school-checkout-card {
+    min-height: auto;
+  }
+
+  .school-order-card,
+  .school-details-card,
+  .school-payment-card {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .school-checkout-unified {
+    padding: 18px 14px 28px;
+  }
+
+  .school-checkout-heading {
+    margin-bottom: 18px;
+  }
+
+  .school-checkout-heading h1 {
+    font-size: 28px;
+  }
+
+  .school-checkout-back {
+    font-size: 10px;
+    padding: 8px;
+  }
+
+  .school-checkout-card {
+    padding: 20px 16px;
+  }
+
+  .school-details-form {
+    grid-template-columns: 1fr;
+  }
+
+  .school-field-full {
+    grid-column: auto;
+  }
+}
