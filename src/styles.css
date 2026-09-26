@@ -8910,6 +8910,21 @@ a {
   box-shadow: 0 0 0 3px rgba(62, 125, 83, 0.08);
 }
 
+.school-field input.school-input-invalid,
+.school-field input.school-input-invalid:focus {
+  border-color: #d44a3e;
+  box-shadow: 0 0 0 3px rgba(212, 74, 62, 0.08);
+}
+
+.school-field-error {
+  display: block;
+  margin-top: 5px;
+  color: #c63d34;
+  font-size: 10px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
 .school-selected-student {
   grid-column: 1 / -1;
   display: flex;
