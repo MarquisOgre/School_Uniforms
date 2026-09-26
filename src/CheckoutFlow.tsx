@@ -90,6 +90,8 @@ export default function CheckoutFlow({
     pincode: '',
   })
   const [studentId, setStudentId] = useState('')
+  const [checkoutStudents, setCheckoutStudents] = useState<StudentOption[]>(students)
+  const [studentLoadError, setStudentLoadError] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'pay_at_school'>('pay_at_school')
   const [paymentReference, setPaymentReference] = useState('')
   const [settings, setSettings] = useState<any>({
@@ -107,53 +109,142 @@ export default function CheckoutFlow({
 
   useEffect(() => {
     let cancelled = false
+
     async function load() {
       const client = supabase as any
       if (!client) {
         setHydrating(false)
         return
       }
-      const [{ data: userData }, { data: settingsData }] = await Promise.all([
+
+      const [{ data: userData, error: authError }, { data: settingsData }] = await Promise.all([
         client.auth.getUser(),
         client.from('branch_payment_settings').select('*').eq('branch_id', branchId).maybeSingle(),
       ])
+
+      if (authError) {
+        if (!cancelled) setStudentLoadError('Your login session could not be verified. Please sign in again.')
+      }
+
       const user = userData?.user
-      const [profile, addressRows] = await Promise.all([
-        user?.id
-          ? client.from('profiles').select('full_name,phone').eq('id', user.id).maybeSingle()
-          : Promise.resolve({ data: null }),
-        user?.id
-          ? client
-              .from('customer_addresses')
-              .select('*')
-              .eq('user_id', user.id)
-              .order('is_default', { ascending: false })
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
+      if (!user?.id) {
+        if (!cancelled) {
+          setCheckoutStudents([])
+          setStudentLoadError('Please sign in before continuing to checkout.')
+          setHydrating(false)
+        }
+        return
+      }
+
+      const [{ data: profile }, { data: addressRow }] = await Promise.all([
+        client
+          .from('profiles')
+          .select('full_name,phone,login_id')
+          .eq('id', user.id)
+          .maybeSingle(),
+        client
+          .from('customer_addresses')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('is_default', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ])
+
+      // Resolve the student's UUID from the actual parent/student relationship.
+      // Checkout must use the UUID, not the parent's login ID.
+      let resolvedStudents: StudentOption[] = []
+
+      const { data: links } = await client
+        .from('parent_student_links')
+        .select('student_id,is_primary')
+        .eq('parent_user_id', user.id)
+        .order('is_primary', { ascending: false })
+
+      const linkedIds = (links ?? []).map((x: any) => x.student_id).filter(Boolean)
+
+      if (linkedIds.length) {
+        const { data: linkedStudents } = await client
+          .from('students')
+          .select('id,student_code,full_name,class_name,section')
+          .in('id', linkedIds)
+          .eq('school_id', schoolId)
+          .eq('branch_id', branchId)
+          .eq('status', 'active')
+          .order('full_name')
+        resolvedStudents = linkedStudents ?? []
+      }
+
+      // Also support a student account whose students.user_id points directly
+      // at the authenticated user.
+      if (!resolvedStudents.length) {
+        const { data: ownStudents } = await client
+          .from('students')
+          .select('id,student_code,full_name,class_name,section')
+          .eq('user_id', user.id)
+          .eq('school_id', schoolId)
+          .eq('branch_id', branchId)
+          .eq('status', 'active')
+          .order('full_name')
+        resolvedStudents = ownStudents ?? []
+      }
+
+      // Legacy fallback: the profile login_id can be the student_code.
+      if (!resolvedStudents.length && profile?.login_id) {
+        const { data: byCode } = await client
+          .from('students')
+          .select('id,student_code,full_name,class_name,section')
+          .eq('student_code', profile.login_id)
+          .eq('school_id', schoolId)
+          .eq('branch_id', branchId)
+          .eq('status', 'active')
+          .maybeSingle()
+        if (byCode) resolvedStudents = [byCode]
+      }
+
+      // Use the parent portal's already-loaded students only as a final fallback.
+      if (!resolvedStudents.length && students.length) {
+        resolvedStudents = students
+      }
+
       if (cancelled) return
+
       if (settingsData) setSettings(settingsData)
-      const a = addressRows.data
+      setCheckoutStudents(resolvedStudents)
+
+      if (resolvedStudents.length === 1) {
+        setStudentId(resolvedStudents[0].id)
+        setStudentLoadError('')
+      } else if (resolvedStudents.length === 0) {
+        setStudentId('')
+        setStudentLoadError(
+          'No active student is linked to this account. Please ask the school administrator to activate/link the student before placing an order.',
+        )
+      } else {
+        setStudentId('')
+        setStudentLoadError('')
+      }
+
+      const a = addressRow
       setAddress({
-        name: a?.recipient_name || profile.data?.full_name || '',
-        phone: a?.phone || profile.data?.phone || '',
+        name: a?.recipient_name || profile?.full_name || '',
+        phone: String(a?.phone || profile?.phone || '').replace(/\\D/g, '').slice(0, 10),
         line1: a?.address_line1 || '',
         line2: a?.address_line2 || '',
         city: a?.city || '',
         state: a?.state || 'Telangana',
-        pincode: a?.postal_code || '',
+        pincode: String(a?.postal_code || '').replace(/\\D/g, '').slice(0, 6),
       })
-      if (students.length === 1) setStudentId(students[0].id)
+
       setHydrating(false)
     }
+
     void load()
     return () => {
       cancelled = true
     }
-  }, [branchId, students])
-
+  }, [branchId, schoolId, students])
   useEffect(() => {
     if (settings.upi_enabled && !settings.pay_at_school_enabled) setPaymentMethod('upi')
     else if (!settings.pay_at_school_enabled) setPaymentMethod('upi')
@@ -177,8 +268,10 @@ export default function CheckoutFlow({
       '&cu=INR'
     )
   }, [settings, payable])
+  const selectedStudentId =
+    checkoutStudents.length === 1 ? checkoutStudents[0].id : studentId
   const detailsValid = Boolean(
-    studentId &&
+    selectedStudentId &&
       address.name.trim() &&
       /^[0-9]{10}$/.test(address.phone.trim()) &&
       address.line1.trim() &&
@@ -212,7 +305,7 @@ export default function CheckoutFlow({
       const { data, error: rpcError } = await client.rpc('place_school_order', {
         p_school_id: schoolId,
         p_branch_id: branchId,
-        p_student_id: studentId || null,
+        p_student_id: selectedStudentId || null,
         p_items: payloadItems,
         p_shipping_address: {
           recipient_name: address.name.trim(),
@@ -349,12 +442,12 @@ export default function CheckoutFlow({
           <p className="eyebrow">STEP 1 OF 2</p>
           <h1>Confirm student and delivery details</h1>
           <div className="checkout-form-grid">
-            {students.length > 1 && (
+            {checkoutStudents.length > 1 && (
               <label className="full-field">
                 Student
                 <select value={studentId} onChange={(e) => setStudentId(e.target.value)}>
                   <option value="">Select student</option>
-                  {students.map((s) => (
+                  {checkoutStudents.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.full_name} — {s.student_code}
                     </option>
@@ -362,15 +455,15 @@ export default function CheckoutFlow({
                 </select>
               </label>
             )}
-            {students.length === 1 && (
+            {checkoutStudents.length === 1 && (
               <div className="selected-student full-field">
                 <UserRound size={18} />
                 <div>
-                  <strong>{students[0].full_name}</strong>
+                  <strong>{checkoutStudents[0].full_name}</strong>
                   <span>
-                    {students[0].student_code}
-                    {students[0].class_name ? ' • ' + students[0].class_name : ''}
-                    {students[0].section ? '-' + students[0].section : ''}
+                    {checkoutStudents[0].student_code}
+                    {checkoutStudents[0].class_name ? ' • ' + checkoutStudents[0].class_name : ''}
+                    {checkoutStudents[0].section ? '-' + checkoutStudents[0].section : ''}
                   </span>
                 </div>
               </div>
@@ -396,13 +489,17 @@ export default function CheckoutFlow({
                   onChange={(e) => {
                     const value =
                       k === 'phone' || k === 'pincode'
-                        ? e.target.value.replace(/\\D/g, '').slice(0, k === 'phone' ? 10 : 6)
+                        ? e.target.value.replace(/\D/g, '').slice(0, k === 'phone' ? 10 : 6)
                         : e.target.value
                     setAddress({ ...address, [k]: value })
                   }}
                 />
               </label>
             ))}
+          </div>
+          {studentLoadError && (
+            <div className="workspace-error checkout-validation-error">{studentLoadError}</div>
+          )}
           </div>
           <div className="checkout-actions">
             <button className="secondary-button" onClick={() => setStep('cart')}>
@@ -411,7 +508,18 @@ export default function CheckoutFlow({
             <button
               className="primary-button"
               disabled={!detailsValid}
-              onClick={() => setStep('payment')}
+              onClick={() => {
+                if (!detailsValid) {
+                  setStudentLoadError(
+                    checkoutStudents.length
+                      ? 'Please complete all required delivery details.'
+                      : studentLoadError ||
+                          'Please select or link an active student before continuing.',
+                  )
+                  return
+                }
+                setStep('payment')
+              }}
             >
               Continue to Payment <ArrowRight size={18} />
             </button>
