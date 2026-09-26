@@ -12,6 +12,7 @@ import {
   UserRound,
   ClipboardList,
   LogOut,
+  Settings,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import AdminWorkspace from './AdminWorkspace'
@@ -30,6 +31,7 @@ type AdminTool =
   | 'reports'
   | 'coupons'
   | 'support'
+  | 'settings'
 
 const ADMIN_NAV: Array<{
   key: AdminTool
@@ -47,6 +49,7 @@ const ADMIN_NAV: Array<{
   { key: 'reports', label: 'Reports', icon: FileSpreadsheet },
   { key: 'coupons', label: 'Coupons', icon: Sparkles },
   { key: 'support', label: 'Support Chat', icon: MessageCircle },
+  { key: 'settings', label: 'Settings', icon: Settings },
 ]
 
 function AdminSidebar({
@@ -127,6 +130,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       reports: '/admin/reports',
       coupons: '/admin/coupons',
       support: '/admin/support',
+      settings: '/admin/settings',
     }
     return paths[value]
   }
@@ -142,6 +146,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/reports') return 'reports'
     if (path === '/admin/coupons') return 'coupons'
     if (path === '/admin/support') return 'support'
+    if (path === '/admin/settings') return 'settings'
     return 'packages'
   }
 
@@ -269,6 +274,12 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
         <SupportChatAdmin />
+      </AdminLayout>
+    )
+  if (tool === 'settings')
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <AdminWorkspace module="settings" onBack={() => setTool('packages')} />
       </AdminLayout>
     )
   if (
