@@ -774,7 +774,9 @@ function Products({
       }
       const p = await client
         .from('products')
-        .select('id,name,description,gender,image_url,base_price')
+        .select(
+          'id,name,description,product_type,occasion_type,gender,material,brand,quality,fabric,care,delivery_returns,cod_available,custom_order_cod,easy_returns,express_shipping,image_url,base_price',
+        )
         .in('id', ids)
         .eq('status', 'active')
         .order('name')
