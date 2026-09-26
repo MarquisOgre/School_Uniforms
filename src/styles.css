@@ -4386,6 +4386,8 @@ a {
   overflow: hidden;
   padding: 24px;
   box-shadow: 0 20px 70px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
 }
 .workspace-modal-header {
   display: flex;
@@ -4412,6 +4414,10 @@ a {
 .workspace-form {
   display: grid;
   gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
 }
 .workspace-form-row {
   display: grid;
@@ -4420,6 +4426,10 @@ a {
 }
 .workspace-form-row-pricing {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workspace-form-row-description-gender {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 }
 
 .workspace-form-row-image-status {
@@ -4495,6 +4505,7 @@ a {
     font-size: 26px;
   }
   .workspace-form-row,
+  .workspace-form-row-description-gender,
   .workspace-form-row-image-status {
     grid-template-columns: 1fr;
   }
