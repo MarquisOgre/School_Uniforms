@@ -12,11 +12,13 @@ import {
   ClipboardList,
   LogOut,
   Settings,
+  Mail,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 const AdminWorkspace = lazy(() => import('./AdminWorkspace'))
 import { DEFAULT_HOME } from './HomePage'
 const SupportChatAdmin = lazy(() => import('./SupportChatAdmin'))
+const EmailTemplates = lazy(() => import('./EmailTemplates'))
 
 type AdminTool =
   | 'home'
@@ -30,6 +32,7 @@ type AdminTool =
   | 'coupons'
   | 'support'
   | 'settings'
+  | 'email-templates'
 
 const ADMIN_NAV: Array<{
   key: AdminTool
@@ -47,6 +50,7 @@ const ADMIN_NAV: Array<{
   { key: 'coupons', label: 'Coupons', icon: Sparkles },
   { key: 'support', label: 'Support Chat', icon: MessageCircle },
   { key: 'settings', label: 'Settings', icon: Settings },
+  { key: 'email-templates', label: 'Email Templates', icon: Mail },
 ]
 
 function AdminSidebar({
@@ -127,6 +131,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       coupons: '/admin/coupons',
       support: '/admin/support',
       settings: '/admin/settings',
+      'email-templates': '/admin/email-templates',
     }
     return paths[value]
   }
@@ -142,6 +147,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/coupons') return 'coupons'
     if (path === '/admin/support') return 'support'
     if (path === '/admin/settings') return 'settings'
+    if (path === '/admin/email-templates') return 'email-templates'
     return 'packages'
   }
 
@@ -278,6 +284,14 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
         <Suspense fallback={<div className="workspace-empty">Loading settings...</div>}>
           <AdminWorkspace module="settings" onBack={() => setTool('packages')} />
+        </Suspense>
+      </AdminLayout>
+    )
+  if (tool === 'email-templates')
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <Suspense fallback={<div className="workspace-empty">Loading email templates...</div>}>
+          <EmailTemplates />
         </Suspense>
       </AdminLayout>
     )
