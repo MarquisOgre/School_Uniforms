@@ -849,7 +849,7 @@ function Packages({
                 } else {
                   await client.from('customer_saved_items').insert({
                     user_id: userId,
-                    item_type: 'product',
+                    item_type: 'package',
                     item_id: x.id,
                   })
                   setSavedIds((prev) => new Set(prev).add(x.id))
@@ -1067,7 +1067,7 @@ function Products({
                 } else {
                   await client.from('customer_saved_items').insert({
                     user_id: userId,
-                    item_type: 'package',
+                    item_type: 'product',
                     item_id: x.id,
                   })
                   setSavedIds((prev) => new Set(prev).add(x.id))
