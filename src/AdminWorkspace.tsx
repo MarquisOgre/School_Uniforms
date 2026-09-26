@@ -63,20 +63,21 @@ export default function AdminWorkspace({
   return (
     <div className="admin-workspace">
       <main className={`workspace-body workspace-${module}`}>
-        <div
-          className="workspace-heading"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '20px',
-          }}
-        >
-          <div>
-            <h1>{m.title}</h1>
-            <p>{m.description}</p>
-          </div>
-          {module === 'packages' ? (
+        {module !== 'reports' && (
+          <div
+            className="workspace-heading"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '20px',
+            }}
+          >
+            <div>
+              <h1>{m.title}</h1>
+              <p>{m.description}</p>
+            </div>
+            {module === 'packages' ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
               <button
                 className="primary-button"
@@ -107,9 +108,10 @@ export default function AdminWorkspace({
               >
                 <RefreshCw size={15} /> Refresh
               </button>
-            </div>
-          ) : null}
-        </div>
+              </div>
+            ) : null}
+          </div>
+        )}
         <ModuleBody module={module} ordersSearch={ordersSearch} />
       </main>
     </div>
@@ -2563,6 +2565,10 @@ function Reports() {
   return (
     <>
       <div className="reports-toolbar">
+        <div className="reports-heading">
+          <h1>Reports</h1>
+          <p>View high-level sales, orders and inventory summaries.</p>
+        </div>
         <div className="reports-date-controls">
           <label>
             From <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
