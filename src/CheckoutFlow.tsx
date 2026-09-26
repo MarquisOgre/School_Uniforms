@@ -439,266 +439,72 @@ export default function CheckoutFlow({
 
   if (step === 'cart')
     return (
-      <div className="checkout-page school-checkout-unified">
-        <div className="school-checkout-heading">
-          <h1>Checkout</h1>
-          <button
-            className="school-checkout-back"
-            onClick={() => setStep(null)}
-            aria-label="Back to shopping"
-          >
-            <ChevronLeft size={18} /> Continue Shopping
+      <div className="checkout-page">
+        <div className="checkout-top">
+          <button onClick={() => setStep(null)}>
+            <ChevronLeft /> Continue shopping
           </button>
+          <strong>Your Cart</strong>
         </div>
-
-        <div className="school-checkout-grid">
-          <section className="school-checkout-card school-order-card">
-            <h2>Order Summary</h2>
+        <div className="checkout-layout">
+          <div className="cart-card">
+            <div className="checkout-section-head">
+              <div>
+                <p className="eyebrow">ORDER REVIEW</p>
+                <h1>Review your items</h1>
+              </div>
+              <span>{cart.reduce((s, x) => s + x.quantity, 0)} items</span>
+            </div>
             {!cart.length ? (
               <div className="empty-state">
                 <ShoppingCart size={40} />
                 <h3>Your cart is empty</h3>
               </div>
             ) : (
-              <div className="school-order-items">
-                {cart.map((x) => (
-                  <article className="school-order-item" key={x.id}>
-                    <div className="school-order-thumb">
-                      {x.image ? <img src={x.image} alt={x.title} /> : <ShoppingBag size={22} />}
-                    </div>
-                    <div className="school-order-info">
-                      <strong>{x.title}</strong>
-                      {x.type === 'package' && x.selectedVariants?.length ? (
-                        <small>
-                          {x.selectedVariants.map((v) => v.sizeLabel || 'Selected').join(' • ')}
-                        </small>
-                      ) : x.size && x.size !== 'Multiple' ? (
-                        <small>Size {x.size}</small>
-                      ) : null}
-                      <div className="school-order-controls">
-                        <button
-                          type="button"
-                          onClick={() => update(x.id, -1)}
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus size={13} />
-                        </button>
-                        <span>{x.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => update(x.id, 1)}
-                          aria-label="Increase quantity"
-                        >
-                          <Plus size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          className="school-order-remove"
-                          onClick={() => remove(x.id)}
-                          aria-label="Remove item"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </div>
-                    <strong className="school-order-price">
-                      ₹{(x.price * x.quantity).toLocaleString('en-IN')}
-                    </strong>
-                  </article>
-                ))}
-              </div>
-            )}
-            <div className="school-order-total">
-              <span>Total</span>
-              <strong>₹{payable.toLocaleString('en-IN')}</strong>
-            </div>
-          </section>
-
-          <section className="school-checkout-card school-details-card">
-            <h2>Your Details</h2>
-
-            <div className="school-details-form">
-              {checkoutStudents.length > 1 && (
-                <label className="school-field school-field-full">
-                  Student *
-                  <select value={studentId} onChange={(e) => setStudentId(e.target.value)}>
-                    <option value="">Select student</option>
-                    {checkoutStudents.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.full_name} — {s.student_code}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-
-              {checkoutStudents.length === 1 && (
-                <div className="school-selected-student school-field-full">
-                  <UserRound size={17} />
+              cart.map((x) => (
+                <div className="cart-row" key={x.id}>
+                  <div className="cart-thumb">
+                    {x.image ? <img src={x.image} alt={x.title} /> : <ShoppingBag />}
+                  </div>
                   <div>
-                    <span>Student</span>
-                    <strong>{checkoutStudents[0].full_name}</strong>
-                    <small>
-                      {checkoutStudents[0].student_code}
-                      {checkoutStudents[0].class_name ? ' • ' + checkoutStudents[0].class_name : ''}
-                      {checkoutStudents[0].section ? '-' + checkoutStudents[0].section : ''}
-                    </small>
+                    <strong>{x.title}</strong>
+                    <span>
+                      {x.type === 'package' ? 'Package • ' : ''}
+                      {x.size && x.size !== 'Multiple' ? 'Size ' + x.size + ' • ' : ''}₹
+                      {x.price.toLocaleString('en-IN')} each
+                    </span>
+                    {x.type === 'package' && x.selectedVariants?.length ? (
+                      <small>
+                        {x.selectedVariants.map((v) => v.sizeLabel || 'Selected').join(' • ')}
+                      </small>
+                    ) : x.bundleItems?.length ? (
+                      <small>{x.bundleItems.join(' • ')}</small>
+                    ) : null}
+                    <div className="qty-controls">
+                      <button onClick={() => update(x.id, -1)}>
+                        <Minus />
+                      </button>
+                      <b>{x.quantity}</b>
+                      <button onClick={() => update(x.id, 1)}>
+                        <Plus />
+                      </button>
+                    </div>
                   </div>
+                  <strong>₹{(x.price * x.quantity).toLocaleString('en-IN')}</strong>
+                  <button className="remove-button" onClick={() => remove(x.id)}>
+                    <Trash2 size={17} />
+                  </button>
                 </div>
-              )}
-
-              {[
-                ['name', 'Full name', true],
-                ['phone', 'Phone', true],
-                ['line1', 'Address line 1', true],
-                ['line2', 'Address line 2', false],
-                ['city', 'City', true],
-                ['state', 'State', true],
-                ['pincode', 'PIN code', true],
-              ].map(([k, label, required]) => (
-                <label
-                  className={`school-field ${k === 'line1' || k === 'line2' ? 'school-field-full' : ''}`}
-                  key={k as string}
-                >
-                  <span className="school-field-label">
-                    {label as string}
-                    {required ? <em>*</em> : null}
-                  </span>
-                  <input
-                    className={fieldError(k as string) ? 'school-input-invalid' : ''}
-                    value={(address as any)[k as string]}
-                    type={k === 'phone' ? 'tel' : 'text'}
-                    inputMode={k === 'phone' || k === 'pincode' ? 'numeric' : undefined}
-                    maxLength={k === 'phone' ? 10 : k === 'pincode' ? 6 : undefined}
-                    pattern={k === 'phone' ? '[0-9]{10}' : k === 'pincode' ? '[0-9]{6}' : undefined}
-                    onChange={(e) => {
-                      const value =
-                        k === 'phone' || k === 'pincode'
-                          ? e.target.value.replace(/\D/g, '').slice(0, k === 'phone' ? 10 : 6)
-                          : e.target.value
-                      setAddress({ ...address, [k as string]: value })
-                    }}
-                  />
-                  {fieldError(k as string) && (
-                    <small className="school-field-error">{fieldError(k as string)}</small>
-                  )}
-                </label>
-              ))}
-            </div>
-
-            {studentError && (
-              <div className="workspace-error checkout-validation-error">{studentError}</div>
+              ))
             )}
-
-            {!detailsValid && !studentError && (
-              <p className="school-checkout-hint">
-                Correct the highlighted fields to continue with payment.
-              </p>
-            )}
-          </section>
-
-          <section className="school-checkout-card school-payment-card">
-            <h2>Payment</h2>
-
-            {!detailsValid ? (
-              <div className="school-payment-locked">
-                <p>Please fill in your details correctly to proceed with payment.</p>
-              </div>
-            ) : (
-              <>
-                {settings.pay_at_school_enabled && (
-                  <label
-                    className={`school-payment-option ${paymentMethod === 'pay_at_school' ? 'active' : ''}`}
-                  >
-                    <input
-                      type="radio"
-                      name="school-payment"
-                      checked={paymentMethod === 'pay_at_school'}
-                      onChange={() => setPaymentMethod('pay_at_school')}
-                    />
-                    <ShoppingBag size={20} />
-                    <div>
-                      <strong>Pay at School</strong>
-                      <span>Place the order now and pay through the school.</span>
-                    </div>
-                  </label>
-                )}
-
-                {settings.upi_enabled && settings.upi_id && (
-                  <label
-                    className={`school-payment-option ${paymentMethod === 'upi' ? 'active' : ''}`}
-                  >
-                    <input
-                      type="radio"
-                      name="school-payment"
-                      checked={paymentMethod === 'upi'}
-                      onChange={() => setPaymentMethod('upi')}
-                    />
-                    <CreditCard size={20} />
-                    <div>
-                      <strong>UPI Payment</strong>
-                      <span>Scan the QR, pay the exact amount and enter the transaction ID.</span>
-                    </div>
-                  </label>
-                )}
-
-                {paymentMethod === 'upi' && settings.upi_enabled && settings.upi_id && (
-                  <div className="school-upi-panel">
-                    <div className="school-upi-qr">
-                      {upiUri ? (
-                        <QRCodeSVG
-                          value={upiUri}
-                          size={190}
-                          marginSize={4}
-                          title="UPI payment QR code"
-                        />
-                      ) : null}
-                    </div>
-                    <strong>₹{payable.toLocaleString('en-IN')}</strong>
-                    <p>UPI ID: {settings.upi_id}</p>
-                    <p>{settings.upi_payee_name || 'School Uniforms'}</p>
-                    <a className="upi-open-button" href={upiUri}>
-                      Open UPI App
-                    </a>
-                    <label className="school-upi-reference">
-                      Transaction / reference ID<span>*</span>
-                      <input
-                        value={paymentReference}
-                        onChange={(e) => setPaymentReference(e.target.value)}
-                        placeholder="Enter UPI transaction ID"
-                      />
-                    </label>
-                  </div>
-                )}
-
-                {error && <div className="workspace-error">{error}</div>}
-
-                <div className="school-payment-total">
-                  <span>Payable</span>
-                  <strong>₹{payable.toLocaleString('en-IN')}</strong>
-                </div>
-
-                <button
-                  className="primary-button school-place-order"
-                  disabled={
-                    loading ||
-                    !paymentValid ||
-                    (!settings.pay_at_school_enabled && !settings.upi_enabled)
-                  }
-                  onClick={() => void placeOrder()}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 size={18} className="spin" /> Placing Order...
-                    </>
-                  ) : (
-                    <>Place Order • ₹{payable.toLocaleString('en-IN')}</>
-                  )}
-                  <CheckCircle2 size={18} />
-                </button>
-              </>
-            )}
-          </section>
+          </div>
+          <OrderSummary
+            total={payable}
+            subtotal={total}
+            shipping={effectiveShipping}
+            disabled={!cart.length}
+            onNext={() => setStep('details')}
+          />
         </div>
       </div>
     )
