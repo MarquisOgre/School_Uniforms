@@ -55,12 +55,12 @@ export function GlobalHeader({
               <ShoppingCart size={16} /> Cart{cartCount > 0 && <b>{cartCount}</b>}
             </button>
           )}
-          {onBack && (
+          {portal === 'admin' && onBack && (
             <button className="global-button" onClick={onBack}>
               <ArrowLeft size={16} /> {backLabel || 'Back to Dashboard'}
             </button>
           )}
-          {onLogout && (
+          {portal === 'admin' && onLogout && (
             <button className="global-button global-button-outline" onClick={onLogout}>
               <LogOut size={16} /> Logout
             </button>
