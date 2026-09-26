@@ -219,20 +219,20 @@ function CustomerPortal({
       >
         <Suspense fallback={<div className="workspace-empty">Loading checkout...</div>}>
           <CheckoutFlow
-          schoolId={schoolId}
-          branchId={branchId}
-          cart={cart}
-          total={total}
-          step={checkout}
-          setStep={setCheckout}
-          update={update}
-          remove={remove}
-          students={students}
-          onComplete={() => {
-            setCart([])
-            setCheckout('success')
-          }}
-        />
+            schoolId={schoolId}
+            branchId={branchId}
+            cart={cart}
+            total={total}
+            step={checkout}
+            setStep={setCheckout}
+            update={update}
+            remove={remove}
+            students={students}
+            onComplete={() => {
+              setCart([])
+              setCheckout('success')
+            }}
+          />
         </Suspense>
       </CustomerPageFrame>
     )

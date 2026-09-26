@@ -91,35 +91,47 @@ function App() {
     )
   if (mode === 'store')
     return (
-      <Suspense fallback={<div className="session-loading"><span>Loading...</span></div>}>
+      <Suspense
+        fallback={
+          <div className="session-loading">
+            <span>Loading...</span>
+          </div>
+        }
+      >
         <>
           <AppPortal
-          schoolId={school}
-          schoolName={schoolName}
-          branchName={branchName}
-          branchId={branch}
-          studentId={studentId}
-          page={customerPage}
-          setPage={setCustomerPage}
-          onLogout={() => {
-            void supabase?.auth.signOut({ scope: 'local' })
-            localStorage.removeItem('school_uniform_portal_context')
-            window.history.replaceState({}, '', '/')
-            setMode('home')
-          }}
-        />
+            schoolId={school}
+            schoolName={schoolName}
+            branchName={branchName}
+            branchId={branch}
+            studentId={studentId}
+            page={customerPage}
+            setPage={setCustomerPage}
+            onLogout={() => {
+              void supabase?.auth.signOut({ scope: 'local' })
+              localStorage.removeItem('school_uniform_portal_context')
+              window.history.replaceState({}, '', '/')
+              setMode('home')
+            }}
+          />
           <ChatWidget schoolId={school} branchId={branch} />
         </>
       </Suspense>
     )
   if (mode === 'admin')
     return (
-      <Suspense fallback={<div className="session-loading"><span>Loading...</span></div>}>
+      <Suspense
+        fallback={
+          <div className="session-loading">
+            <span>Loading...</span>
+          </div>
+        }
+      >
         <AdminPortal
-        onBack={() => {
-          window.history.replaceState({}, '', '/')
-          setMode('home')
-        }}
+          onBack={() => {
+            window.history.replaceState({}, '', '/')
+            setMode('home')
+          }}
         />
       </Suspense>
     )
