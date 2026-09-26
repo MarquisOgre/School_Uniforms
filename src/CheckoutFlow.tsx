@@ -300,25 +300,39 @@ export default function CheckoutFlow({
   )
   const fieldError = (key: string) => {
     const value = String((address as any)[key] || '').trim()
-    if (key === 'name') return !value ? 'Full name is required.' : value.length < 2 ? 'Enter a valid full name.' : ''
+    if (key === 'name')
+      return !value ? 'Full name is required.' : value.length < 2 ? 'Enter a valid full name.' : ''
     if (key === 'phone')
-      return !value ? 'Phone number is required.' : !/^[6-9][0-9]{9}$/.test(value) ? 'Enter a valid 10-digit mobile number.' : ''
-    if (key === 'line1') return !value ? 'Address line 1 is required.' : value.length < 5 ? 'Enter a complete address.' : ''
-    if (key === 'city') return !value ? 'City is required.' : value.length < 2 ? 'Enter a valid city.' : ''
+      return !value
+        ? 'Phone number is required.'
+        : !/^[6-9][0-9]{9}$/.test(value)
+          ? 'Enter a valid 10-digit mobile number.'
+          : ''
+    if (key === 'line1')
+      return !value
+        ? 'Address line 1 is required.'
+        : value.length < 5
+          ? 'Enter a complete address.'
+          : ''
+    if (key === 'city')
+      return !value ? 'City is required.' : value.length < 2 ? 'Enter a valid city.' : ''
     if (key === 'state') return !value ? 'State is required.' : ''
     if (key === 'pincode')
-      return !value ? 'PIN code is required.' : !/^[0-9]{6}$/.test(value) ? 'Enter a valid 6-digit PIN code.' : ''
+      return !value
+        ? 'PIN code is required.'
+        : !/^[0-9]{6}$/.test(value)
+          ? 'Enter a valid 6-digit PIN code.'
+          : ''
     return ''
   }
 
-  const studentError =
-    !checkoutStudents.length
-      ? studentLoadError || 'No active student is linked to this account.'
-      : !selectedStudent
-        ? 'Please select a student.'
-        : !selectedStudentMatchesContext
-          ? 'This student is assigned to a different school or branch.'
-          : ''
+  const studentError = !checkoutStudents.length
+    ? studentLoadError || 'No active student is linked to this account.'
+    : !selectedStudent
+      ? 'Please select a student.'
+      : !selectedStudentMatchesContext
+        ? 'This student is assigned to a different school or branch.'
+        : ''
   const detailsValid = Boolean(
     selectedStudentId &&
       selectedStudentMatchesContext &&
