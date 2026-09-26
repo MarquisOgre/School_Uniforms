@@ -149,10 +149,14 @@ export default function CheckoutFlow({
           .maybeSingle(),
       ])
 
-      // Resolve the student's UUID from the actual parent/student relationship.
-      // Checkout must use the UUID, not the parent's login ID.
-      let resolvedStudents: StudentOption[] = []
+      // Start with the already-resolved students supplied by the parent portal.
+      // AppPortal loads these from the authenticated parent/student relationship,
+      // so checkout should not discard them just because a second relationship
+      // query is temporarily unavailable or affected by RLS/session timing.
+      let resolvedStudents: StudentOption[] = Array.isArray(students) ? students : []
 
+      // Resolve the student's UUID from the actual parent/student relationship
+      // as an additional validation/fresh-data path.
       const { data: links } = await client
         .from('parent_student_links')
         .select('student_id,is_primary')
@@ -200,7 +204,7 @@ export default function CheckoutFlow({
         if (byCode) resolvedStudents = [byCode]
       }
 
-      // Use the parent portal's already-loaded students only as a final fallback.
+      // Keep the parent portal's already-loaded students as the final fallback.
       if (!resolvedStudents.length && students.length) {
         resolvedStudents = students
       }
