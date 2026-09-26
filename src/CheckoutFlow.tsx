@@ -447,20 +447,20 @@ export default function CheckoutFlow({
     return (
       <div className="checkout-page school-checkout-unified">
         <div className="portal-header checkout-portal-header">
-        <div>
-          <p className="eyebrow">{branchName}</p>
-          <h1>Checkout</h1>
-        </div>
-        <div className="header-user">
-          <div className="avatar">{userLabel.slice(0, 1).toUpperCase()}</div>
           <div>
-            <strong>{userLabel}</strong>
-            <span>Parent / Student</span>
+            <p className="eyebrow">{branchName}</p>
+            <h1>Checkout</h1>
+          </div>
+          <div className="header-user">
+            <div className="avatar">{userLabel.slice(0, 1).toUpperCase()}</div>
+            <div>
+              <strong>{userLabel}</strong>
+              <span>Parent / Student</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="checkout-top">
+        <div className="checkout-top">
           <button onClick={() => setStep(null)}>
             <ChevronLeft /> Continue shopping
           </button>
