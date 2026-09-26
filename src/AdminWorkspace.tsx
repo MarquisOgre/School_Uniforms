@@ -708,7 +708,6 @@ function Products() {
             />
           </div>
 
-
           <div className="workspace-form-row workspace-form-row-pricing">
             <Field
               label="Base Price"
@@ -734,10 +733,38 @@ function Products() {
           </div>
 
           <div className="workspace-product-benefits">
-            <label><input type="checkbox" checked={editing.cod_available !== false} onChange={(e) => setEditing({ ...editing, cod_available: e.target.checked })} /> COD Available</label>
-            <label><input type="checkbox" checked={editing.custom_order_cod === true} onChange={(e) => setEditing({ ...editing, custom_order_cod: e.target.checked })} /> No COD on Custom Order (Embroidery)</label>
-            <label><input type="checkbox" checked={editing.easy_returns !== false} onChange={(e) => setEditing({ ...editing, easy_returns: e.target.checked })} /> Easy Returns & Exchange</label>
-            <label><input type="checkbox" checked={editing.express_shipping !== false} onChange={(e) => setEditing({ ...editing, express_shipping: e.target.checked })} /> 1–3 Day Express Shipping</label>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.cod_available !== false}
+                onChange={(e) => setEditing({ ...editing, cod_available: e.target.checked })}
+              />{' '}
+              COD Available
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.custom_order_cod === true}
+                onChange={(e) => setEditing({ ...editing, custom_order_cod: e.target.checked })}
+              />{' '}
+              No COD on Custom Order (Embroidery)
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.easy_returns !== false}
+                onChange={(e) => setEditing({ ...editing, easy_returns: e.target.checked })}
+              />{' '}
+              Easy Returns & Exchange
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.express_shipping !== false}
+                onChange={(e) => setEditing({ ...editing, express_shipping: e.target.checked })}
+              />{' '}
+              1–3 Day Express Shipping
+            </label>
           </div>
 
           <div className="workspace-form-row workspace-form-row-image-status">
