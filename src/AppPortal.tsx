@@ -610,11 +610,11 @@ function Dashboard({
       </div> */}
       {students.length ? (
         <section className="parent-children-section">
-          <div className="section-row">
-            <p className="eyebrow">FAMILY ACCOUNT</p>
-            <h2>My Children</h2>
-          </div>
           <div className="parent-children-grid">
+            <article className="parent-family-heading">
+              <p className="eyebrow">FAMILY ACCOUNT</p>
+              <h2>My Children</h2>
+            </article>
             {students.map((student) => (
               <article className="parent-child-card" key={student.id}>
                 <div className="parent-child-avatar">
