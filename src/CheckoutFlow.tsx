@@ -71,9 +71,6 @@ export default function CheckoutFlow({
   remove,
   students,
   onComplete,
-  schoolName,
-  branchName,
-  userLabel,
 }: {
   schoolId: string
   branchId: string
@@ -85,9 +82,6 @@ export default function CheckoutFlow({
   remove: (id: string) => void
   students: StudentOption[]
   onComplete: (result: any) => void
-  schoolName: string
-  branchName: string
-  userLabel: string
 }) {
   const [address, setAddress] = useState<Address>({
     name: '',
@@ -446,20 +440,6 @@ export default function CheckoutFlow({
   if (step === 'cart')
     return (
       <div className="checkout-page school-checkout-unified">
-        <div className="portal-header checkout-portal-header">
-          <div>
-            <p className="eyebrow">{branchName}</p>
-            <h1>Checkout</h1>
-          </div>
-          <div className="header-user">
-            <div className="avatar">{userLabel.slice(0, 1).toUpperCase()}</div>
-            <div>
-              <strong>{userLabel}</strong>
-              <span>Parent / Student</span>
-            </div>
-          </div>
-        </div>
-
         <div className="checkout-top">
           <button onClick={() => setStep(null)}>
             <ChevronLeft /> Continue shopping
