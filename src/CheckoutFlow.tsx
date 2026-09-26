@@ -185,7 +185,7 @@ export default function CheckoutFlow({
       if (!resolvedStudents.length) {
         const { data: ownStudents } = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section')
+          .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
           .eq('user_id', user.id)
           .eq('school_id', schoolId)
           .eq('branch_id', branchId)
@@ -198,7 +198,7 @@ export default function CheckoutFlow({
       if (!resolvedStudents.length && profile?.login_id) {
         const { data: byCode } = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section')
+          .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
           .eq('student_code', profile.login_id)
           .eq('school_id', schoolId)
           .eq('branch_id', branchId)
