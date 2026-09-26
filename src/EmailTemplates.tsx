@@ -197,7 +197,7 @@ export default function EmailTemplates() {
               <div className="panel-heading">
                 <div>
                   <h2>{editing.id ? 'Edit Email Template' : 'Add Email Template'}</h2>
-                  <p className="workspace-muted">Use double braces for dynamic values, for example {{'{{customer_name}}'}}.</p>
+                  <p className="workspace-muted">Use double braces for dynamic values, for example {"{{customer_name}}"}.</p>
                 </div>
                 <button className="icon-button" onClick={() => setEditing(null)} aria-label="Close"><X size={18} /></button>
               </div>
