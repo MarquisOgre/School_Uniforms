@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react'
 import { Save } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
+function Loading() {
+  return (
+    <div style={{ padding: '28px 8px', color: '#6d7780', fontSize: 13 }}>
+      Loading email settings...
+    </div>
+  )
+}
+
 export default function EmailConfigSettings() {
   const [fromName, setFromName] = useState('School Uniforms')
   const [fromEmail, setFromEmail] = useState('')
