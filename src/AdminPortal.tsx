@@ -531,51 +531,51 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
             }
           />
           <div className="cms-item-grid cms-item-grid-2">
-          {content.trust.items
-            ? content.trust.items.map((x: any, i: number) => (
-                <div className="home-edit-row" key={i}>
-                  <CmsToggle
-                    enabled={x.enabled}
-                    onChange={(v) => edit((c) => (c.trust.items[i].enabled = v))}
-                  />
-                  <label>
-                    Title
-                    <input
-                      value={x.title || ''}
-                      onChange={(e) => edit((c) => (c.trust.items[i].title = e.target.value))}
+            {content.trust.items
+              ? content.trust.items.map((x: any, i: number) => (
+                  <div className="home-edit-row" key={i}>
+                    <CmsToggle
+                      enabled={x.enabled}
+                      onChange={(v) => edit((c) => (c.trust.items[i].enabled = v))}
                     />
-                  </label>
-                  <label>
-                    Text
-                    <input
-                      value={x.text || ''}
-                      onChange={(e) => edit((c) => (c.trust.items[i].text = e.target.value))}
+                    <label>
+                      Title
+                      <input
+                        value={x.title || ''}
+                        onChange={(e) => edit((c) => (c.trust.items[i].title = e.target.value))}
+                      />
+                    </label>
+                    <label>
+                      Text
+                      <input
+                        value={x.text || ''}
+                        onChange={(e) => edit((c) => (c.trust.items[i].text = e.target.value))}
+                      />
+                    </label>
+                  </div>
+                ))
+              : content.trust.map((x: any, i: number) => (
+                  <div className="home-edit-row" key={i}>
+                    <CmsToggle
+                      enabled={x.enabled}
+                      onChange={(v) => edit((c) => (c.trust[i].enabled = v))}
                     />
-                  </label>
-                </div>
-              ))
-            : content.trust.map((x: any, i: number) => (
-                <div className="home-edit-row" key={i}>
-                  <CmsToggle
-                    enabled={x.enabled}
-                    onChange={(v) => edit((c) => (c.trust[i].enabled = v))}
-                  />
-                  <label>
-                    Title
-                    <input
-                      value={x.title || ''}
-                      onChange={(e) => edit((c) => (c.trust[i].title = e.target.value))}
-                    />
-                  </label>
-                  <label>
-                    Text
-                    <input
-                      value={x.text || ''}
-                      onChange={(e) => edit((c) => (c.trust[i].text = e.target.value))}
-                    />
-                  </label>
-                </div>
-              ))}
+                    <label>
+                      Title
+                      <input
+                        value={x.title || ''}
+                        onChange={(e) => edit((c) => (c.trust[i].title = e.target.value))}
+                      />
+                    </label>
+                    <label>
+                      Text
+                      <input
+                        value={x.text || ''}
+                        onChange={(e) => edit((c) => (c.trust[i].text = e.target.value))}
+                      />
+                    </label>
+                  </div>
+                ))}
           </div>
         </section>
 
@@ -591,38 +591,37 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
             }
           />
           <div className="cms-item-grid cms-item-grid-2">
-          {content.categories.map((x: any, i: number) => (
-            <div className="home-edit-row" key={i}>
-              <CmsToggle
-                enabled={x.enabled}
-                onChange={(v) => edit((c) => (c.categories[i].enabled = v))}
-              />
-              <label>
-                Title
-                <input
-                  value={x.title || ''}
-                  onChange={(e) => edit((c) => (c.categories[i].title = e.target.value))}
+            {content.categories.map((x: any, i: number) => (
+              <div className="home-edit-row" key={i}>
+                <CmsToggle
+                  enabled={x.enabled}
+                  onChange={(v) => edit((c) => (c.categories[i].enabled = v))}
                 />
-              </label>
-              <label>
-                Image URL
-                <input
-                  value={x.image || ''}
-                  onChange={(e) => edit((c) => (c.categories[i].image = e.target.value))}
-                />
-              </label>
-              <label>
-                Target
-                <input
-                  value={x.target || ''}
-                  onChange={(e) => edit((c) => (c.categories[i].target = e.target.value))}
-                />
-              </label>
-            </div>
-          ))}
- 
+                <label>
+                  Title
+                  <input
+                    value={x.title || ''}
+                    onChange={(e) => edit((c) => (c.categories[i].title = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Image URL
+                  <input
+                    value={x.image || ''}
+                    onChange={(e) => edit((c) => (c.categories[i].image = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Target
+                  <input
+                    value={x.target || ''}
+                    onChange={(e) => edit((c) => (c.categories[i].target = e.target.value))}
+                  />
+                </label>
+              </div>
+            ))}
           </div>
-       </section>
+        </section>
 
         <section className="home-edit-section">
           <CmsSectionHeading
@@ -636,49 +635,48 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
             }
           />
           <div className="cms-item-grid cms-item-grid-3">
-          {content.featured.map((x: any, i: number) => (
-            <div className="home-edit-card" key={i}>
-              <div className="cms-item-heading">
-                <h3>Collection {i + 1}</h3>
-                <CmsToggle
-                  enabled={x.enabled}
-                  onChange={(v) => edit((c) => (c.featured[i].enabled = v))}
-                  label={x.enabled === false ? 'Disabled' : 'Enabled'}
-                />
+            {content.featured.map((x: any, i: number) => (
+              <div className="home-edit-card" key={i}>
+                <div className="cms-item-heading">
+                  <h3>Collection {i + 1}</h3>
+                  <CmsToggle
+                    enabled={x.enabled}
+                    onChange={(v) => edit((c) => (c.featured[i].enabled = v))}
+                    label={x.enabled === false ? 'Disabled' : 'Enabled'}
+                  />
+                </div>
+                <label>
+                  Title
+                  <input
+                    value={x.title || ''}
+                    onChange={(e) => edit((c) => (c.featured[i].title = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Description
+                  <textarea
+                    value={x.text || ''}
+                    onChange={(e) => edit((c) => (c.featured[i].text = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Image URL
+                  <input
+                    value={x.image || ''}
+                    onChange={(e) => edit((c) => (c.featured[i].image = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Target
+                  <input
+                    value={x.target || ''}
+                    onChange={(e) => edit((c) => (c.featured[i].target = e.target.value))}
+                  />
+                </label>
               </div>
-              <label>
-                Title
-                <input
-                  value={x.title || ''}
-                  onChange={(e) => edit((c) => (c.featured[i].title = e.target.value))}
-                />
-              </label>
-              <label>
-                Description
-                <textarea
-                  value={x.text || ''}
-                  onChange={(e) => edit((c) => (c.featured[i].text = e.target.value))}
-                />
-              </label>
-              <label>
-                Image URL
-                <input
-                  value={x.image || ''}
-                  onChange={(e) => edit((c) => (c.featured[i].image = e.target.value))}
-                />
-              </label>
-              <label>
-                Target
-                <input
-                  value={x.target || ''}
-                  onChange={(e) => edit((c) => (c.featured[i].target = e.target.value))}
-                />
-              </label>
-            </div>
-          ))}
- 
+            ))}
           </div>
-       </section>
+        </section>
 
         <section className="home-edit-section">
           <CmsSectionHeading
@@ -692,48 +690,48 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
             }
           />
           <div className="cms-field-grid cms-field-grid-2">
-          <label>
-            Eyebrow
-            <input
-              value={content.afterFold?.eyebrow || ''}
-              onChange={(e) => edit((c) => (c.afterFold.eyebrow = e.target.value))}
-            />
-          </label>
-          <label>
-            Title line 1
-            <input
-              value={content.afterFold?.title?.[0] || ''}
-              onChange={(e) => edit((c) => (c.afterFold.title[0] = e.target.value))}
-            />
-          </label>
-          <label>
-            Title line 2
-            <input
-              value={content.afterFold?.title?.[1] || ''}
-              onChange={(e) => edit((c) => (c.afterFold.title[1] = e.target.value))}
-            />
-          </label>
-          <label>
-            Text
-            <textarea
-              value={content.afterFold?.text || ''}
-              onChange={(e) => edit((c) => (c.afterFold.text = e.target.value))}
-            />
-          </label>
-          <label>
-            Image URL
-            <input
-              value={content.afterFold?.image || ''}
-              onChange={(e) => edit((c) => (c.afterFold.image = e.target.value))}
-            />
-          </label>
-          <label>
-            Button
-            <input
-              value={content.afterFold?.button || ''}
-              onChange={(e) => edit((c) => (c.afterFold.button = e.target.value))}
-            />
-          </label>
+            <label>
+              Eyebrow
+              <input
+                value={content.afterFold?.eyebrow || ''}
+                onChange={(e) => edit((c) => (c.afterFold.eyebrow = e.target.value))}
+              />
+            </label>
+            <label>
+              Title line 1
+              <input
+                value={content.afterFold?.title?.[0] || ''}
+                onChange={(e) => edit((c) => (c.afterFold.title[0] = e.target.value))}
+              />
+            </label>
+            <label>
+              Title line 2
+              <input
+                value={content.afterFold?.title?.[1] || ''}
+                onChange={(e) => edit((c) => (c.afterFold.title[1] = e.target.value))}
+              />
+            </label>
+            <label>
+              Text
+              <textarea
+                value={content.afterFold?.text || ''}
+                onChange={(e) => edit((c) => (c.afterFold.text = e.target.value))}
+              />
+            </label>
+            <label>
+              Image URL
+              <input
+                value={content.afterFold?.image || ''}
+                onChange={(e) => edit((c) => (c.afterFold.image = e.target.value))}
+              />
+            </label>
+            <label>
+              Button
+              <input
+                value={content.afterFold?.button || ''}
+                onChange={(e) => edit((c) => (c.afterFold.button = e.target.value))}
+              />
+            </label>
           </div>
         </section>
 
@@ -749,31 +747,30 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
             }
           />
           <div className="cms-item-grid cms-item-grid-2">
-          {content.benefits.map((x: any, i: number) => (
-            <div className="home-edit-row" key={i}>
-              <CmsToggle
-                enabled={x.enabled}
-                onChange={(v) => edit((c) => (c.benefits[i].enabled = v))}
-              />
-              <label>
-                Title
-                <input
-                  value={x.title || ''}
-                  onChange={(e) => edit((c) => (c.benefits[i].title = e.target.value))}
+            {content.benefits.map((x: any, i: number) => (
+              <div className="home-edit-row" key={i}>
+                <CmsToggle
+                  enabled={x.enabled}
+                  onChange={(v) => edit((c) => (c.benefits[i].enabled = v))}
                 />
-              </label>
-              <label>
-                Text
-                <input
-                  value={x.text || ''}
-                  onChange={(e) => edit((c) => (c.benefits[i].text = e.target.value))}
-                />
-              </label>
-            </div>
-          ))}
- 
+                <label>
+                  Title
+                  <input
+                    value={x.title || ''}
+                    onChange={(e) => edit((c) => (c.benefits[i].title = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Text
+                  <input
+                    value={x.text || ''}
+                    onChange={(e) => edit((c) => (c.benefits[i].text = e.target.value))}
+                  />
+                </label>
+              </div>
+            ))}
           </div>
-       </section>
+        </section>
 
         <section className="home-edit-section">
           <CmsSectionHeading
@@ -787,34 +784,34 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
             }
           />
           <div className="cms-field-grid cms-field-grid-2">
-          <label>
-            Eyebrow
-            <input
-              value={content.cta?.eyebrow || ''}
-              onChange={(e) => edit((c) => (c.cta.eyebrow = e.target.value))}
-            />
-          </label>
-          <label>
-            Title line 1
-            <input
-              value={content.cta?.title?.[0] || ''}
-              onChange={(e) => edit((c) => (c.cta.title[0] = e.target.value))}
-            />
-          </label>
-          <label>
-            Title line 2
-            <input
-              value={content.cta?.title?.[1] || ''}
-              onChange={(e) => edit((c) => (c.cta.title[1] = e.target.value))}
-            />
-          </label>
-          <label>
-            Button
-            <input
-              value={content.cta?.button || ''}
-              onChange={(e) => edit((c) => (c.cta.button = e.target.value))}
-            />
-          </label>
+            <label>
+              Eyebrow
+              <input
+                value={content.cta?.eyebrow || ''}
+                onChange={(e) => edit((c) => (c.cta.eyebrow = e.target.value))}
+              />
+            </label>
+            <label>
+              Title line 1
+              <input
+                value={content.cta?.title?.[0] || ''}
+                onChange={(e) => edit((c) => (c.cta.title[0] = e.target.value))}
+              />
+            </label>
+            <label>
+              Title line 2
+              <input
+                value={content.cta?.title?.[1] || ''}
+                onChange={(e) => edit((c) => (c.cta.title[1] = e.target.value))}
+              />
+            </label>
+            <label>
+              Button
+              <input
+                value={content.cta?.button || ''}
+                onChange={(e) => edit((c) => (c.cta.button = e.target.value))}
+              />
+            </label>
           </div>
         </section>
 
@@ -830,15 +827,15 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
             }
           />
           <div className="cms-field-grid cms-field-grid-2">
-          {['tagline', 'copyright', 'credit', 'secondary'].map((k: string) => (
-            <label key={k}>
-              {k}
-              <input
-                value={content.footer?.[k] || ''}
-                onChange={(e) => edit((c) => (c.footer[k] = e.target.value))}
-              />
-            </label>
-          ))}
+            {['tagline', 'copyright', 'credit', 'secondary'].map((k: string) => (
+              <label key={k}>
+                {k}
+                <input
+                  value={content.footer?.[k] || ''}
+                  onChange={(e) => edit((c) => (c.footer[k] = e.target.value))}
+                />
+              </label>
+            ))}
           </div>
         </section>
       </div>
