@@ -1233,23 +1233,51 @@ function Profile({
       })
       const studentIds = ((links.data || []) as any[]).map((x) => x.student_id).filter(Boolean)
       let selectedStudent: any = null
+
+      // Resolve the linked student exactly like the checkout flow: the
+      // parent-student relationship is the primary source of truth.
       if (studentIds.length) {
         const sr = await client
           .from('students')
           .select(
-            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id',
+            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status',
           )
           .in('id', studentIds)
+          .eq('status', 'active')
+
         if (sr.error) {
           setError(sr.error.message)
         } else {
-          const students = (sr.data || []) as any[]
+          const linkedStudents = (sr.data || []) as any[]
           selectedStudent =
-            students.find((s) => s.school_id === schoolId && s.branch_id === branchId) ||
-            students[0] ||
+            linkedStudents.find((s) => s.school_id === schoolId && s.branch_id === branchId) ||
+            linkedStudents[0] ||
             null
         }
       }
+
+      // Some existing Parent / Student accounts use the login ID directly
+      // as students.student_code. Keep this as a reliable fallback when the
+      // relationship is temporarily unavailable or not present.
+      if (!selectedStudent && studentId) {
+        const byCode = await client
+          .from('students')
+          .select(
+            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status',
+          )
+          .eq('student_code', studentId)
+          .eq('school_id', schoolId)
+          .eq('branch_id', branchId)
+          .eq('status', 'active')
+          .maybeSingle()
+
+        if (byCode.error) {
+          setError(byCode.error.message)
+        } else if (byCode.data) {
+          selectedStudent = byCode.data
+        }
+      }
+
       setStudent(selectedStudent || {})
       if (ad.data) setAddress(ad.data)
       setLoading(false)
