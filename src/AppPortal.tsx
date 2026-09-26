@@ -1299,7 +1299,7 @@ function ProductDetail({
 
           {item.type === 'product' ? (
             <div className="product-detail-information">
-              <details open className="product-benefits-accordion">
+              <details className="product-benefits-accordion">
                 <summary>
                   COD, Returns & Shipping <ChevronDown size={18} />
                 </summary>
@@ -1331,7 +1331,7 @@ function ProductDetail({
                 </div>
               </details>
 
-              <details open>
+              <details>
                 <summary>
                   Details <ChevronDown size={18} />
                 </summary>
@@ -1359,14 +1359,14 @@ function ProductDetail({
                 </div>
               </details>
 
-              <details open>
+              <details>
                 <summary>
                   Description <ChevronDown size={18} />
                 </summary>
                 <p className="product-info-text">{item.text || '—'}</p>
               </details>
 
-              <details open>
+              <details>
                 <summary>
                   Quality & Care <ChevronDown size={18} />
                 </summary>
@@ -1386,7 +1386,7 @@ function ProductDetail({
                 </div>
               </details>
 
-              <details open>
+              <details>
                 <summary>
                   Delivery & Returns <ChevronDown size={18} />
                 </summary>
