@@ -1499,34 +1499,6 @@ function Profile({
       {message && <div className="profile-message">{message}</div>}
       {error && <div className="profile-error">{error}</div>}
 
-      <section className="profile-card profile-summary">
-        <div className="profile-avatar">
-          {(profile.full_name || student.full_name || studentId).slice(0, 1).toUpperCase()}
-        </div>
-        <div>
-          <span>Login ID</span>
-          <strong>{profile.login_id || studentId}</strong>
-        </div>
-        <div>
-          <span>Student Name</span>
-          <strong>{student.full_name || '—'}</strong>
-        </div>
-        <div>
-          <span>Student ID</span>
-          <strong>{student.student_code || studentId}</strong>
-        </div>
-        <div>
-          <span>Class / Section</span>
-          <strong>
-            {[student.class_name, student.section].filter(Boolean).join(' / ') || '—'}
-          </strong>
-        </div>
-        <div>
-          <span>Account Type</span>
-          <strong>Parent / Student</strong>
-        </div>
-      </section>
-
       <div className="profile-grid">
         <section className="profile-panel">
           <div className="profile-panel-heading">
