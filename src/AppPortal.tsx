@@ -78,20 +78,62 @@ function CustomerPortal({
     const client = supabase as any
     if (!client || !branchId) return
     let cancelled = false
-    void client
-      .from('students')
-      .select('id,student_code,full_name,class_name,section')
-      .eq('school_id', schoolId)
-      .eq('branch_id', branchId)
-      .eq('status', 'active')
-      .order('full_name')
-      .then(({ data }: { data: any[] | null }) => {
-        if (!cancelled) setStudents(data ?? [])
-      })
+
+    async function loadLinkedStudents() {
+      const { data: auth } = await client.auth.getUser()
+      const userId = auth?.user?.id
+      if (!userId) {
+        if (!cancelled) setStudents([])
+        return
+      }
+
+      // Load the students actually linked to this Parent / Student account.
+      // Do not rely only on school/branch filtering because checkout requires
+      // the student's UUID, while the login ID is a separate value.
+      const { data: links, error: linksError } = await client
+        .from('parent_student_links')
+        .select('student_id,is_primary')
+        .eq('parent_user_id', userId)
+        .order('is_primary', { ascending: false })
+
+      if (linksError) {
+        if (!cancelled) setStudents([])
+        return
+      }
+
+      const linkedIds = (links ?? []).map((x: any) => x.student_id).filter(Boolean)
+      if (!linkedIds.length) {
+        // Fallback for a student account / legacy login where the login ID
+        // itself identifies the student.
+        const { data: byCode } = await client
+          .from('students')
+          .select('id,student_code,full_name,class_name,section')
+          .eq('school_id', schoolId)
+          .eq('branch_id', branchId)
+          .eq('student_code', studentId)
+          .eq('status', 'active')
+          .maybeSingle()
+        if (!cancelled) setStudents(byCode ? [byCode] : [])
+        return
+      }
+
+      const { data: linkedStudents } = await client
+        .from('students')
+        .select('id,student_code,full_name,class_name,section,school_id,branch_id')
+        .in('id', linkedIds)
+        .eq('school_id', schoolId)
+        .eq('branch_id', branchId)
+        .eq('status', 'active')
+        .order('full_name')
+
+      if (!cancelled) setStudents(linkedStudents ?? [])
+    }
+
+    void loadLinkedStudents()
     return () => {
       cancelled = true
     }
-  }, [schoolId, branchId])
+  }, [schoolId, branchId, studentId])
   const add = (item: CartItem) =>
     setCart((items) => {
       const cartKey = item.id + '|' + JSON.stringify(item.selectedVariants || [])
