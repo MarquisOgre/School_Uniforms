@@ -76,5 +76,18 @@ for each row execute function public.set_product_review_verified();
 
 revoke execute on function public.set_product_review_verified() from public, anon, authenticated;
 
-alter publication supabase_realtime add table public.product_reviews;
-alter publication supabase_realtime add table public.support_messages;
+do $
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'product_reviews'
+  ) then
+    alter publication supabase_realtime add table public.product_reviews;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'support_messages'
+  ) then
+    alter publication supabase_realtime add table public.support_messages;
+  end if;
+end $;
