@@ -3230,7 +3230,6 @@ function Select({
   )
 }
 
-
 function Settings() {
   const [mode, setMode] = useState<'test' | 'live'>('test')
   const [keyId, setKeyId] = useState('')
@@ -3405,7 +3404,11 @@ function Settings() {
             <button className="primary-button" disabled={saving} onClick={() => void save()}>
               {saving ? 'Saving...' : 'Save Razorpay Settings'}
             </button>
-            {saved && <span style={{ color: '#16743a', fontSize: '11px', fontWeight: 800 }}>Saved successfully.</span>}
+            {saved && (
+              <span style={{ color: '#16743a', fontSize: '11px', fontWeight: 800 }}>
+                Saved successfully.
+              </span>
+            )}
           </div>
         </Panel>
       )}
