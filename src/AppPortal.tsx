@@ -1260,7 +1260,6 @@ function ProductDetail({
                     className={'detail-gallery-thumb' + (mainImage === url ? ' selected' : '')}
                     key={url + index}
                     onClick={() => {
-                      const image = document.querySelector<HTMLImageElement>('.detail-image img')
                       setMainImage(url as string)
                     }}
                   >
