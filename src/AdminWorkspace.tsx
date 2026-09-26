@@ -3295,11 +3295,11 @@ function Settings() {
   return (
     <>
       <ErrorBox text={error} />
-      {loading ? (
-        <Loading />
-      ) : (
-        <>
-          <Panel>
+      <Panel>
+        {loading ? (
+          <Loading />
+        ) : (
+          <>
             <div className="panel-heading">
               <div>
                 <h2>Razorpay Settings</h2>
@@ -3397,10 +3397,10 @@ function Settings() {
                 </span>
               )}
             </div>
-          </Panel>
-          <BranchPaymentSettings />
-        </>
-      )}
+          </>
+        )}
+      </Panel>
+      <BranchPaymentSettings />
     </>
   )
 }
