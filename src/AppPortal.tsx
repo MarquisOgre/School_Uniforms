@@ -649,7 +649,9 @@ function Packages({
       })
       const priceMap = Object.fromEntries(branchPackages.map((x) => [x.package_id, x.branch_price]))
       Object.values(variantOptions).forEach((options) =>
-        options.sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' })),
+        options.sort((a, b) =>
+          a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }),
+        ),
       )
       if (!cancelled)
         setItems(
@@ -791,10 +793,10 @@ function Products({
         if (x.size_label && sizes[x.product_id] && !sizes[x.product_id].includes(x.size_label)) {
           sizes[x.product_id].push(x.size_label)
           variantOptions[x.product_id].push({
-          id: x.id,
-          label: x.size_label,
-          disabled: x.status !== 'active',
-        })
+            id: x.id,
+            label: x.size_label,
+            disabled: x.status !== 'active',
+          })
         }
       })
       if (!cancelled)
