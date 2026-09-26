@@ -4,7 +4,7 @@ import HomePage from './HomePage'
 import type { CustomerPage } from './AppPortal'
 const AppPortal = lazy(() => import('./AppPortal'))
 const AdminPortal = lazy(() => import('./AdminPortal'))
-import ChatWidget from './ChatWidget'
+const ChatWidget = lazy(() => import('./ChatWidget'))
 
 type PortalMode = 'home' | 'store' | 'admin'
 
@@ -26,9 +26,14 @@ function App() {
     const client = supabase
     let cancelled = false
     async function restore() {
+      const path = window.location.pathname
+      if (path === '/' || path === '') {
+        setMode('home')
+        setSessionRestoring(false)
+        return
+      }
       const { data } = await client.auth.getSession()
       if (cancelled) return
-      const path = window.location.pathname
       if (data.session && path.startsWith('/admin')) {
         const { data: profile } = await client
           .from('profiles')
@@ -63,7 +68,8 @@ function App() {
                         ? 'profile'
                         : 'dashboard'
               setCustomerPage(page)
-              setMode('store')
+              void import('./AppPortal')
+          setMode('store')
               setSessionRestoring(false)
               return
             }
@@ -152,9 +158,14 @@ function App() {
           )
           setMode('store')
         }}
-        onAdmin={() => setMode('admin')}
+        onAdmin={() => {
+          void import('./AdminPortal')
+          setMode('admin')
+        }}
       />
-      <ChatWidget />
+      <Suspense fallback={null}>
+        <ChatWidget />
+      </Suspense>
     </>
   )
 }
