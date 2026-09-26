@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import HomePage from './HomePage'
-import AppPortal, { type CustomerPage } from './AppPortal'
-import AdminPortal from './AdminPortal'
+import type { CustomerPage } from './AppPortal'
+const AppPortal = lazy(() => import('./AppPortal'))
+const AdminPortal = lazy(() => import('./AdminPortal'))
 import ChatWidget from './ChatWidget'
 
 type PortalMode = 'home' | 'store' | 'admin'
@@ -90,8 +91,9 @@ function App() {
     )
   if (mode === 'store')
     return (
-      <>
-        <AppPortal
+      <Suspense fallback={<div className="session-loading"><span>Loading...</span></div>}>
+        <>
+          <AppPortal
           schoolId={school}
           schoolName={schoolName}
           branchName={branchName}
@@ -106,17 +108,20 @@ function App() {
             setMode('home')
           }}
         />
-        <ChatWidget schoolId={school} branchId={branch} />
-      </>
+          <ChatWidget schoolId={school} branchId={branch} />
+        </>
+      </Suspense>
     )
   if (mode === 'admin')
     return (
-      <AdminPortal
+      <Suspense fallback={<div className="session-loading"><span>Loading...</span></div>}>
+        <AdminPortal
         onBack={() => {
           window.history.replaceState({}, '', '/')
           setMode('home')
         }}
-      />
+        />
+      </Suspense>
     )
   return (
     <>
