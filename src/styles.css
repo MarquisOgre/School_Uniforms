@@ -1619,7 +1619,7 @@ a {
 }
 .success-card {
   max-width: 600px;
-  margin: 12vh auto;
+  margin: 0 auto;
   text-align: center;
 }
 .success-icon {
