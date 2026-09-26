@@ -281,6 +281,23 @@ function CustomerPortal({
                 add(x)
                 setSelected(null)
               }}
+              onBuyNow={(x) => {
+                setCart((items) => {
+                  const cartKey = x.id + '|' + JSON.stringify(x.selectedVariants || [])
+                  const normalized = { ...x, id: cartKey }
+                  const existing = items.find((item) => item.id === cartKey)
+                  return existing
+                    ? items.map((item) =>
+                        item.id === cartKey
+                          ? { ...item, quantity: item.quantity + x.quantity }
+                          : item,
+                      )
+                    : [...items, normalized]
+                })
+                setCartOpen(false)
+                setSelected(null)
+                setCheckout('cart')
+              }}
             />
           </main>
         </div>
