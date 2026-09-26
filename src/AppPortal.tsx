@@ -1158,6 +1158,7 @@ function ProductDetail({
 }) {
   const [size, setSize] = useState(''),
     [quantity, setQuantity] = useState(1),
+    [mainImage, setMainImage] = useState(item.image || '/category-packages.jpg'),
     [bundleSizes, setBundleSizes] = useState<Record<string, string>>({})
   const productOptions = item.variantOptions?.length
     ? item.variantOptions
@@ -1192,7 +1193,7 @@ function ProductDetail({
         <div className="detail-gallery">
           <div className="detail-image">
             <img
-              src={item.image || '/category-packages.jpg'}
+              src={mainImage}
               alt={item.title}
               onError={(e) => {
                 e.currentTarget.src = '/category-packages.jpg'
@@ -1207,11 +1208,11 @@ function ProductDetail({
                 .map((url, index) => (
                   <button
                     type="button"
-                    className="detail-gallery-thumb"
+                    className={'detail-gallery-thumb' + (mainImage === url ? ' selected' : '')}
                     key={url + index}
                     onClick={() => {
                       const image = document.querySelector<HTMLImageElement>('.detail-image img')
-                      if (image) image.src = url as string
+                      setMainImage(url as string)
                     }}
                   >
                     <img src={url as string} alt={`Product image ${index + 1}`} />
