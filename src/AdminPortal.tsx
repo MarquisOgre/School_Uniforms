@@ -530,6 +530,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               })
             }
           />
+          <div className="cms-item-grid cms-item-grid-2">
           {content.trust.items
             ? content.trust.items.map((x: any, i: number) => (
                 <div className="home-edit-row" key={i}>
@@ -575,6 +576,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
                   </label>
                 </div>
               ))}
+          </div>
         </section>
 
         <section className="home-edit-section">
@@ -588,6 +590,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               })
             }
           />
+          <div className="cms-item-grid cms-item-grid-2">
           {content.categories.map((x: any, i: number) => (
             <div className="home-edit-row" key={i}>
               <CmsToggle
@@ -617,7 +620,9 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               </label>
             </div>
           ))}
-        </section>
+ 
+          </div>
+       </section>
 
         <section className="home-edit-section">
           <CmsSectionHeading
@@ -630,6 +635,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               })
             }
           />
+          <div className="cms-item-grid cms-item-grid-3">
           {content.featured.map((x: any, i: number) => (
             <div className="home-edit-card" key={i}>
               <div className="cms-item-heading">
@@ -670,7 +676,9 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               </label>
             </div>
           ))}
-        </section>
+ 
+          </div>
+       </section>
 
         <section className="home-edit-section">
           <CmsSectionHeading
@@ -683,6 +691,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               })
             }
           />
+          <div className="cms-field-grid cms-field-grid-2">
           <label>
             Eyebrow
             <input
@@ -725,6 +734,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               onChange={(e) => edit((c) => (c.afterFold.button = e.target.value))}
             />
           </label>
+          </div>
         </section>
 
         <section className="home-edit-section">
@@ -738,6 +748,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               })
             }
           />
+          <div className="cms-item-grid cms-item-grid-2">
           {content.benefits.map((x: any, i: number) => (
             <div className="home-edit-row" key={i}>
               <CmsToggle
@@ -760,7 +771,9 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               </label>
             </div>
           ))}
-        </section>
+ 
+          </div>
+       </section>
 
         <section className="home-edit-section">
           <CmsSectionHeading
@@ -773,6 +786,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               })
             }
           />
+          <div className="cms-field-grid cms-field-grid-2">
           <label>
             Eyebrow
             <input
@@ -801,6 +815,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               onChange={(e) => edit((c) => (c.cta.button = e.target.value))}
             />
           </label>
+          </div>
         </section>
 
         <section className="home-edit-section">
@@ -814,6 +829,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               })
             }
           />
+          <div className="cms-field-grid cms-field-grid-2">
           {['tagline', 'copyright', 'credit', 'secondary'].map((k: string) => (
             <label key={k}>
               {k}
@@ -823,6 +839,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               />
             </label>
           ))}
+          </div>
         </section>
       </div>
     </div>
