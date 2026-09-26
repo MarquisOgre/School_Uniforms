@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Eye, Mail, Pencil, Plus, Save, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
@@ -228,144 +228,296 @@ export default function EmailTemplates() {
         </section>
 
         {editing && (
-          <div className="workspace-modal-backdrop">
-            <div className="workspace-modal" style={{ maxWidth: 1100, width: '94vw' }}>
-              <div className="panel-heading">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="email-template-title"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1000,
+              background: 'rgba(15, 23, 28, 0.62)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 24,
+              boxSizing: 'border-box',
+            }}
+          >
+            <div
+              style={{
+                width: 'min(1120px, 100%)',
+                maxHeight: 'calc(100vh - 48px)',
+                overflowY: 'auto',
+                background: '#fff',
+                borderRadius: 16,
+                boxShadow: '0 24px 80px rgba(0,0,0,.28)',
+                color: '#14252b',
+              }}
+            >
+              <div
+                style={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 20,
+                  padding: '20px 24px',
+                  background: '#fff',
+                  borderBottom: '1px solid #e7e2d8',
+                }}
+              >
                 <div>
-                  <h2>{editing.id ? 'Edit Email Template' : 'Add Email Template'}</h2>
-                  <p className="workspace-muted">
-                    Use double braces for dynamic values, for example {'{{customer_name}}'}.
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: '#a27a16', textTransform: 'uppercase' }}>
+                    Email System
+                  </div>
+                  <h2 id="email-template-title" style={{ margin: '5px 0 4px', fontSize: 25, lineHeight: 1.15 }}>
+                    {editing.id ? 'Edit Email Template' : 'Add Email Template'}
+                  </h2>
+                  <p style={{ margin: 0, color: '#6d7780', fontSize: 13 }}>
+                    Create a reusable system email with dynamic variables.
                   </p>
                 </div>
-                <button className="icon-button" onClick={() => setEditing(null)} aria-label="Close">
+                <button
+                  type="button"
+                  onClick={() => setEditing(null)}
+                  aria-label="Close"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    border: '1px solid #ddd8cf',
+                    borderRadius: 9,
+                    background: '#fff',
+                    cursor: 'pointer',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: '#34434a',
+                  }}
+                >
                   <X size={18} />
                 </button>
               </div>
 
-              <div className="workspace-form-row">
-                <label className="workspace-field">
-                  <span>Template Key</span>
-                  <input
-                    value={editing.template_key}
-                    disabled={!!editing.id}
-                    onChange={(e) => setEditing({ ...editing, template_key: e.target.value })}
-                    placeholder="order_received"
-                  />
-                </label>
-                <label className="workspace-field">
-                  <span>Template Name</span>
-                  <input
-                    value={editing.name}
-                    onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                    placeholder="New Order"
-                  />
-                </label>
-              </div>
+              <div style={{ padding: 24 }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                    gap: 16,
+                    marginBottom: 16,
+                  }}
+                >
+                  <label style={{ display: 'grid', gap: 7, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800 }}>Template Key</span>
+                    <input
+                      value={editing.template_key}
+                      disabled={!!editing.id}
+                      onChange={(e) => setEditing({ ...editing, template_key: e.target.value })}
+                      placeholder="order_received"
+                      style={inputStyle}
+                    />
+                    <small style={hintStyle}>Unique internal key. Example: order_received</small>
+                  </label>
 
-              <label className="workspace-field">
-                <span>Description</span>
-                <input
-                  value={editing.description || ''}
-                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-                />
-              </label>
-
-              <label className="workspace-field">
-                <span>Email Subject</span>
-                <input
-                  value={editing.subject}
-                  onChange={(e) => setEditing({ ...editing, subject: e.target.value })}
-                />
-              </label>
-
-              <div className="workspace-form-row">
-                <label className="workspace-field">
-                  <span>HTML Body</span>
-                  <textarea
-                    value={editing.html_body}
-                    onChange={(e) => setEditing({ ...editing, html_body: e.target.value })}
-                    rows={16}
-                    style={{ fontFamily: 'monospace', fontSize: 12 }}
-                  />
-                </label>
-                <label className="workspace-field">
-                  <span>Plain Text Fallback</span>
-                  <textarea
-                    value={editing.text_body || ''}
-                    onChange={(e) => setEditing({ ...editing, text_body: e.target.value })}
-                    rows={16}
-                  />
-                </label>
-              </div>
-
-              <label className="workspace-field">
-                <span>Variables (comma separated)</span>
-                <input
-                  value={editing.variables.join(', ')}
-                  onChange={(e) =>
-                    setEditing({
-                      ...editing,
-                      variables: e.target.value
-                        .split(',')
-                        .map((x) => x.trim())
-                        .filter(Boolean),
-                    })
-                  }
-                  placeholder="site_name, customer_name, order_number"
-                />
-              </label>
-
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  margin: '12px 0',
-                  fontWeight: 700,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={editing.enabled}
-                  onChange={(e) => setEditing({ ...editing, enabled: e.target.checked })}
-                />
-                Template enabled
-              </label>
-
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
-                <button className="secondary-button" onClick={() => setPreview((x) => !x)}>
-                  <Eye size={15} /> {preview ? 'Hide Preview' : 'Preview'}
-                </button>
-                <button className="secondary-button" onClick={() => setEditing(null)}>
-                  Cancel
-                </button>
-                <button className="primary-button" disabled={saving} onClick={() => void save()}>
-                  <Save size={15} /> {saving ? 'Saving...' : 'Save Template'}
-                </button>
-              </div>
-
-              {preview && (
-                <div style={{ marginTop: 18, borderTop: '1px solid #eee', paddingTop: 18 }}>
-                  <div className="workspace-muted" style={{ marginBottom: 8 }}>
-                    Subject Preview
-                  </div>
-                  <div style={{ fontWeight: 800, marginBottom: 14 }}>
-                    {replacePreview(editing.subject, editing.variables)}
-                  </div>
-                  <iframe
-                    title="Email preview"
-                    sandbox=""
-                    srcDoc={replacePreview(editing.html_body, editing.variables)}
-                    style={{
-                      width: '100%',
-                      minHeight: 420,
-                      border: '1px solid #ddd',
-                      borderRadius: 8,
-                      background: '#fff',
-                    }}
-                  />
+                  <label style={{ display: 'grid', gap: 7, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800 }}>Template Name</span>
+                    <input
+                      value={editing.name}
+                      onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                      placeholder="New Order"
+                      style={inputStyle}
+                    />
+                    <small style={hintStyle}>The name shown to administrators.</small>
+                  </label>
                 </div>
-              )}
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                    gap: 16,
+                    marginBottom: 16,
+                  }}
+                >
+                  <label style={{ display: 'grid', gap: 7, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800 }}>Description</span>
+                    <input
+                      value={editing.description || ''}
+                      onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                      placeholder="Sent after a new order is placed."
+                      style={inputStyle}
+                    />
+                  </label>
+
+                  <label style={{ display: 'grid', gap: 7, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800 }}>Email Subject</span>
+                    <input
+                      value={editing.subject}
+                      onChange={(e) => setEditing({ ...editing, subject: e.target.value })}
+                      placeholder="Order {{order_number}} received — {{site_name}}"
+                      style={inputStyle}
+                    />
+                  </label>
+                </div>
+
+                <div
+                  style={{
+                    border: '1px solid #e4dfd6',
+                    borderRadius: 12,
+                    padding: 16,
+                    background: '#faf9f6',
+                    marginBottom: 16,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center', marginBottom: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 850 }}>Email Content</div>
+                      <div style={{ fontSize: 12, color: '#737d84', marginTop: 3 }}>
+                        HTML is sent to modern email clients. Plain text is the fallback.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => setPreview((x) => !x)}
+                    >
+                      <Eye size={15} /> {preview ? 'Hide Preview' : 'Preview Email'}
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, .65fr)',
+                      gap: 14,
+                    }}
+                  >
+                    <label style={{ display: 'grid', gap: 7, minWidth: 0 }}>
+                      <span style={{ fontSize: 12, fontWeight: 800 }}>HTML Body</span>
+                      <textarea
+                        value={editing.html_body}
+                        onChange={(e) => setEditing({ ...editing, html_body: e.target.value })}
+                        rows={18}
+                        spellCheck={false}
+                        style={{ ...textareaStyle, minHeight: 340 }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'grid', gap: 7, minWidth: 0 }}>
+                      <span style={{ fontSize: 12, fontWeight: 800 }}>Plain Text Fallback</span>
+                      <textarea
+                        value={editing.text_body || ''}
+                        onChange={(e) => setEditing({ ...editing, text_body: e.target.value })}
+                        rows={18}
+                        style={{ ...textareaStyle, minHeight: 340, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55 }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    gap: 16,
+                    alignItems: 'end',
+                  }}
+                >
+                  <label style={{ display: 'grid', gap: 7, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800 }}>Available Variables</span>
+                    <input
+                      value={editing.variables.join(', ')}
+                      onChange={(e) =>
+                        setEditing({
+                          ...editing,
+                          variables: e.target.value.split(',').map((x) => x.trim()).filter(Boolean),
+                        })
+                      }
+                      placeholder="site_name, customer_name, order_number"
+                      style={inputStyle}
+                    />
+                    <small style={hintStyle}>
+                      Use variables inside the subject or body like <code>{'{{customer_name}}'}</code>.
+                    </small>
+                  </label>
+
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 9,
+                      padding: '11px 14px',
+                      border: '1px solid #e4dfd6',
+                      borderRadius: 9,
+                      background: '#fff',
+                      fontSize: 13,
+                      fontWeight: 750,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={editing.enabled}
+                      onChange={(e) => setEditing({ ...editing, enabled: e.target.checked })}
+                    />
+                    Template enabled
+                  </label>
+                </div>
+
+                {preview && (
+                  <div
+                    style={{
+                      marginTop: 18,
+                      border: '1px solid #e4dfd6',
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div style={{ padding: '12px 15px', background: '#f7f5f0', borderBottom: '1px solid #e4dfd6', fontWeight: 800, fontSize: 12 }}>
+                      EMAIL PREVIEW
+                    </div>
+                    <div style={{ padding: 15, background: '#fff' }}>
+                      <div style={{ fontSize: 12, color: '#737d84', marginBottom: 5 }}>Subject</div>
+                      <div style={{ fontWeight: 800, marginBottom: 14 }}>
+                        {replacePreview(editing.subject, editing.variables)}
+                      </div>
+                      <iframe
+                        title="Email preview"
+                        sandbox=""
+                        srcDoc={replacePreview(editing.html_body, editing.variables)}
+                        style={{ width: '100%', height: 440, border: '1px solid #ddd8cf', borderRadius: 8, background: '#fff', display: 'block' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {error && (
+                  <div style={{ marginTop: 16, padding: '11px 13px', borderRadius: 8, background: '#fff1f1', color: '#a32929', border: '1px solid #efcaca', fontSize: 13 }}>
+                    {error}
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    gap: 10,
+                    marginTop: 20,
+                    paddingTop: 18,
+                    borderTop: '1px solid #e7e2d8',
+                  }}
+                >
+                  <button type="button" className="secondary-button" onClick={() => setEditing(null)}>
+                    Cancel
+                  </button>
+                  <button type="button" className="primary-button" disabled={saving} onClick={() => void save()}>
+                    <Save size={15} /> {saving ? 'Saving...' : 'Save Template'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
