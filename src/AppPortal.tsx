@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type React from 'react'
 import {
   ArrowRight,
@@ -28,9 +28,10 @@ import {
   Phone,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
-import CheckoutFlow, { type CheckoutCartItem } from './CheckoutFlow'
+import type { CheckoutCartItem } from './CheckoutFlow'
+const CheckoutFlow = lazy(() => import('./CheckoutFlow'))
 import { CustomerPageFrame, GlobalHeader } from './components/GlobalChrome'
-import ProductReviews from './ProductReviews'
+const ProductReviews = lazy(() => import('./ProductReviews'))
 
 export type CustomerPage = 'dashboard' | 'packages' | 'products' | 'orders' | 'profile'
 type CartItem = CheckoutCartItem & {
@@ -216,7 +217,8 @@ function CustomerPortal({
         branchName={branchName}
         userLabel={studentId}
       >
-        <CheckoutFlow
+        <Suspense fallback={<div className="workspace-empty">Loading checkout...</div>}>
+          <CheckoutFlow
           schoolId={schoolId}
           branchId={branchId}
           cart={cart}
@@ -231,6 +233,7 @@ function CustomerPortal({
             setCheckout('success')
           }}
         />
+        </Suspense>
       </CustomerPageFrame>
     )
   if (selected)
