@@ -821,6 +821,12 @@ export default function HomePage({
     [error, setError] = useState('')
 
   useEffect(() => {
+    const openLogin = () => setShowLogin(true)
+    window.addEventListener('open-parent-login', openLogin)
+    return () => window.removeEventListener('open-parent-login', openLogin)
+  }, [])
+
+  useEffect(() => {
     let cancelled = false
     async function load() {
       const client = supabase
