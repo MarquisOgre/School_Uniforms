@@ -69,7 +69,7 @@ function App() {
                         : 'dashboard'
               setCustomerPage(page)
               void import('./AppPortal')
-          setMode('store')
+              setMode('store')
               setSessionRestoring(false)
               return
             }
