@@ -1494,7 +1494,11 @@ function ProductDetail({
           ) : null}
         </div>
       </div>
-      {item.type === 'product' ? <ProductReviews productId={item.sourceId} /> : null}
+      {item.type === 'product' ? (
+        <Suspense fallback={<div className="workspace-empty">Loading reviews...</div>}>
+          <ProductReviews productId={item.sourceId} />
+        </Suspense>
+      ) : null}
     </div>
   )
 }
