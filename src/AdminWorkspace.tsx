@@ -405,21 +405,6 @@ function Products() {
     if (r.error) setError(r.error.message || '')
   }
 
-  const loadItemVariants = async (productId: string) => {
-    if (!supabase || !productId) {
-      setItemVariants([])
-      return
-    }
-
-    const r = await dbFrom('product_variants')
-      .select('id,sku,size_label,color,variant_name,status')
-      .eq('product_id', productId)
-      .eq('status', 'active')
-      .order('size_label')
-
-    setItemVariants(r.data ?? [])
-    if (r.error) setError(r.error.message || '')
-  }
 
   useEffect(() => {
     void load()
@@ -1216,6 +1201,20 @@ function Packages() {
     }
     if (r.error) setError(r.error.message || '')
   }
+  const loadItemVariants = async (productId: string) => {
+    if (!supabase || !productId) {
+      setItemVariants([])
+      return
+    }
+    const r = await dbFrom('product_variants')
+      .select('id,sku,size_label,color,variant_name,status')
+      .eq('product_id', productId)
+      .eq('status', 'active')
+      .order('size_label')
+    setItemVariants(r.data ?? [])
+    if (r.error) setError(r.error.message || '')
+  }
+
   useEffect(() => {
     void load()
     const addHandler = () =>
