@@ -2972,7 +2972,7 @@ function Reports() {
 
 function Coupons() {
   const [rows, setRows] = useState<any[]>([]),
-    [usage, setUsage] = useState<Record<string, number>>({}) ,
+    [usage, setUsage] = useState<Record<string, number>>({}),
     [editing, setEditing] = useState<any>(null),
     [error, setError] = useState('')
   const load = async () => {
@@ -2984,7 +2984,9 @@ function Coupons() {
     if (couponIds.length) {
       const u = await dbFrom('order_coupons').select('coupon_id').in('coupon_id', couponIds)
       const counts: Record<string, number> = {}
-      ;(u.data ?? []).forEach((x: any) => { counts[x.coupon_id] = (counts[x.coupon_id] || 0) + 1 })
+      ;(u.data ?? []).forEach((x: any) => {
+        counts[x.coupon_id] = (counts[x.coupon_id] || 0) + 1
+      })
       setUsage(counts)
     } else setUsage({})
   }
@@ -3048,7 +3050,11 @@ function Coupons() {
               <span>{x.discount_type}</span>
               <span>{x.discount_value}</span>
               <span>{usage[x.id] || 0}</span>
-              <span>{x.usage_limit == null ? 'Unlimited' : Math.max(Number(x.usage_limit) - (usage[x.id] || 0), 0)}</span>
+              <span>
+                {x.usage_limit == null
+                  ? 'Unlimited'
+                  : Math.max(Number(x.usage_limit) - (usage[x.id] || 0), 0)}
+              </span>
               <span>{x.status}</span>
               <button onClick={() => setEditing({ ...x })}>Edit</button>
             </div>
