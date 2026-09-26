@@ -3227,9 +3227,9 @@ function Settings() {
 
   const webhookUrl = 'https://uovhndbzkdbfyjahakqf.supabase.co/functions/v1/razorpay-webhook'
 
-  const load = async () => {
+  const load = async (showLoader = true) => {
     if (!supabase) return
-    setLoading(true)
+    if (showLoader) setLoading(true)
     setError('')
     const { data, error: e } = await supabase.functions.invoke('razorpay-admin-settings', {
       method: 'GET',
@@ -3240,12 +3240,42 @@ function Settings() {
       setKeyId(data?.key_id || '')
       setKeyConfigured(!!data?.key_secret_configured)
       setWebhookConfigured(!!data?.webhook_secret_configured)
+      try {
+        localStorage.setItem(
+          'school_uniforms_razorpay_settings_ui',
+          JSON.stringify({
+            mode: data?.mode === 'live' ? 'live' : 'test',
+            keyId: data?.key_id || '',
+            keyConfigured: !!data?.key_secret_configured,
+            webhookConfigured: !!data?.webhook_secret_configured,
+          }),
+        )
+      } catch {
+        // Ignore unavailable local storage.
+      }
     }
     setLoading(false)
   }
 
   useEffect(() => {
-    void load()
+    let hasCache = false
+    try {
+      const raw = localStorage.getItem('school_uniforms_razorpay_settings_ui')
+      if (raw) {
+        const cached = JSON.parse(raw)
+        if (cached && typeof cached === 'object') {
+          setMode(cached.mode === 'live' ? 'live' : 'test')
+          setKeyId(cached.keyId || '')
+          setKeyConfigured(!!cached.keyConfigured)
+          setWebhookConfigured(!!cached.webhookConfigured)
+          setLoading(false)
+          hasCache = true
+        }
+      }
+    } catch {
+      // Ignore malformed or unavailable local storage.
+    }
+    void load(!hasCache)
   }, [])
 
   const save = async () => {
