@@ -45,6 +45,9 @@ type StudentOption = {
   full_name: string
   class_name: string | null
   section: string | null
+  school_id?: string | null
+  branch_id?: string | null
+  status?: string | null
 }
 type Step = 'cart' | 'details' | 'payment' | 'success'
 type Address = {
@@ -168,13 +171,13 @@ export default function CheckoutFlow({
       if (linkedIds.length) {
         const { data: linkedStudents } = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section')
+          .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
           .in('id', linkedIds)
-          .eq('school_id', schoolId)
-          .eq('branch_id', branchId)
           .eq('status', 'active')
           .order('full_name')
-        resolvedStudents = linkedStudents ?? []
+        // Prefer the relationship result only when it actually returned rows.
+        // Otherwise keep the already-resolved parent portal students.
+        if (linkedStudents?.length) resolvedStudents = linkedStudents as StudentOption[]
       }
 
       // Also support a student account whose students.user_id points directly
@@ -216,11 +219,17 @@ export default function CheckoutFlow({
 
       if (resolvedStudents.length === 1) {
         setStudentId(resolvedStudents[0].id)
-        setStudentLoadError('')
+        const onlyStudent = resolvedStudents[0]
+        setStudentLoadError(
+          onlyStudent.school_id && onlyStudent.branch_id &&
+          (onlyStudent.school_id !== schoolId || onlyStudent.branch_id !== branchId)
+            ? 'Your linked student is active, but the student is assigned to a different school or branch. Please contact the school administrator to correct the student assignment.'
+            : '',
+        )
       } else if (resolvedStudents.length === 0) {
         setStudentId('')
         setStudentLoadError(
-          'No active student is linked to this account. Please ask the school administrator to activate/link the student before placing an order.',
+          'No active student link was found for this account. Please ask the school administrator to activate/link the student before placing an order.',
         )
       } else {
         setStudentId('')
@@ -273,9 +282,16 @@ export default function CheckoutFlow({
       '&cu=INR'
     )
   }, [settings, payable])
-  const selectedStudentId = checkoutStudents.length === 1 ? checkoutStudents[0].id : studentId
+  const selectedStudent = checkoutStudents.find((s) => s.id === (checkoutStudents.length === 1 ? checkoutStudents[0].id : studentId))
+  const selectedStudentId = selectedStudent?.id || ''
+  const selectedStudentMatchesContext = Boolean(
+    selectedStudent &&
+      selectedStudent.school_id === schoolId &&
+      selectedStudent.branch_id === branchId,
+  )
   const detailsValid = Boolean(
     selectedStudentId &&
+      selectedStudentMatchesContext &&
       address.name.trim() &&
       /^[0-9]{10}$/.test(address.phone.trim()) &&
       address.line1.trim() &&
