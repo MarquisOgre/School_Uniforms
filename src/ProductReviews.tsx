@@ -18,7 +18,7 @@ export default function ProductReviews({ productId }: { productId?: string }) {
   const [filter, setFilter] = useState<number | null>(null)
   const [sort, setSort] = useState<'newest' | 'highest' | 'lowest'>('newest')
   const [openForm, setOpenForm] = useState(false)
-  const [rating, setRating] = useState(5)
+  const [rating, setRating] = useState(0)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
@@ -76,6 +76,10 @@ export default function ProductReviews({ productId }: { productId?: string }) {
 
   const submit = async () => {
     if (!supabase || !productId) return
+    if (!rating) {
+      setMessage('Please select a rating.')
+      return
+    }
     setSaving(true)
     setMessage('')
     const { data: auth } = await (supabase as any).auth.getUser()
@@ -109,7 +113,7 @@ export default function ProductReviews({ productId }: { productId?: string }) {
     if (error) setMessage(error.message)
     else {
       setOpenForm(false)
-      setRating(5)
+      setRating(0)
       setTitle('')
       setBody('')
       await load()
