@@ -6649,6 +6649,28 @@ a {
   white-space: nowrap;
 }
 
+/* Variant rows: keep the complete SKU visible and push Size, Color, Price
+   and Actions to the far right. The variant table can scroll horizontally
+   when a long SKU needs more room. */
+.workspace-row.variant-row {
+  grid-template-columns: minmax(max-content, 1fr) max-content max-content max-content 82px;
+  min-width: max-content;
+}
+
+.workspace-row.variant-row > strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.workspace-row.variant-row > span {
+  white-space: nowrap;
+}
+
+.workspace-row.variant-row button {
+  justify-self: end;
+}
+
 @media (max-width: 760px) {
   .workspace-row.product-row {
     grid-template-columns: 1fr;
