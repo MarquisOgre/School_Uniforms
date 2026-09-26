@@ -372,7 +372,11 @@ export default function CheckoutFlow({
       <div className="checkout-page school-checkout-unified">
         <div className="school-checkout-heading">
           <h1>Checkout</h1>
-          <button className="school-checkout-back" onClick={() => setStep(null)} aria-label="Back to shopping">
+          <button
+            className="school-checkout-back"
+            onClick={() => setStep(null)}
+            aria-label="Back to shopping"
+          >
             <ChevronLeft size={18} /> Continue Shopping
           </button>
         </div>
@@ -396,19 +400,25 @@ export default function CheckoutFlow({
                       <strong>{x.title}</strong>
                       {x.type === 'package' && x.selectedVariants?.length ? (
                         <small>
-                          {x.selectedVariants
-                            .map((v) => v.sizeLabel || 'Selected')
-                            .join(' • ')}
+                          {x.selectedVariants.map((v) => v.sizeLabel || 'Selected').join(' • ')}
                         </small>
                       ) : x.size && x.size !== 'Multiple' ? (
                         <small>Size {x.size}</small>
                       ) : null}
                       <div className="school-order-controls">
-                        <button type="button" onClick={() => update(x.id, -1)} aria-label="Decrease quantity">
+                        <button
+                          type="button"
+                          onClick={() => update(x.id, -1)}
+                          aria-label="Decrease quantity"
+                        >
                           <Minus size={13} />
                         </button>
                         <span>{x.quantity}</span>
-                        <button type="button" onClick={() => update(x.id, 1)} aria-label="Increase quantity">
+                        <button
+                          type="button"
+                          onClick={() => update(x.id, 1)}
+                          aria-label="Increase quantity"
+                        >
                           <Plus size={13} />
                         </button>
                         <button
@@ -523,7 +533,9 @@ export default function CheckoutFlow({
             ) : (
               <>
                 {settings.pay_at_school_enabled && (
-                  <label className={`school-payment-option ${paymentMethod === 'pay_at_school' ? 'active' : ''}`}>
+                  <label
+                    className={`school-payment-option ${paymentMethod === 'pay_at_school' ? 'active' : ''}`}
+                  >
                     <input
                       type="radio"
                       name="school-payment"
@@ -539,7 +551,9 @@ export default function CheckoutFlow({
                 )}
 
                 {settings.upi_enabled && settings.upi_id && (
-                  <label className={`school-payment-option ${paymentMethod === 'upi' ? 'active' : ''}`}>
+                  <label
+                    className={`school-payment-option ${paymentMethod === 'upi' ? 'active' : ''}`}
+                  >
                     <input
                       type="radio"
                       name="school-payment"
@@ -558,13 +572,20 @@ export default function CheckoutFlow({
                   <div className="school-upi-panel">
                     <div className="school-upi-qr">
                       {upiUri ? (
-                        <QRCodeSVG value={upiUri} size={190} marginSize={4} title="UPI payment QR code" />
+                        <QRCodeSVG
+                          value={upiUri}
+                          size={190}
+                          marginSize={4}
+                          title="UPI payment QR code"
+                        />
                       ) : null}
                     </div>
                     <strong>₹{payable.toLocaleString('en-IN')}</strong>
                     <p>UPI ID: {settings.upi_id}</p>
                     <p>{settings.upi_payee_name || 'School Uniforms'}</p>
-                    <a className="upi-open-button" href={upiUri}>Open UPI App</a>
+                    <a className="upi-open-button" href={upiUri}>
+                      Open UPI App
+                    </a>
                     <label className="school-upi-reference">
                       Transaction / reference ID<span>*</span>
                       <input
@@ -585,7 +606,11 @@ export default function CheckoutFlow({
 
                 <button
                   className="primary-button school-place-order"
-                  disabled={loading || !paymentValid || (!settings.pay_at_school_enabled && !settings.upi_enabled)}
+                  disabled={
+                    loading ||
+                    !paymentValid ||
+                    (!settings.pay_at_school_enabled && !settings.upi_enabled)
+                  }
                   onClick={() => void placeOrder()}
                 >
                   {loading ? (
