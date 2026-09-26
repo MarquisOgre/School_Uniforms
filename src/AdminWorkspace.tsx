@@ -1734,6 +1734,18 @@ function OrdersAdmin({ search }: { search: string }) {
       setRows((current) =>
         current.map((row) => (row.id === orderId ? { ...row, status: result.data.status } : row)),
       )
+      const templateByStatus: Record<string, string> = {
+        processing: 'order_processing',
+        completed: 'order_completed',
+        cancelled: 'order_cancelled',
+        refunded: 'refund_processed',
+      }
+      const templateKey = templateByStatus[status]
+      if (templateKey) {
+        void supabase.functions.invoke('send-system-email', {
+          body: { order_id: orderId, template_key: templateKey },
+        })
+      }
     }
 
     setUpdatingStatus(null)
