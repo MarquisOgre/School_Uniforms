@@ -420,7 +420,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
     })
   return (
     <div className="admin-shell">
-      <div className="admin-content">
+      <div className="admin-content homepage-cms-content">
         <div className="admin-title">
           <div>
             <p className="eyebrow">HOMEPAGE CMS</p>
