@@ -10,6 +10,9 @@ type GlobalHeaderProps = {
   onLogout?: () => void
   cartCount?: number
   onCart?: () => void
+  schoolName?: string
+  branchName?: string
+  userLabel?: string
 }
 
 export function GlobalHeader({
@@ -21,17 +24,39 @@ export function GlobalHeader({
   onLogout,
   cartCount = 0,
   onCart,
+  schoolName,
+  branchName,
+  userLabel,
 }: GlobalHeaderProps) {
   return (
     <header className={`global-header global-header-${portal}`}>
       <div className="global-header-inner">
-        <div className="global-brand">
-          <img src="/logo.png" alt="Artisan" />
-          <div>
-            <strong>{title}</strong>
-            {subtitle && <span>{subtitle}</span>}
+        {portal === 'customer' && schoolName ? (
+          <div className="customer-header-school">
+            <strong>{schoolName}</strong>
+            {branchName && <span>{branchName}</span>}
           </div>
-        </div>
+        ) : (
+          <div className="global-brand">
+            <img src="/logo.png" alt="Artisan" />
+            <div>
+              <strong>{title}</strong>
+              {subtitle && <span>{subtitle}</span>}
+            </div>
+          </div>
+        )}
+        {portal === 'customer' && schoolName && (
+          <div className="customer-header-title">{title}</div>
+        )}
+        {portal === 'customer' && schoolName && (
+          <div className="customer-header-user">
+            <div className="customer-header-avatar">{(userLabel || 'U').slice(0, 1).toUpperCase()}</div>
+            <div>
+              <strong>{userLabel || 'Parent / Student'}</strong>
+              <span>Parent / Student</span>
+            </div>
+          </div>
+        )}
         <div className="global-header-actions">
           {onCart && (
             <button className="global-button global-button-light" onClick={onCart}>
@@ -79,6 +104,9 @@ export function CustomerPageFrame({
   onLogout,
   cartCount,
   onCart,
+  schoolName,
+  branchName,
+  userLabel,
   children,
 }: {
   title: string
@@ -100,6 +128,9 @@ export function CustomerPageFrame({
         onLogout={onLogout}
         cartCount={cartCount}
         onCart={onCart}
+        schoolName={schoolName}
+        branchName={branchName}
+        userLabel={userLabel}
       />
       <main className="customer-page-frame-content">{children}</main>
     </div>
