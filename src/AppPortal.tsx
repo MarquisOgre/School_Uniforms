@@ -1619,10 +1619,12 @@ function Profile({
   studentId,
   schoolId,
   branchId,
+  students = [],
 }: {
   studentId: string
   schoolId: string
   branchId: string
+  students?: any[]
 }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -2024,38 +2026,28 @@ function Profile({
           <div className="profile-panel-heading">
             <div>
               <h3>Student Information</h3>
-              <p>Information linked to this school account.</p>
+              <p>All students linked to this Parent / Student account.</p>
             </div>
             <UserRound size={20} />
           </div>
-          <div className="profile-readonly-grid">
-            <div>
-              <span>Student Name</span>
-              <strong>{student.full_name || '—'}</strong>
-            </div>
-            <div>
-              <span>Student ID</span>
-              <strong>{student.student_code || studentId}</strong>
-            </div>
-            <div>
-              <span>Class</span>
-              <strong>{student.class_name || '—'}</strong>
-            </div>
-            <div>
-              <span>Section</span>
-              <strong>{student.section || '—'}</strong>
-            </div>
-            <div>
-              <span>Gender</span>
-              <strong>{student.gender || '—'}</strong>
-            </div>
-            <div>
-              <span>Date of Birth</span>
-              <strong>{student.date_of_birth || '—'}</strong>
-            </div>
+          <div className="profile-students-list">
+            {(students.length ? students : [student]).map((child: any) => (
+              <div className="profile-student-card" key={child.id || child.student_code}>
+                <div className="profile-student-card-head">
+                  <div>
+                    <strong>{child.full_name || "Student"}</strong>
+                    <span>{child.student_code || studentId}</span>
+                  </div>
+                  <span>{child.class_name || "Class"}{child.section ? ` • ${child.section}` : ""}</span>
+                </div>
+                <div className="profile-readonly-grid">
+                  <div><span>Gender</span><strong>{child.gender || "—"}</strong></div>
+                  <div><span>Date of Birth</span><strong>{child.date_of_birth || "—"}</strong></div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
-
         <section className="profile-panel profile-address-panel">
           <div className="profile-panel-heading">
             <div>
