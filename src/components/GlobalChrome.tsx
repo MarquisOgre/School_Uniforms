@@ -126,8 +126,6 @@ export function CustomerPageFrame({
         portal="customer"
         title=""
         subtitle={subtitle}
-        onBack={onBack}
-        backLabel="Dashboard"
         onLogout={onLogout}
         cartCount={cartCount}
         onCart={onCart}
