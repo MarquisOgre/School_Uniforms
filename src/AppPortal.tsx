@@ -775,7 +775,7 @@ function Packages({
           variantsByProduct[x.product_id].push({ id: x.id, label: x.size_label })
       })
       const priceMap = Object.fromEntries(branchPackages.map((x) => [x.package_id, x.branch_price]))
-      Object.values(variantOptions).forEach((options) =>
+      Object.values(variantsByProduct).forEach((options) =>
         options.sort((a, b) =>
           a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }),
         ),
