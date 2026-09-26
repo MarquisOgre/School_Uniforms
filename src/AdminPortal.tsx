@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type React from 'react'
 import {
   Building2,
@@ -14,9 +14,9 @@ import {
   Settings,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
-import AdminWorkspace from './AdminWorkspace'
+const AdminWorkspace = lazy(() => import('./AdminWorkspace'))
 import { DEFAULT_HOME } from './HomePage'
-import SupportChatAdmin from './SupportChatAdmin'
+const SupportChatAdmin = lazy(() => import('./SupportChatAdmin'))
 
 type AdminTool =
   | 'home'
@@ -268,13 +268,17 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   if (tool === 'support')
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
-        <SupportChatAdmin />
+        <Suspense fallback={<div className="workspace-empty">Loading support...</div>}>
+          <SupportChatAdmin />
+        </Suspense>
       </AdminLayout>
     )
   if (tool === 'settings')
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
-        <AdminWorkspace module="settings" onBack={() => setTool('packages')} />
+        <Suspense fallback={<div className="workspace-empty">Loading settings...</div>}>
+          <AdminWorkspace module="settings" onBack={() => setTool('packages')} />
+        </Suspense>
       </AdminLayout>
     )
   if (
@@ -289,12 +293,16 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   )
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
-        <AdminWorkspace module={tool} onBack={() => setTool('packages')} />
+        <Suspense fallback={<div className="workspace-empty">Loading admin module...</div>}>
+          <AdminWorkspace module={tool} onBack={() => setTool('packages')} />
+        </Suspense>
       </AdminLayout>
     )
   return (
     <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
-      <AdminWorkspace module="packages" onBack={() => setTool('packages')} />
+      <Suspense fallback={<div className="workspace-empty">Loading admin module...</div>}>
+        <AdminWorkspace module="packages" onBack={() => setTool('packages')} />
+      </Suspense>
     </AdminLayout>
   )
 }
