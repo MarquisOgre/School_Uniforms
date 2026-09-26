@@ -3,6 +3,12 @@ import type React from 'react'
 import {
   ArrowRight,
   Building2,
+  Ban,
+  CheckCircle2,
+  ChevronDown,
+  RotateCcw,
+  ShieldCheck,
+  Truck,
   ChevronLeft,
   LogOut,
   ClipboardList,
@@ -581,7 +587,7 @@ function Packages({
       const [p, pi] = await Promise.all([
         client
           .from('uniform_packages')
-          .select('id,name,description,gender,image_url,base_price')
+          .select('id,name,description,product_type,occasion_type,gender,material,brand,quality,fabric,care,delivery_returns,cod_available,custom_order_cod,easy_returns,express_shipping,image_url,base_price')
           .in('id', ids)
           .eq('status', 'active')
           .order('name'),
@@ -768,7 +774,19 @@ function Products({
         id: string
         name: string
         description: string | null
+        product_type: string | null
+        occasion_type: string | null
         gender: string | null
+        material: string | null
+        brand: string | null
+        quality: string | null
+        fabric: string | null
+        care: string | null
+        delivery_returns: string | null
+        cod_available: boolean | null
+        custom_order_cod: boolean | null
+        easy_returns: boolean | null
+        express_shipping: boolean | null
         image_url: string | null
         base_price: number | null
       }>
@@ -808,6 +826,18 @@ function Products({
             price: Number(priceMap[x.id] ?? x.base_price ?? 0),
             quantity: 1,
             text: x.description || 'School-approved individual product',
+            productType: x.product_type || '',
+            occasionType: x.occasion_type || '',
+            material: x.material || '',
+            brand: x.brand || '',
+            quality: x.quality || '',
+            fabric: x.fabric || '',
+            care: x.care || '',
+            deliveryReturns: x.delivery_returns || '',
+            codAvailable: x.cod_available !== false,
+            customOrderCod: x.custom_order_cod === true,
+            easyReturns: x.easy_returns !== false,
+            expressShipping: x.express_shipping !== false,
             sourceId: x.id,
             image: x.image_url || '/category-accessories.jpg',
             sizeOptions: sizes[x.id] || [],
@@ -1070,6 +1100,55 @@ function ProductDetail({
           >
             Add to Cart <ShoppingCart size={18} />
           </button>
+
+          {item.type === 'product' ? (
+            <div className="product-detail-information">
+              <div className="product-benefit-list">
+                {item.codAvailable !== false ? (
+                  <div><CheckCircle2 size={20} /><strong>COD Available</strong></div>
+                ) : null}
+                {item.customOrderCod === true ? (
+                  <div className="warning"><Ban size={20} /><strong>No COD on Custom Order (Embroidery)</strong></div>
+                ) : null}
+                {item.easyReturns !== false ? (
+                  <div><RotateCcw size={20} /><strong>Easy Returns & Exchange</strong></div>
+                ) : null}
+                {item.expressShipping !== false ? (
+                  <div><Truck size={20} /><strong>1–3 Day Express Shipping</strong></div>
+                ) : null}
+              </div>
+
+              <details open>
+                <summary>Details <ChevronDown size={18} /></summary>
+                <div className="product-info-grid">
+                  <div><strong>Product Type:</strong><span>{item.productType || '—'}</span></div>
+                  <div><strong>Occasion Type:</strong><span>{item.occasionType || '—'}</span></div>
+                  <div><strong>Gender:</strong><span>{item.gender || '—'}</span></div>
+                  <div><strong>Material:</strong><span>{item.material || '—'}</span></div>
+                  <div><strong>Brand:</strong><span>{item.brand || '—'}</span></div>
+                </div>
+              </details>
+
+              <details open>
+                <summary>Description <ChevronDown size={18} /></summary>
+                <p className="product-info-text">{item.text || '—'}</p>
+              </details>
+
+              <details open>
+                <summary>Quality & Care <ChevronDown size={18} /></summary>
+                <div className="product-info-grid">
+                  <div><strong>Quality:</strong><span>{item.quality || '—'}</span></div>
+                  <div><strong>Fabric:</strong><span>{item.fabric || '—'}</span></div>
+                  <div className="product-info-care"><strong>Care:</strong><span>{item.care || '—'}</span></div>
+                </div>
+              </details>
+
+              <details open>
+                <summary>Delivery & Returns <ChevronDown size={18} /></summary>
+                <p className="product-info-text">{item.deliveryReturns || '—'}</p>
+              </details>
+            </div>
+          ) : null}
         </div>
       </div>
       {item.type === 'product' ? <ProductReviews productId={item.sourceId} /> : null}
