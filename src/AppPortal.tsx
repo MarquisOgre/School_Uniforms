@@ -357,7 +357,7 @@ function CustomerPortal({
                       : page === 'orders'
                         ? 'My Orders'
                         : 'My Profile'}
-                {page === 'dashboard' && <span>, {studentId}</span>}
+                {page === 'dashboard' && <span>, Family Account</span>}
               </h1>
             </div>
             <div className="header-user">
