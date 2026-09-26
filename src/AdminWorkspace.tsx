@@ -941,8 +941,10 @@ function GalleryPicker({
     for (const file of Array.from(files)) {
       const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
       const safeName =
-        file.name.replace(/[^a-zA-Z0-9.-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') ||
-        `image.${extension}`
+        file.name
+          .replace(/[^a-zA-Z0-9.-]+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '') || `image.${extension}`
       const storagePath = `${folder}/gallery-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`
       const result = await supabase.storage.from('package-images').upload(storagePath, file, {
         cacheControl: '3600',
