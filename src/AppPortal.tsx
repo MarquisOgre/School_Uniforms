@@ -108,7 +108,7 @@ function CustomerPortal({
         // itself identifies the student.
         const { data: byCode } = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section')
+          .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
           .eq('school_id', schoolId)
           .eq('branch_id', branchId)
           .eq('student_code', studentId)
