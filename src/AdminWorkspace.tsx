@@ -3173,6 +3173,7 @@ function Field({
   area = false,
   min,
   clearZeroOnFocus = false,
+  placeholder,
 }: {
   label: string
   value: string
@@ -3181,6 +3182,7 @@ function Field({
   area?: boolean
   min?: string
   clearZeroOnFocus?: boolean
+  placeholder?: string
 }) {
   const handleFocus = () => {
     if (clearZeroOnFocus && type === 'number' && String(value) === '0') onChange('')
@@ -3196,6 +3198,7 @@ function Field({
           type={type}
           min={min}
           value={value}
+          placeholder={placeholder}
           onFocus={handleFocus}
           onChange={(e) => onChange(e.target.value)}
         />
