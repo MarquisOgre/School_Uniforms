@@ -1106,21 +1106,18 @@ function ProductCard({
         />
         {badge && <span>{badge}</span>}
         <i className="quick-view">View</i>
-        {onToggleSaved && (
-          <button
-            type="button"
-            className={`product-save-button ${saved ? 'saved' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              void onToggleSaved()
-            }}
-            aria-label={saved ? 'Remove from saved items' : 'Save item'}
-            title={saved ? 'Remove from saved items' : 'Save item'}
-          >
-            <Heart size={18} fill={saved ? 'currentColor' : 'none'} />
-          </button>
-        )}
       </button>
+      {onToggleSaved && (
+        <button
+          type="button"
+          className={`product-save-button ${saved ? 'saved' : ''}`}
+          onClick={() => void onToggleSaved()}
+          aria-label={saved ? 'Remove from saved items' : 'Save item'}
+          title={saved ? 'Remove from saved items' : 'Save item'}
+        >
+          <Heart size={18} fill={saved ? 'currentColor' : 'none'} />
+        </button>
+      )}
       <div className="product-copy">
         <p>{text || 'School-approved product'}</p>
         <h3>{title}</h3>
