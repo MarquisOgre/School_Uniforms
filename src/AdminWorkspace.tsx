@@ -78,36 +78,36 @@ export default function AdminWorkspace({
               <p>{m.description}</p>
             </div>
             {module === 'packages' ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-              <button
-                className="primary-button"
-                onClick={() => window.dispatchEvent(new CustomEvent('packages:add'))}
-              >
-                <Plus size={15} /> Add Package
-              </button>
-              <button
-                className="secondary-button"
-                onClick={() => window.dispatchEvent(new CustomEvent('packages:refresh'))}
-              >
-                <RefreshCw size={15} /> Refresh
-              </button>
-            </div>
-          ) : module === 'orders' ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-              <div className="toolbar-search">
-                <Search size={15} />
-                <input
-                  value={ordersSearch}
-                  onChange={(e) => setOrdersSearch(e.target.value)}
-                  placeholder="Search orders or payments"
-                />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                <button
+                  className="primary-button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('packages:add'))}
+                >
+                  <Plus size={15} /> Add Package
+                </button>
+                <button
+                  className="secondary-button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('packages:refresh'))}
+                >
+                  <RefreshCw size={15} /> Refresh
+                </button>
               </div>
-              <button
-                className="secondary-button"
-                onClick={() => window.dispatchEvent(new CustomEvent('orders:refresh'))}
-              >
-                <RefreshCw size={15} /> Refresh
-              </button>
+            ) : module === 'orders' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                <div className="toolbar-search">
+                  <Search size={15} />
+                  <input
+                    value={ordersSearch}
+                    onChange={(e) => setOrdersSearch(e.target.value)}
+                    placeholder="Search orders or payments"
+                  />
+                </div>
+                <button
+                  className="secondary-button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('orders:refresh'))}
+                >
+                  <RefreshCw size={15} /> Refresh
+                </button>
               </div>
             ) : null}
           </div>
