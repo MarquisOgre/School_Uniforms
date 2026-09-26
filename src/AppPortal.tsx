@@ -3,6 +3,7 @@ import type React from 'react'
 import {
   ArrowRight,
   Building2,
+  Heart,
   Ban,
   CheckCircle2,
   ChevronDown,
@@ -479,6 +480,7 @@ function CustomerPortal({
 }
 function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
   const [activeOrders, setActiveOrders] = useState<number | null>(null)
+  const [savedItems, setSavedItems] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -524,6 +526,28 @@ function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
     }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    async function loadSavedItems() {
+      const client = supabase as any
+      const { data: auth } = await client.auth.getUser()
+      const userId = auth?.user?.id
+      if (!userId) {
+        if (!cancelled) setSavedItems(0)
+        return
+      }
+      const { data, error } = await client
+        .from('customer_saved_items')
+        .select('id')
+        .eq('user_id', userId)
+      if (!cancelled) setSavedItems(error ? 0 : (data ?? []).length)
+    }
+    void loadSavedItems()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <div className="portal-content">
       <div className="welcome-banner">
@@ -545,7 +569,7 @@ function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
           value={activeOrders === null ? '—' : String(activeOrders)}
           icon={<ClipboardList />}
         />
-        <Stat title="Saved items" value="0" icon={<Package />} />
+        <Stat title="Saved items" value={savedItems === null ? "—" : String(savedItems)} icon={<Heart />} />
         <Stat title="School branch" value="Active" icon={<Building2 />} />
       </div>
       {/* <div className="section-row">
@@ -615,6 +639,7 @@ function Packages({
   onAdd: (x: CartItem) => void
 }) {
   const [items, setItems] = useState<CartItem[]>([]),
+    [savedIds, setSavedIds] = useState<Set<string>>(new Set()),
     [loading, setLoading] = useState(true),
     [error, setError] = useState('')
   useEffect(() => {
@@ -627,6 +652,16 @@ function Packages({
     async function load() {
       setLoading(true)
       setError('')
+      const { data: auth } = await client.auth.getUser()
+      const userId = auth?.user?.id
+      if (userId) {
+        const { data: saved } = await client
+          .from('customer_saved_items')
+          .select('item_id')
+          .eq('user_id', userId)
+          .eq('item_type', 'package')
+        if (!cancelled) setSavedIds(new Set((saved ?? []).map((x: any) => x.item_id)))
+      }
       const bp = await client
         .from('branch_packages')
         .select('package_id,branch_price,is_visible')
@@ -768,7 +803,39 @@ function Packages({
       ) : (
         <div className="catalog-grid">
           {items.map((x) => (
-            <ProductCard key={x.id} {...x} onView={() => onView(x)} onAdd={() => onAdd(x)} />
+            <ProductCard
+              key={x.id}
+              {...x}
+              saved={savedIds.has(x.id)}
+              onToggleSaved={async () => {
+                const client = supabase as any
+                const { data: auth } = await client.auth.getUser()
+                const userId = auth?.user?.id
+                if (!userId) return
+                if (savedIds.has(x.id)) {
+                  await client
+                    .from('customer_saved_items')
+                    .delete()
+                    .eq('user_id', userId)
+                    .eq('item_type', 'product')
+                    .eq('item_id', x.id)
+                  setSavedIds((prev) => {
+                    const next = new Set(prev)
+                    next.delete(x.id)
+                    return next
+                  })
+                } else {
+                  await client.from('customer_saved_items').insert({
+                    user_id: userId,
+                    item_type: 'product',
+                    item_id: x.id,
+                  })
+                  setSavedIds((prev) => new Set(prev).add(x.id))
+                }
+              }}
+              onView={() => onView(x)}
+              onAdd={() => onAdd(x)}
+            />
           ))}
         </div>
       )}
@@ -804,6 +871,16 @@ function Products({
     async function load() {
       setLoading(true)
       setError('')
+      const { data: auth } = await client.auth.getUser()
+      const userId = auth?.user?.id
+      if (userId) {
+        const { data: saved } = await client
+          .from('customer_saved_items')
+          .select('item_id')
+          .eq('user_id', userId)
+          .eq('item_type', 'product')
+        if (!cancelled) setSavedIds(new Set((saved ?? []).map((x: any) => x.item_id)))
+      }
       const bp = await client
         .from('branch_products')
         .select('product_id,branch_price,is_visible')
@@ -941,7 +1018,39 @@ function Products({
       ) : (
         <div className="catalog-grid">
           {items.map((x) => (
-            <ProductCard key={x.id} {...x} onView={() => onView(x)} onAdd={() => onAdd(x)} />
+            <ProductCard
+              key={x.id}
+              {...x}
+              saved={savedIds.has(x.id)}
+              onToggleSaved={async () => {
+                const client = supabase as any
+                const { data: auth } = await client.auth.getUser()
+                const userId = auth?.user?.id
+                if (!userId) return
+                if (savedIds.has(x.id)) {
+                  await client
+                    .from('customer_saved_items')
+                    .delete()
+                    .eq('user_id', userId)
+                    .eq('item_type', 'package')
+                    .eq('item_id', x.id)
+                  setSavedIds((prev) => {
+                    const next = new Set(prev)
+                    next.delete(x.id)
+                    return next
+                  })
+                } else {
+                  await client.from('customer_saved_items').insert({
+                    user_id: userId,
+                    item_type: 'package',
+                    item_id: x.id,
+                  })
+                  setSavedIds((prev) => new Set(prev).add(x.id))
+                }
+              }}
+              onView={() => onView(x)}
+              onAdd={() => onAdd(x)}
+            />
           ))}
         </div>
       )}
@@ -975,6 +1084,8 @@ function ProductCard({
   id: string
   type: 'package' | 'product'
   image?: string
+  saved?: boolean
+  onToggleSaved?: () => void
 }) {
   const visual =
     image ||
@@ -995,6 +1106,20 @@ function ProductCard({
         />
         {badge && <span>{badge}</span>}
         <i className="quick-view">View</i>
+        {onToggleSaved && (
+          <button
+            type="button"
+            className={`product-save-button ${saved ? 'saved' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              void onToggleSaved()
+            }}
+            aria-label={saved ? 'Remove from saved items' : 'Save item'}
+            title={saved ? 'Remove from saved items' : 'Save item'}
+          >
+            <Heart size={18} fill={saved ? 'currentColor' : 'none'} />
+          </button>
+        )}
       </button>
       <div className="product-copy">
         <p>{text || 'School-approved product'}</p>
