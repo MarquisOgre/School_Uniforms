@@ -14,6 +14,7 @@ type ModuleKey =
   | 'students'
   | 'reports'
   | 'coupons'
+  | 'settings'
 
 const META: Record<ModuleKey, { title: string; description: string }> = {
   schools: {
@@ -42,6 +43,10 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
   coupons: {
     title: 'Coupons',
     description: 'Manage promotional discounts and branch availability.',
+  },
+  settings: {
+    title: 'Settings',
+    description: 'Configure secure payment gateway and application settings.',
   },
 }
 
@@ -138,6 +143,8 @@ function ModuleBody({ module, ordersSearch }: { module: ModuleKey; ordersSearch?
       return <Reports />
     case 'coupons':
       return <Coupons />
+    case 'settings':
+      return <Settings />
   }
 }
 
@@ -3220,5 +3227,188 @@ function Select({
         ))}
       </select>
     </label>
+  )
+}
+
+
+function Settings() {
+  const [mode, setMode] = useState<'test' | 'live'>('test')
+  const [keyId, setKeyId] = useState('')
+  const [keySecret, setKeySecret] = useState('')
+  const [webhookSecret, setWebhookSecret] = useState('')
+  const [keyConfigured, setKeyConfigured] = useState(false)
+  const [webhookConfigured, setWebhookConfigured] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  const webhookUrl = 'https://uovhndbzkdbfyjahakqf.supabase.co/functions/v1/razorpay-webhook'
+
+  const load = async () => {
+    if (!supabase) return
+    setLoading(true)
+    setError('')
+    const { data, error: e } = await supabase.functions.invoke('razorpay-admin-settings', {
+      method: 'GET',
+    })
+    if (e) setError(e.message)
+    else {
+      setMode(data?.mode === 'live' ? 'live' : 'test')
+      setKeyId(data?.key_id || '')
+      setKeyConfigured(!!data?.key_secret_configured)
+      setWebhookConfigured(!!data?.webhook_secret_configured)
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    void load()
+  }, [])
+
+  const save = async () => {
+    if (!supabase) return
+    if (!keyId.trim()) {
+      setError('Razorpay Key ID is required.')
+      return
+    }
+    setSaving(true)
+    setSaved(false)
+    setError('')
+    const { data, error: e } = await supabase.functions.invoke('razorpay-admin-settings', {
+      method: 'POST',
+      body: {
+        mode,
+        key_id: keyId.trim(),
+        key_secret: keySecret.trim() || undefined,
+        webhook_secret: webhookSecret.trim() || undefined,
+      },
+    })
+    if (e) {
+      setError(e.message)
+    } else if (data?.error) {
+      setError(data.error)
+    } else {
+      setMode(data?.mode === 'live' ? 'live' : mode)
+      setKeyId(data?.key_id || keyId)
+      setKeyConfigured(!!data?.key_secret_configured)
+      setWebhookConfigured(!!data?.webhook_secret_configured)
+      setKeySecret('')
+      setWebhookSecret('')
+      setSaved(true)
+    }
+    setSaving(false)
+  }
+
+  const copyWebhook = async () => {
+    try {
+      await navigator.clipboard.writeText(webhookUrl)
+      setSaved(true)
+      window.setTimeout(() => setSaved(false), 1800)
+    } catch {
+      setError('Could not copy the webhook URL. Please copy it manually.')
+    }
+  }
+
+  return (
+    <>
+      <ErrorBox text={error} />
+      {loading ? (
+        <Loading />
+      ) : (
+        <Panel>
+          <div className="panel-heading">
+            <div>
+              <h2>Razorpay Settings</h2>
+              <p className="workspace-muted">
+                Store Razorpay credentials securely in Supabase Vault. Secrets are never returned to
+                this browser after saving.
+              </p>
+            </div>
+            <span
+              className="workspace-status"
+              style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                padding: '7px 10px',
+                borderRadius: '999px',
+                background: keyConfigured && webhookConfigured ? '#eaf8ef' : '#fff5e6',
+                color: keyConfigured && webhookConfigured ? '#16743a' : '#9a5a00',
+              }}
+            >
+              {keyConfigured && webhookConfigured ? 'Configured' : 'Setup Required'}
+            </span>
+          </div>
+
+          <div className="workspace-form-row">
+            <Select
+              label="Razorpay Mode"
+              value={mode}
+              options={['test', 'live']}
+              labels={{ test: 'Test Mode', live: 'Live Mode' }}
+              onChange={(v) => setMode(v as 'test' | 'live')}
+            />
+            <Field
+              label="Razorpay Key ID"
+              value={keyId}
+              onChange={setKeyId}
+              placeholder="rzp_test_..."
+            />
+          </div>
+
+          <div className="workspace-form-row">
+            <label className="workspace-field">
+              <span>Razorpay Key Secret</span>
+              <input
+                type="password"
+                value={keySecret}
+                onChange={(e) => setKeySecret(e.target.value)}
+                placeholder={keyConfigured ? '••••••••••••••••  (configured)' : 'Enter Key Secret'}
+                autoComplete="new-password"
+              />
+            </label>
+            <label className="workspace-field">
+              <span>Webhook Secret</span>
+              <input
+                type="password"
+                value={webhookSecret}
+                onChange={(e) => setWebhookSecret(e.target.value)}
+                placeholder={
+                  webhookConfigured ? '••••••••••••••••  (configured)' : 'Enter Webhook Secret'
+                }
+                autoComplete="new-password"
+              />
+            </label>
+          </div>
+
+          <div className="workspace-note">
+            <strong>Security:</strong> Key Secret and Webhook Secret are encrypted with Supabase
+            Vault. Leaving either field blank keeps the currently stored secret unchanged.
+          </div>
+
+          <div className="workspace-form-row" style={{ alignItems: 'end' }}>
+            <label className="workspace-field">
+              <span>Webhook URL</span>
+              <input value={webhookUrl} readOnly />
+            </label>
+            <button type="button" className="secondary-button" onClick={() => void copyWebhook()}>
+              Copy Webhook URL
+            </button>
+          </div>
+
+          <div className="workspace-note">
+            Configure this exact URL in Razorpay Dashboard → Webhooks and enable payment.authorized,
+            payment.captured, payment.failed, refund.created and refund.failed.
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '18px' }}>
+            <button className="primary-button" disabled={saving} onClick={() => void save()}>
+              {saving ? 'Saving...' : 'Save Razorpay Settings'}
+            </button>
+            {saved && <span style={{ color: '#16743a', fontSize: '11px', fontWeight: 800 }}>Saved successfully.</span>}
+          </div>
+        </Panel>
+      )}
+    </>
   )
 }
