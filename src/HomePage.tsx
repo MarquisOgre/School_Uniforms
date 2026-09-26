@@ -250,7 +250,14 @@ function Landing({ onLogin }: { onLogin: () => void }) {
           </div>
         </div>
         <div className="exact-hero-image">
-          <img key={slide} src={current.image} alt="Students wearing school uniforms" loading="eager" fetchPriority="high" decoding="async" />
+          <img
+            key={slide}
+            src={current.image}
+            alt="Students wearing school uniforms"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
         </div>
       </section>
 
@@ -335,7 +342,12 @@ function Landing({ onLogin }: { onLogin: () => void }) {
               {home.afterFold.button} <ArrowRight />
             </button>
           </div>
-          <img src={home.afterFold.image} alt="Artisan school uniforms" loading="lazy" decoding="async" />
+          <img
+            src={home.afterFold.image}
+            alt="Artisan school uniforms"
+            loading="lazy"
+            decoding="async"
+          />
         </section>
       )}
       <section
