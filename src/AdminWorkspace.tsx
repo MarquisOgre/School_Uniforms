@@ -1209,7 +1209,7 @@ function Packages() {
                 <h3>Package Items</h3>
                 <button
                   className="secondary-button"
-                  onClick={() =>
+                  onClick={() => {
                     setItemEditing({
                       package_id: editing.id,
                       product_id: products[0]?.id || '',
