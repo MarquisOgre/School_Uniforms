@@ -472,11 +472,19 @@ export default function CheckoutFlow({
                         <small>Size {x.size}</small>
                       ) : null}
                       <div className="school-order-controls">
-                        <button type="button" onClick={() => update(x.id, -1)} aria-label="Decrease quantity">
+                        <button
+                          type="button"
+                          onClick={() => update(x.id, -1)}
+                          aria-label="Decrease quantity"
+                        >
                           <Minus size={13} />
                         </button>
                         <span>{x.quantity}</span>
-                        <button type="button" onClick={() => update(x.id, 1)} aria-label="Increase quantity">
+                        <button
+                          type="button"
+                          onClick={() => update(x.id, 1)}
+                          aria-label="Increase quantity"
+                        >
                           <Plus size={13} />
                         </button>
                         <button
