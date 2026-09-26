@@ -709,7 +709,7 @@ function Packages({
         client
           .from('uniform_packages')
           .select(
-            'id,name,description,product_type,occasion_type,gender,material,brand,quality,fabric,care,delivery_returns,cod_available,custom_order_cod,easy_returns,express_shipping,image_url,image_gallery,base_price',
+            'id,name,description,gender,image_url,base_price,offer_price,discount_percentage',
           )
           .in('id', ids)
           .eq('status', 'active')
