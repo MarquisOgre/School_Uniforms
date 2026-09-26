@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Plus, RefreshCw, Save, Trash2, Search, X } from 'lucide-react'
+import { Plus, RefreshCw, Save, Trash2, Search, X, Download } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
@@ -2577,59 +2577,210 @@ function SimpleTable({
 }
 
 function Reports() {
-  const [stats, setStats] = useState({ orders: 0, revenue: 0, products: 0, low: 0 }),
-    [error, setError] = useState('')
+  const today = new Date()
+  const iso = (d: Date) => d.toISOString().slice(0, 10)
+  const [from, setFrom] = useState(iso(new Date(today.getFullYear(), today.getMonth(), 1)))
+  const [to, setTo] = useState(iso(today))
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [data, setData] = useState<any>({
+    orders: [],
+    items: [],
+    products: [],
+    inventory: [],
+    payments: [],
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const load = async () => {
+    if (!supabase) return
+    setLoading(true)
+    setError('')
+    const start = new Date(`${from}T00:00:00`).toISOString()
+    const endDate = new Date(`${to}T23:59:59`)
+    const end = endDate.toISOString()
+    const [o, oi, p, inv, pay] = await Promise.all([
+      dbFrom('orders').select('id,order_number,status,subtotal,discount_total,shipping_total,grand_total,currency,created_at,student_id,branch_id').gte('created_at', start).lte('created_at', end).order('created_at', { ascending: false }),
+      dbFrom('order_items').select('order_id,product_id,package_id,item_name_snapshot,quantity,unit_price'),
+      dbFrom('products').select('id,name,status,base_price,offer_price'),
+      dbFrom('branch_inventory').select('branch_id,product_id,variant_id,quantity_on_hand,reorder_level,updated_at'),
+      dbFrom('payments').select('order_id,provider,amount,status,paid_at,created_at'),
+    ])
+    const err = o.error || oi.error || p.error || inv.error || pay.error
+    if (err) setError(err.message)
+    setData({
+      orders: o.data ?? [],
+      items: oi.data ?? [],
+      products: p.data ?? [],
+      inventory: inv.data ?? [],
+      payments: pay.data ?? [],
+    })
+    setLoading(false)
+  }
+
   useEffect(() => {
-    async function load() {
-      if (!supabase) return
-      const [o, p, i] = await Promise.all([
-        dbFrom('orders').select('grand_total'),
-        dbFrom('products').select('id', { count: 'exact', head: true }),
-        dbFrom('branch_inventory').select('quantity_on_hand,reorder_level'),
-      ])
-      if (o.error || p.error || i.error)
-        setError(
-          o.error?.message || p.error?.message || i.error?.message || 'Unable to load reports',
-        )
-      setStats({
-        orders: o.data?.length || 0,
-        revenue: (o.data || []).reduce((a: number, x: any) => a + Number(x.grand_total || 0), 0),
-        products: p.count || 0,
-        low: (i.data || []).filter(
-          (x: any) => Number(x.quantity_on_hand) <= Number(x.reorder_level),
-        ).length,
-      })
-    }
     void load()
-  }, [])
+    const handler = () => void load()
+    window.addEventListener('reports:refresh', handler)
+    return () => window.removeEventListener('reports:refresh', handler)
+  }, [from, to])
+
+  const orders = data.orders.filter((x: any) => statusFilter === 'all' || x.status === statusFilter)
+  const items = data.items.filter((x: any) => orders.some((o: any) => o.id === x.order_id))
+  const revenue = orders.reduce((n: number, x: any) => n + Number(x.grand_total || 0), 0)
+  const subtotal = orders.reduce((n: number, x: any) => n + Number(x.subtotal || 0), 0)
+  const discounts = orders.reduce((n: number, x: any) => n + Number(x.discount_total || 0), 0)
+  const shipping = orders.reduce((n: number, x: any) => n + Number(x.shipping_total || 0), 0)
+  const averageOrder = orders.length ? revenue / orders.length : 0
+  const lowStock = data.inventory.filter((x: any) => Number(x.quantity_on_hand) <= Number(x.reorder_level))
+  const outOfStock = data.inventory.filter((x: any) => Number(x.quantity_on_hand) <= 0)
+  const statusCounts = data.orders.reduce((m: Record<string, number>, x: any) => {
+    m[x.status] = (m[x.status] || 0) + 1
+    return m
+  }, {})
+  const productMap = new Map(data.products.map((x: any) => [x.id, x.name]))
+  const topProducts = Object.values(
+    items.reduce((m: Record<string, any>, x: any) => {
+      const key = x.product_id || x.package_id || x.item_name_snapshot
+      const name = x.item_name_snapshot || productMap.get(x.product_id) || 'Item'
+      if (!m[key]) m[key] = { name, quantity: 0, revenue: 0 }
+      m[key].quantity += Number(x.quantity || 0)
+      m[key].revenue += Number(x.quantity || 0) * Number(x.unit_price || 0)
+      return m
+    }, {}),
+  )
+    .sort((a: any, b: any) => b.revenue - a.revenue)
+    .slice(0, 8)
+  const daily = Object.values(
+    orders.reduce((m: Record<string, any>, x: any) => {
+      const day = new Date(x.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+      if (!m[day]) m[day] = { day, orders: 0, revenue: 0 }
+      m[day].orders += 1
+      m[day].revenue += Number(x.grand_total || 0)
+      return m
+    }, {}),
+  ).reverse() as any[]
+  const paymentSummary = Object.values(
+    data.payments
+      .filter((p: any) => orders.some((o: any) => o.id === p.order_id))
+      .reduce((m: Record<string, any>, p: any) => {
+        const key = p.provider || 'Unknown'
+        if (!m[key]) m[key] = { provider: key, count: 0, amount: 0 }
+        m[key].count += 1
+        m[key].amount += Number(p.amount || 0)
+        return m
+      }, {}),
+  ) as any[]
+
+  const money = (n: number) => `₹${Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+  const exportCsv = () => {
+    const header = ['Order Number', 'Date', 'Status', 'Subtotal', 'Discount', 'Shipping', 'Grand Total']
+    const lines = orders.map((x: any) => [
+      x.order_number,
+      new Date(x.created_at).toLocaleDateString('en-IN'),
+      x.status,
+      x.subtotal,
+      x.discount_total,
+      x.shipping_total,
+      x.grand_total,
+    ].map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    const blob = new Blob([[header.join(','), ...lines].join('\\n')], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `school-uniforms-report-${from}-to-${to}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <>
-      <ErrorBox text={error} />
-      <div className="report-grid">
-        <div>
-          <span>Orders</span>
-          <strong>{stats.orders}</strong>
+      <div className="reports-toolbar">
+        <div className="reports-date-controls">
+          <label>From <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
+          <label>To <input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
+          <label>Status
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All Statuses</option>
+              {Object.keys(statusCounts).sort().map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
         </div>
-        <div>
-          <span>Revenue</span>
-          <strong>₹{stats.revenue.toLocaleString('en-IN')}</strong>
-        </div>
-        <div>
-          <span>Products</span>
-          <strong>{stats.products}</strong>
-        </div>
-        <div>
-          <span>Low Stock Items</span>
-          <strong>{stats.low}</strong>
+        <div className="reports-actions">
+          <button className="secondary-button" onClick={() => void load()}><RefreshCw size={15} /> Refresh</button>
+          <button className="primary-button" onClick={exportCsv}><Download size={15} /> Export CSV</button>
         </div>
       </div>
-      <Panel>
-        <h2>Operational Summary</h2>
-        <p className="workspace-note">
-          This report is live from the current Supabase data. Detailed date filters and exports can
-          be added to the reporting workspace.
-        </p>
-      </Panel>
+      <ErrorBox text={error} />
+      {loading ? <Loading /> : (
+        <>
+          <div className="report-grid reports-kpis">
+            <div><span>Total Orders</span><strong>{orders.length}</strong><small>{statusFilter === 'all' ? 'All statuses' : statusFilter}</small></div>
+            <div><span>Total Revenue</span><strong>{money(revenue)}</strong><small>Gross order value</small></div>
+            <div><span>Average Order</span><strong>{money(averageOrder)}</strong><small>Revenue ÷ orders</small></div>
+            <div><span>Units Sold</span><strong>{items.reduce((n: number, x: any) => n + Number(x.quantity || 0), 0)}</strong><small>Order item quantities</small></div>
+            <div><span>Discounts</span><strong>{money(discounts)}</strong><small>Applied discounts</small></div>
+            <div><span>Shipping</span><strong>{money(shipping)}</strong><small>Shipping collected</small></div>
+            <div><span>Products</span><strong>{data.products.length}</strong><small>Catalog products</small></div>
+            <div><span>Low Stock</span><strong>{lowStock.length}</strong><small>{outOfStock.length} out of stock</small></div>
+          </div>
+
+          <div className="reports-two-col">
+            <Panel>
+              <div className="report-panel-heading"><div><h2>Sales Trend</h2><p>Daily orders and revenue for the selected period.</p></div></div>
+              {daily.length ? (
+                <div className="report-bars">
+                  {daily.map((d: any) => {
+                    const max = Math.max(...daily.map((x) => x.revenue), 1)
+                    return <div className="report-bar-row" key={d.day}><span>{d.day}</span><div><i style={{ width: `${(d.revenue / max) * 100}%` }} /><small>{money(d.revenue)} · {d.orders} orders</small></div></div>
+                  })}
+                </div>
+              ) : <div className="workspace-empty">No sales in this period.</div>}
+            </Panel>
+            <Panel>
+              <div className="report-panel-heading"><div><h2>Order Status</h2><p>Current status distribution.</p></div></div>
+              <div className="report-status-list">
+                {Object.entries(statusCounts).map(([status, count]) => <div key={status}><span>{status}</span><strong>{count}</strong></div>)}
+              </div>
+            </Panel>
+          </div>
+
+          <div className="reports-two-col">
+            <Panel>
+              <div className="report-panel-heading"><div><h2>Top Selling Items</h2><p>Ranked by item revenue in the selected period.</p></div></div>
+              <div className="report-table">
+                <div className="report-table-head"><span>Item</span><span>Units</span><span>Revenue</span></div>
+                {topProducts.length ? topProducts.map((x: any) => <div className="report-table-row" key={x.name}><strong>{x.name}</strong><span>{x.quantity}</span><span>{money(x.revenue)}</span></div>) : <div className="workspace-empty">No item sales.</div>}
+              </div>
+            </Panel>
+            <Panel>
+              <div className="report-panel-heading"><div><h2>Payments</h2><p>Payment activity for the selected orders.</p></div></div>
+              <div className="report-table">
+                <div className="report-table-head"><span>Provider</span><span>Transactions</span><span>Amount</span></div>
+                {paymentSummary.length ? paymentSummary.map((x: any) => <div className="report-table-row" key={x.provider}><strong>{x.provider}</strong><span>{x.count}</span><span>{money(x.amount)}</span></div>) : <div className="workspace-empty">No payment records.</div>}
+              </div>
+            </Panel>
+          </div>
+
+          <Panel>
+            <div className="report-panel-heading"><div><h2>Inventory Alerts</h2><p>Items at or below their configured reorder level.</p></div></div>
+            <div className="report-table report-inventory-table">
+              <div className="report-table-head"><span>Product</span><span>On Hand</span><span>Reorder Level</span><span>Branch</span></div>
+              {lowStock.length ? lowStock.slice(0, 20).map((x: any) => <div className="report-table-row" key={`${x.branch_id}-${x.product_id}-${x.variant_id}`}><strong>{productMap.get(x.product_id) || 'Unknown product'}</strong><span>{x.quantity_on_hand}</span><span>{x.reorder_level}</span><span>{x.branch_id?.slice(0, 8) || '—'}</span></div>) : <div className="workspace-empty">No low-stock inventory.</div>}
+            </div>
+          </Panel>
+
+          <Panel>
+            <div className="report-panel-heading"><div><h2>Financial Summary</h2><p>Breakdown for the selected reporting period.</p></div></div>
+            <div className="report-financial-grid">
+              <div><span>Gross Sales</span><strong>{money(subtotal)}</strong></div>
+              <div><span>Discounts</span><strong>− {money(discounts)}</strong></div>
+              <div><span>Shipping</span><strong>+ {money(shipping)}</strong></div>
+              <div><span>Net Order Value</span><strong>{money(revenue)}</strong></div>
+            </div>
+          </Panel>
+        </>
+      )}
     </>
   )
 }
