@@ -233,7 +233,11 @@ export default function ProductReviews({ productId }: { productId?: string }) {
                   onClick={() => setRating(index + 1)}
                   aria-label={index + 1 + ' stars'}
                 >
-                  <Star size={29} fill={index < rating ? 'currentColor' : 'none'} />
+                  <Star
+                    size={29}
+                    fill={index < rating ? 'currentColor' : 'none'}
+                    className={index < rating ? 'selected' : ''}
+                  />
                 </button>
               ))}
             </div>
