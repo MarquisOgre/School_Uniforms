@@ -774,7 +774,7 @@ function ExactFeature({
 }) {
   return (
     <button className="exact-feature" onClick={onClick}>
-      <img src={image} alt="" />
+      <img src={image} alt="" loading="lazy" decoding="async" />
       <div>
         <strong>{title}</strong>
         <span>{text}</span>
