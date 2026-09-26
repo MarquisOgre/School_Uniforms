@@ -47,6 +47,7 @@ type CartItem = CheckoutCartItem & {
   customOrderCod?: boolean
   easyReturns?: boolean
   expressShipping?: boolean
+  imageGallery?: string[]
 }
 type CheckoutStep = 'cart' | 'details' | 'payment' | 'success'
 
@@ -691,7 +692,7 @@ function Packages({
         client
           .from('uniform_packages')
           .select(
-            'id,name,description,product_type,occasion_type,gender,material,brand,quality,fabric,care,delivery_returns,cod_available,custom_order_cod,easy_returns,express_shipping,image_url,base_price',
+            'id,name,description,product_type,occasion_type,gender,material,brand,quality,fabric,care,delivery_returns,cod_available,custom_order_cod,easy_returns,express_shipping,image_url,image_gallery,base_price',
           )
           .in('id', ids)
           .eq('status', 'active')
@@ -938,6 +939,7 @@ function Products({
         easy_returns: boolean | null
         express_shipping: boolean | null
         image_url: string | null
+        image_gallery: string[] | null
         base_price: number | null
       }>
       const priceMap = Object.fromEntries(branchProducts.map((x) => [x.product_id, x.branch_price]))
@@ -991,6 +993,7 @@ function Products({
             expressShipping: x.express_shipping !== false,
             sourceId: x.id,
             image: x.image_url || '/category-accessories.jpg',
+            imageGallery: Array.isArray(x.image_gallery) ? x.image_gallery : [],
             sizeOptions: sizes[x.id] || [],
             variantOptions: variantOptions[x.id] || [],
           })),
@@ -1146,10 +1149,12 @@ function ProductDetail({
   item,
   onBack,
   onAdd,
+  onBuyNow,
 }: {
   item: CartItem
   onBack: () => void
   onAdd: (x: CartItem) => void
+  onBuyNow: (x: CartItem) => void
 }) {
   const [size, setSize] = useState(''),
     [quantity, setQuantity] = useState(1),
@@ -1184,14 +1189,36 @@ function ProductDetail({
         <strong>Product Details</strong>
       </div>
       <div className="detail-card">
-        <div className="detail-image">
-          <img
-            src={item.image || '/category-packages.jpg'}
-            alt={item.title}
-            onError={(e) => {
-              e.currentTarget.src = '/category-packages.jpg'
-            }}
-          />
+        <div className="detail-gallery">
+          <div className="detail-image">
+            <img
+              src={item.image || '/category-packages.jpg'}
+              alt={item.title}
+              onError={(e) => {
+                e.currentTarget.src = '/category-packages.jpg'
+              }}
+            />
+          </div>
+          {item.imageGallery?.length ? (
+            <div className="detail-gallery-thumbnails">
+              {[item.image, ...(item.imageGallery || [])]
+                .filter(Boolean)
+                .filter((url, index, all) => all.indexOf(url) === index)
+                .map((url, index) => (
+                  <button
+                    type="button"
+                    className="detail-gallery-thumb"
+                    key={url + index}
+                    onClick={() => {
+                      const image = document.querySelector<HTMLImageElement>('.detail-image img')
+                      if (image) image.src = url as string
+                    }}
+                  >
+                    <img src={url as string} alt={`Product image ${index + 1}`} />
+                  </button>
+                ))}
+            </div>
+          ) : null}
         </div>
         <div className="detail-copy">
           <p className="eyebrow">
@@ -1281,23 +1308,42 @@ function ProductDetail({
               <Plus />
             </button>
           </div>
-          <button
-            className="primary-button"
-            disabled={!ready}
-            onClick={() =>
-              onAdd({
-                ...item,
-                size:
-                  item.type === 'package'
-                    ? 'Multiple'
-                    : productOptions.find((x) => x.id === size)?.label,
-                quantity,
-                selectedVariants,
-              })
-            }
-          >
-            Add to Cart <ShoppingCart size={18} />
-          </button>
+          <div className="detail-purchase-actions">
+            <button
+              className="primary-button"
+              disabled={!ready}
+              onClick={() =>
+                onAdd({
+                  ...item,
+                  size:
+                    item.type === 'package'
+                      ? 'Multiple'
+                      : productOptions.find((x) => x.id === size)?.label,
+                  quantity,
+                  selectedVariants,
+                })
+              }
+            >
+              Add to Cart <ShoppingCart size={18} />
+            </button>
+            <button
+              className="secondary-button detail-buy-now"
+              disabled={!ready}
+              onClick={() =>
+                onBuyNow({
+                  ...item,
+                  size:
+                    item.type === 'package'
+                      ? 'Multiple'
+                      : productOptions.find((x) => x.id === size)?.label,
+                  quantity,
+                  selectedVariants,
+                })
+              }
+            >
+              Buy Now <ArrowRight size={18} />
+            </button>
+          </div>
 
           {item.type === 'product' ? (
             <div className="product-detail-information">
