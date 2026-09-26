@@ -298,6 +298,27 @@ export default function CheckoutFlow({
       selectedStudent.school_id === schoolId &&
       selectedStudent.branch_id === branchId,
   )
+  const fieldError = (key: string) => {
+    const value = String((address as any)[key] || '').trim()
+    if (key === 'name') return !value ? 'Full name is required.' : value.length < 2 ? 'Enter a valid full name.' : ''
+    if (key === 'phone')
+      return !value ? 'Phone number is required.' : !/^[6-9][0-9]{9}$/.test(value) ? 'Enter a valid 10-digit mobile number.' : ''
+    if (key === 'line1') return !value ? 'Address line 1 is required.' : value.length < 5 ? 'Enter a complete address.' : ''
+    if (key === 'city') return !value ? 'City is required.' : value.length < 2 ? 'Enter a valid city.' : ''
+    if (key === 'state') return !value ? 'State is required.' : ''
+    if (key === 'pincode')
+      return !value ? 'PIN code is required.' : !/^[0-9]{6}$/.test(value) ? 'Enter a valid 6-digit PIN code.' : ''
+    return ''
+  }
+
+  const studentError =
+    !checkoutStudents.length
+      ? studentLoadError || 'No active student is linked to this account.'
+      : !selectedStudent
+        ? 'Please select a student.'
+        : !selectedStudentMatchesContext
+          ? 'This student is assigned to a different school or branch.'
+          : ''
   const detailsValid = Boolean(
     selectedStudentId &&
       selectedStudentMatchesContext &&
@@ -524,6 +545,7 @@ export default function CheckoutFlow({
                     {required ? <em>*</em> : null}
                   </span>
                   <input
+                    className={fieldError(k as string) ? 'school-input-invalid' : ''}
                     value={(address as any)[k as string]}
                     type={k === 'phone' ? 'tel' : 'text'}
                     inputMode={k === 'phone' || k === 'pincode' ? 'numeric' : undefined}
@@ -532,22 +554,25 @@ export default function CheckoutFlow({
                     onChange={(e) => {
                       const value =
                         k === 'phone' || k === 'pincode'
-                          ? e.target.value.replace(/D/g, '').slice(0, k === 'phone' ? 10 : 6)
+                          ? e.target.value.replace(/\D/g, '').slice(0, k === 'phone' ? 10 : 6)
                           : e.target.value
                       setAddress({ ...address, [k as string]: value })
                     }}
                   />
+                  {fieldError(k as string) && (
+                    <small className="school-field-error">{fieldError(k as string)}</small>
+                  )}
                 </label>
               ))}
             </div>
 
-            {studentLoadError && (
-              <div className="workspace-error checkout-validation-error">{studentLoadError}</div>
+            {studentError && (
+              <div className="workspace-error checkout-validation-error">{studentError}</div>
             )}
 
-            {!detailsValid && (
+            {!detailsValid && !studentError && (
               <p className="school-checkout-hint">
-                Complete the required student and delivery details to continue with payment.
+                Correct the highlighted fields to continue with payment.
               </p>
             )}
           </section>
@@ -710,6 +735,7 @@ export default function CheckoutFlow({
                 {label}
                 {k !== 'line2' && <span>*</span>}
                 <input
+                  className={fieldError(k) ? 'school-input-invalid' : ''}
                   value={(address as any)[k]}
                   type={k === 'phone' ? 'tel' : k === 'pincode' ? 'text' : 'text'}
                   inputMode={k === 'phone' || k === 'pincode' ? 'numeric' : undefined}
@@ -723,11 +749,12 @@ export default function CheckoutFlow({
                     setAddress({ ...address, [k]: value })
                   }}
                 />
+                {fieldError(k) && <small className="school-field-error">{fieldError(k)}</small>}
               </label>
             ))}
           </div>
-          {studentLoadError && (
-            <div className="workspace-error checkout-validation-error">{studentLoadError}</div>
+          {studentError && (
+            <div className="workspace-error checkout-validation-error">{studentError}</div>
           )}
           <div className="checkout-actions">
             <button className="secondary-button" onClick={() => setStep('cart')}>
@@ -739,10 +766,11 @@ export default function CheckoutFlow({
               onClick={() => {
                 if (!detailsValid) {
                   setStudentLoadError(
-                    checkoutStudents.length
-                      ? 'Please complete all required delivery details.'
-                      : studentLoadError ||
-                          'Please select or link an active student before continuing.',
+                    studentError ||
+                      Object.entries(address)
+                        .map(([key]) => fieldError(key))
+                        .find(Boolean) ||
+                      'Please correct the highlighted fields before continuing.',
                   )
                   return
                 }
