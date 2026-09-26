@@ -492,7 +492,9 @@ function Products() {
   }
 
   const visible = rows.filter((x) =>
-    String(x.name || '').toLowerCase().includes(search.toLowerCase()),
+    String(x.name || '')
+      .toLowerCase()
+      .includes(search.toLowerCase()),
   )
 
   return (
@@ -660,7 +662,9 @@ function Products() {
               <div className="panel-heading">
                 <div>
                   <h3>Variants</h3>
-                  <p className="workspace-muted">Add sizes, colors, SKUs and variant-specific prices.</p>
+                  <p className="workspace-muted">
+                    Add sizes, colors, SKUs and variant-specific prices.
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -695,7 +699,9 @@ function Products() {
                     <strong>{v.sku}</strong>
                     <span>{v.size_label || '—'}</span>
                     <span>{v.color || '—'}</span>
-                    <span>₹{Number(v.price ?? editing.base_price ?? 0).toLocaleString('en-IN')}</span>
+                    <span>
+                      ₹{Number(v.price ?? editing.base_price ?? 0).toLocaleString('en-IN')}
+                    </span>
                     <button
                       type="button"
                       onClick={() => {
@@ -707,9 +713,7 @@ function Products() {
                     </button>
                   </div>
                 ))}
-                {!variants.length && (
-                  <div className="workspace-empty">No variants added yet.</div>
-                )}
+                {!variants.length && <div className="workspace-empty">No variants added yet.</div>}
               </div>
             </>
           )}
