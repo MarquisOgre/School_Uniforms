@@ -7576,8 +7576,9 @@ a {
 
 .admin-workspace .coupon-row {
   grid-template-columns:
-    minmax(180px, 1.5fr) minmax(150px, 1.2fr) minmax(120px, 1fr) minmax(120px, 1fr)
-    auto;
+    minmax(150px, 1.35fr) minmax(130px, 1.05fr) minmax(90px, 0.8fr)
+    minmax(75px, 0.65fr) minmax(95px, 0.8fr) minmax(95px, 0.8fr)
+    minmax(95px, 0.8fr) auto;
 }
 
 .admin-workspace .payment-settings-row {
