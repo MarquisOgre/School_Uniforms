@@ -2563,10 +2563,6 @@ function Reports() {
   return (
     <>
       <div className="reports-toolbar">
-        <div className="reports-heading">
-          <h1>Reports</h1>
-          <p>View high-level sales, orders and inventory summaries.</p>
-        </div>
         <div className="reports-date-controls">
           <label>
             From <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
