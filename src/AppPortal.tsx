@@ -1246,7 +1246,8 @@ function ProductDetail({
               }}
             />
           </div>
-          {([item.image, ...(item.imageGallery || [])].filter((url): url is string => Boolean(url)).length > 1) ? (
+          {[item.image, ...(item.imageGallery || [])].filter((url): url is string => Boolean(url))
+            .length > 1 ? (
             <div className="detail-gallery-thumbnails">
               {[item.image, ...(item.imageGallery || [])]
                 .filter((url): url is string => Boolean(url))
