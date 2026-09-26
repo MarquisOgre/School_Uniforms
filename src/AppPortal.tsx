@@ -600,7 +600,9 @@ function Packages({
       const [p, pi] = await Promise.all([
         client
           .from('uniform_packages')
-          .select('id,name,description,product_type,occasion_type,gender,material,brand,quality,fabric,care,delivery_returns,cod_available,custom_order_cod,easy_returns,express_shipping,image_url,base_price')
+          .select(
+            'id,name,description,product_type,occasion_type,gender,material,brand,quality,fabric,care,delivery_returns,cod_available,custom_order_cod,easy_returns,express_shipping,image_url,base_price',
+          )
           .in('id', ids)
           .eq('status', 'active')
           .order('name'),
@@ -1120,46 +1122,90 @@ function ProductDetail({
             <div className="product-detail-information">
               <div className="product-benefit-list">
                 {item.codAvailable !== false ? (
-                  <div><CheckCircle2 size={20} /><strong>COD Available</strong></div>
+                  <div>
+                    <CheckCircle2 size={20} />
+                    <strong>COD Available</strong>
+                  </div>
                 ) : null}
                 {item.customOrderCod === true ? (
-                  <div className="warning"><Ban size={20} /><strong>No COD on Custom Order (Embroidery)</strong></div>
+                  <div className="warning">
+                    <Ban size={20} />
+                    <strong>No COD on Custom Order (Embroidery)</strong>
+                  </div>
                 ) : null}
                 {item.easyReturns !== false ? (
-                  <div><RotateCcw size={20} /><strong>Easy Returns & Exchange</strong></div>
+                  <div>
+                    <RotateCcw size={20} />
+                    <strong>Easy Returns & Exchange</strong>
+                  </div>
                 ) : null}
                 {item.expressShipping !== false ? (
-                  <div><Truck size={20} /><strong>1–3 Day Express Shipping</strong></div>
+                  <div>
+                    <Truck size={20} />
+                    <strong>1–3 Day Express Shipping</strong>
+                  </div>
                 ) : null}
               </div>
 
               <details open>
-                <summary>Details <ChevronDown size={18} /></summary>
+                <summary>
+                  Details <ChevronDown size={18} />
+                </summary>
                 <div className="product-info-grid">
-                  <div><strong>Product Type:</strong><span>{item.productType || '—'}</span></div>
-                  <div><strong>Occasion Type:</strong><span>{item.occasionType || '—'}</span></div>
-                  <div><strong>Gender:</strong><span>{item.gender || '—'}</span></div>
-                  <div><strong>Material:</strong><span>{item.material || '—'}</span></div>
-                  <div><strong>Brand:</strong><span>{item.brand || '—'}</span></div>
+                  <div>
+                    <strong>Product Type:</strong>
+                    <span>{item.productType || '—'}</span>
+                  </div>
+                  <div>
+                    <strong>Occasion Type:</strong>
+                    <span>{item.occasionType || '—'}</span>
+                  </div>
+                  <div>
+                    <strong>Gender:</strong>
+                    <span>{item.gender || '—'}</span>
+                  </div>
+                  <div>
+                    <strong>Material:</strong>
+                    <span>{item.material || '—'}</span>
+                  </div>
+                  <div>
+                    <strong>Brand:</strong>
+                    <span>{item.brand || '—'}</span>
+                  </div>
                 </div>
               </details>
 
               <details open>
-                <summary>Description <ChevronDown size={18} /></summary>
+                <summary>
+                  Description <ChevronDown size={18} />
+                </summary>
                 <p className="product-info-text">{item.text || '—'}</p>
               </details>
 
               <details open>
-                <summary>Quality & Care <ChevronDown size={18} /></summary>
+                <summary>
+                  Quality & Care <ChevronDown size={18} />
+                </summary>
                 <div className="product-info-grid">
-                  <div><strong>Quality:</strong><span>{item.quality || '—'}</span></div>
-                  <div><strong>Fabric:</strong><span>{item.fabric || '—'}</span></div>
-                  <div className="product-info-care"><strong>Care:</strong><span>{item.care || '—'}</span></div>
+                  <div>
+                    <strong>Quality:</strong>
+                    <span>{item.quality || '—'}</span>
+                  </div>
+                  <div>
+                    <strong>Fabric:</strong>
+                    <span>{item.fabric || '—'}</span>
+                  </div>
+                  <div className="product-info-care">
+                    <strong>Care:</strong>
+                    <span>{item.care || '—'}</span>
+                  </div>
                 </div>
               </details>
 
               <details open>
-                <summary>Delivery & Returns <ChevronDown size={18} /></summary>
+                <summary>
+                  Delivery & Returns <ChevronDown size={18} />
+                </summary>
                 <p className="product-info-text">{item.deliveryReturns || '—'}</p>
               </details>
             </div>
