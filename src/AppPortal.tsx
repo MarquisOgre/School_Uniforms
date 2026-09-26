@@ -1581,7 +1581,8 @@ function Orders({ students = [] }: { students?: any[] }) {
               <option value="all">All Students</option>
               {students.map((student) => (
                 <option value={student.id} key={student.id}>
-                  {student.full_name} — {student.class_name || ''}{student.section ? ` • ${student.section}` : ''}
+                  {student.full_name} — {student.class_name || ''}
+                  {student.section ? ` • ${student.section}` : ''}
                 </option>
               ))}
             </select>
