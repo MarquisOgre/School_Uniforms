@@ -375,9 +375,9 @@ function CustomerPortal({
           ) : page === 'products' ? (
             <Products branchId={branchId} onView={setSelected} onAdd={add} />
           ) : page === 'orders' ? (
-            <Orders />
+            <Orders students={students} />
           ) : (
-            <Profile studentId={studentId} schoolId={schoolId} branchId={branchId} />
+            <Profile studentId={studentId} schoolId={schoolId} branchId={branchId} students={students} />
           )}
         </main>
       </div>
