@@ -14,7 +14,9 @@ export default function SiteBrandingSettings() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+  }, [])
 
   async function load() {
     if (!supabase) return
@@ -48,7 +50,9 @@ export default function SiteBrandingSettings() {
 
   async function save() {
     if (!supabase) return
-    setSaving(true); setMessage(''); setError('')
+    setSaving(true)
+    setMessage('')
+    setError('')
     try {
       let nextLogo = logoUrl
       let nextFavicon = faviconUrl
@@ -63,8 +67,13 @@ export default function SiteBrandingSettings() {
       if (e) throw e
       setLogoUrl(nextLogo || DEFAULT_LOGO)
       setFaviconUrl(nextFavicon || '')
-      setLogoFile(null); setFaviconFile(null)
-      window.dispatchEvent(new CustomEvent('site-branding:updated', { detail: { logoUrl: nextLogo, faviconUrl: nextFavicon } }))
+      setLogoFile(null)
+      setFaviconFile(null)
+      window.dispatchEvent(
+        new CustomEvent('site-branding:updated', {
+          detail: { logoUrl: nextLogo, faviconUrl: nextFavicon },
+        }),
+      )
       applyFavicon(nextFavicon)
       setMessage('Logo and favicon settings saved successfully.')
     } catch (e) {
@@ -74,18 +83,25 @@ export default function SiteBrandingSettings() {
     }
   }
 
-  if (loading) return <section className="workspace-panel"><div className="workspace-empty">Loading branding settings...</div></section>
+  if (loading)
+    return (
+      <section className="workspace-panel">
+        <div className="workspace-empty">Loading branding settings...</div>
+      </section>
+    )
 
   return (
     <section className="workspace-panel">
       <div className="panel-heading">
         <div>
           <h2>Logo & Favicon</h2>
-          <p className="workspace-muted">Upload the logo and browser favicon used across the website.</p>
+          <p className="workspace-muted">
+            Upload the logo and browser favicon used across the website.
+          </p>
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:20}}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 20 }}>
         <BrandCard
           title="Website Logo"
           description="Used in the public header, customer portal and admin header/footer."
@@ -105,31 +121,90 @@ export default function SiteBrandingSettings() {
         />
       </div>
 
-      {message && <div className="workspace-note" style={{marginTop:16}}>{message}</div>}
-      {error && <div className="workspace-error" style={{marginTop:16}}>{error}</div>}
+      {message && (
+        <div className="workspace-note" style={{ marginTop: 16 }}>
+          {message}
+        </div>
+      )}
+      {error && (
+        <div className="workspace-error" style={{ marginTop: 16 }}>
+          {error}
+        </div>
+      )}
 
-      <div style={{display:'flex',justifyContent:'flex-end',marginTop:18}}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18 }}>
         <button className="primary-button" disabled={saving} onClick={() => void save()}>
-          <Save size={15}/> {saving ? 'Saving...' : 'Save Branding'}
+          <Save size={15} /> {saving ? 'Saving...' : 'Save Branding'}
         </button>
       </div>
     </section>
   )
 }
 
-function BrandCard({title,description,preview,accept,file,onFile,compact=false}:{title:string;description:string;preview:string;accept:string;file:File|null;onFile:(file:File|null)=>void;compact?:boolean}) {
+function BrandCard({
+  title,
+  description,
+  preview,
+  accept,
+  file,
+  onFile,
+  compact = false,
+}: {
+  title: string
+  description: string
+  preview: string
+  accept: string
+  file: File | null
+  onFile: (file: File | null) => void
+  compact?: boolean
+}) {
   return (
-    <div style={{border:'1px solid #e4dfd6',borderRadius:12,padding:18,background:'#faf9f6'}}>
-      <div style={{fontWeight:800,fontSize:14}}>{title}</div>
-      <p className="workspace-muted" style={{fontSize:12,minHeight:34}}>{description}</p>
-      <div style={{height:compact?130:150,display:'grid',placeItems:'center',background:'#fff',border:'1px solid #e4dfd6',borderRadius:10,overflow:'hidden',marginBottom:12}}>
-        {preview ? <img src={preview} alt={title} style={{maxWidth:'80%',maxHeight:compact?90:105,objectFit:'contain'}} /> : <Image size={28} />}
+    <div
+      style={{ border: '1px solid #e4dfd6', borderRadius: 12, padding: 18, background: '#faf9f6' }}
+    >
+      <div style={{ fontWeight: 800, fontSize: 14 }}>{title}</div>
+      <p className="workspace-muted" style={{ fontSize: 12, minHeight: 34 }}>
+        {description}
+      </p>
+      <div
+        style={{
+          height: compact ? 130 : 150,
+          display: 'grid',
+          placeItems: 'center',
+          background: '#fff',
+          border: '1px solid #e4dfd6',
+          borderRadius: 10,
+          overflow: 'hidden',
+          marginBottom: 12,
+        }}
+      >
+        {preview ? (
+          <img
+            src={preview}
+            alt={title}
+            style={{ maxWidth: '80%', maxHeight: compact ? 90 : 105, objectFit: 'contain' }}
+          />
+        ) : (
+          <Image size={28} />
+        )}
       </div>
-      <label className="secondary-button" style={{display:'inline-flex',alignItems:'center',gap:7,cursor:'pointer'}}>
-        <Upload size={15}/> {file ? 'Change File' : 'Choose File'}
-        <input hidden type="file" accept={accept} onChange={e=>onFile(e.target.files?.[0] || null)} />
+      <label
+        className="secondary-button"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}
+      >
+        <Upload size={15} /> {file ? 'Change File' : 'Choose File'}
+        <input
+          hidden
+          type="file"
+          accept={accept}
+          onChange={(e) => onFile(e.target.files?.[0] || null)}
+        />
       </label>
-      {file && <div style={{fontSize:11,color:'#6d7780',marginTop:8,wordBreak:'break-word'}}>{file.name}</div>}
+      {file && (
+        <div style={{ fontSize: 11, color: '#6d7780', marginTop: 8, wordBreak: 'break-word' }}>
+          {file.name}
+        </div>
+      )}
     </div>
   )
 }

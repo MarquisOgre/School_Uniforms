@@ -138,9 +138,18 @@ export const DEFAULT_HOME: any = {
 function Landing({ onLogin }: { onLogin: () => void }) {
   const [logoUrl, setLogoUrl] = useState(DEFAULT_LOGO_URL)
   useEffect(() => {
-    const load = () => { void loadSiteBranding().then((branding) => { setLogoUrl(branding.logoUrl); applySiteFavicon(branding.faviconUrl) }) }
+    const load = () => {
+      void loadSiteBranding().then((branding) => {
+        setLogoUrl(branding.logoUrl)
+        applySiteFavicon(branding.faviconUrl)
+      })
+    }
     load()
-    const onUpdate = (event: Event) => { const detail = (event as CustomEvent<{logoUrl?: string; faviconUrl?: string}>).detail; if (detail?.logoUrl) setLogoUrl(detail.logoUrl); if (detail?.faviconUrl) applySiteFavicon(detail.faviconUrl) }
+    const onUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ logoUrl?: string; faviconUrl?: string }>).detail
+      if (detail?.logoUrl) setLogoUrl(detail.logoUrl)
+      if (detail?.faviconUrl) applySiteFavicon(detail.faviconUrl)
+    }
     window.addEventListener('site-branding:updated', onUpdate)
     return () => window.removeEventListener('site-branding:updated', onUpdate)
   }, [])
