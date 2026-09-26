@@ -238,11 +238,17 @@ export default function CheckoutFlow({
       }
 
       const a = addressRow
+      const addressPhone = String(a?.phone || '').replace(/\D/g, '')
+      const profilePhone = String(profile?.phone || '').replace(/\D/g, '')
+      const resolvedPhone =
+        addressPhone.length === 10
+          ? addressPhone
+          : profilePhone.length === 10
+            ? profilePhone
+            : addressPhone || profilePhone
       setAddress({
         name: a?.recipient_name || profile?.full_name || '',
-        phone: String(a?.phone || profile?.phone || '')
-          .replace(/\D/g, '')
-          .slice(0, 10),
+        phone: resolvedPhone.slice(0, 10),
         line1: a?.address_line1 || '',
         line2: a?.address_line2 || '',
         city: a?.city || '',
