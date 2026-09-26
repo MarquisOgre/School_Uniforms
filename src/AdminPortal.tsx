@@ -13,6 +13,7 @@ import {
   LogOut,
   Settings,
   Mail,
+  Upload,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 const AdminWorkspace = lazy(() => import('./AdminWorkspace'))
@@ -367,6 +368,75 @@ function CmsSectionHeading({
   )
 }
 
+function HeroImageUpload({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (url: string) => void
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  const upload = async (file: File) => {
+    const client = supabase
+    if (!client) return
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be 5 MB or smaller.')
+      return
+    }
+    setUploading(true)
+    setError('')
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-')
+    const path = `homepage/hero/${crypto.randomUUID()}-${safeName}`
+    const { error: uploadError } = await client.storage.from('site-assets').upload(path, file, {
+      cacheControl: '31536000',
+      contentType: file.type,
+      upsert: false,
+    })
+    if (uploadError) {
+      setError(uploadError.message)
+      setUploading(false)
+      return
+    }
+    const { data } = client.storage.from('site-assets').getPublicUrl(path)
+    onChange(data.publicUrl)
+    setUploading(false)
+  }
+
+  return (
+    <div className="cms-image-upload">
+      <div className="cms-image-upload-preview">
+        {value ? (
+          <img src={value} alt="Hero slide preview" />
+        ) : (
+          <span>No image selected</span>
+        )}
+      </div>
+      <label className="cms-upload-button">
+        <Upload size={15} />
+        <span>{uploading ? 'UPLOADING...' : 'UPLOAD IMAGE'}</span>
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) void upload(file)
+            e.currentTarget.value = ''
+          }}
+          disabled={uploading}
+        />
+      </label>
+      <small>PNG, JPG, WEBP or SVG · Max 5 MB</small>
+      {error && <span className="cms-image-upload-error">{error}</span>}
+    </div>
+  )
+}
+
 function HomepageEditor({ onBack }: { onBack: () => void }) {
   const [content, setContent] = useState<any>(DEFAULT_HOME),
     [saving, setSaving] = useState(false),
@@ -459,62 +529,70 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
                   label={x.enabled === false ? 'Disabled' : 'Enabled'}
                 />
               </div>
-              <label>
-                Eyebrow
-                <input
-                  value={x.eyebrow || ''}
-                  onChange={(e) => edit((c) => (c.hero.slides[i].eyebrow = e.target.value))}
-                />
-              </label>
-              <label>
-                Title line 1
-                <input
-                  value={x.title?.[0] || ''}
-                  onChange={(e) => edit((c) => (c.hero.slides[i].title[0] = e.target.value))}
-                />
-              </label>
-              <label>
-                Title line 2
-                <input
-                  value={x.title?.[1] || ''}
-                  onChange={(e) => edit((c) => (c.hero.slides[i].title[1] = e.target.value))}
-                />
-              </label>
-              <label>
-                Title line 3
-                <input
-                  value={x.title?.[2] || ''}
-                  onChange={(e) => edit((c) => (c.hero.slides[i].title[2] = e.target.value))}
-                />
-              </label>
-              <label>
-                Description
-                <textarea
-                  value={x.text || ''}
-                  onChange={(e) => edit((c) => (c.hero.slides[i].text = e.target.value))}
-                />
-              </label>
-              <label>
-                Image URL
-                <input
-                  value={x.image || ''}
-                  onChange={(e) => edit((c) => (c.hero.slides[i].image = e.target.value))}
-                />
-              </label>
-              <label>
-                Primary button
-                <input
-                  value={x.button || ''}
-                  onChange={(e) => edit((c) => (c.hero.slides[i].button = e.target.value))}
-                />
-              </label>
-              <label>
-                Secondary button
-                <input
-                  value={x.secondary || ''}
-                  onChange={(e) => edit((c) => (c.hero.slides[i].secondary = e.target.value))}
-                />
-              </label>
+              <div className="cms-field-grid cms-field-grid-2">
+                <label>
+                  Eyebrow
+                  <input
+                    value={x.eyebrow || ''}
+                    onChange={(e) => edit((c) => (c.hero.slides[i].eyebrow = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Tag Line 1
+                  <input
+                    value={x.title?.[0] || ''}
+                    onChange={(e) => edit((c) => (c.hero.slides[i].title[0] = e.target.value))}
+                  />
+                </label>
+              </div>
+              <div className="cms-field-grid cms-field-grid-2">
+                <label>
+                  Tag Line 2
+                  <input
+                    value={x.title?.[1] || ''}
+                    onChange={(e) => edit((c) => (c.hero.slides[i].title[1] = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Tag Line 3
+                  <input
+                    value={x.title?.[2] || ''}
+                    onChange={(e) => edit((c) => (c.hero.slides[i].title[2] = e.target.value))}
+                  />
+                </label>
+              </div>
+              <div className="cms-hero-media-grid">
+                <label className="cms-hero-description">
+                  Description
+                  <textarea
+                    value={x.text || ''}
+                    onChange={(e) => edit((c) => (c.hero.slides[i].text = e.target.value))}
+                  />
+                </label>
+                <div className="cms-hero-image-field">
+                  <span className="cms-field-label">Hero Image</span>
+                  <HeroImageUpload
+                    value={x.image || ''}
+                    onChange={(url) => edit((c) => (c.hero.slides[i].image = url))}
+                  />
+                </div>
+              </div>
+              <div className="cms-field-grid cms-field-grid-2">
+                <label>
+                  Primary Button
+                  <input
+                    value={x.button || ''}
+                    onChange={(e) => edit((c) => (c.hero.slides[i].button = e.target.value))}
+                  />
+                </label>
+                <label>
+                  Secondary Button
+                  <input
+                    value={x.secondary || ''}
+                    onChange={(e) => edit((c) => (c.hero.slides[i].secondary = e.target.value))}
+                  />
+                </label>
+              </div>
             </div>
           ))}
         </section>
