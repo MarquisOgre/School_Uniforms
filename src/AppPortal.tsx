@@ -821,7 +821,7 @@ function Packages({
                     .from('customer_saved_items')
                     .delete()
                     .eq('user_id', userId)
-                    .eq('item_type', 'product')
+                    .eq('item_type', 'package')
                     .eq('item_id', x.id)
                   setSavedIds((prev) => {
                     const next = new Set(prev)
@@ -863,6 +863,7 @@ function Products({
   onAdd: (x: CartItem) => void
 }) {
   const [items, setItems] = useState<CartItem[]>([]),
+    [savedIds, setSavedIds] = useState<Set<string>>(new Set()),
     [loading, setLoading] = useState(true),
     [error, setError] = useState('')
   useEffect(() => {
@@ -1036,7 +1037,7 @@ function Products({
                     .from('customer_saved_items')
                     .delete()
                     .eq('user_id', userId)
-                    .eq('item_type', 'package')
+                    .eq('item_type', 'product')
                     .eq('item_id', x.id)
                   setSavedIds((prev) => {
                     const next = new Set(prev)
