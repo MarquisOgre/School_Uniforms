@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import { applySiteFavicon, DEFAULT_LOGO_URL, loadSiteBranding } from './lib/branding'
 
 export type SchoolOption = { id: string; name: string }
 export type BranchOption = { id: string; name: string }
@@ -135,6 +136,14 @@ export const DEFAULT_HOME: any = {
 }
 
 function Landing({ onLogin }: { onLogin: () => void }) {
+  const [logoUrl, setLogoUrl] = useState(DEFAULT_LOGO_URL)
+  useEffect(() => {
+    const load = () => { void loadSiteBranding().then((branding) => { setLogoUrl(branding.logoUrl); applySiteFavicon(branding.faviconUrl) }) }
+    load()
+    const onUpdate = (event: Event) => { const detail = (event as CustomEvent<{logoUrl?: string; faviconUrl?: string}>).detail; if (detail?.logoUrl) setLogoUrl(detail.logoUrl); if (detail?.faviconUrl) applySiteFavicon(detail.faviconUrl) }
+    window.addEventListener('site-branding:updated', onUpdate)
+    return () => window.removeEventListener('site-branding:updated', onUpdate)
+  }, [])
   const [publicPage, setPublicPage] = useState('home')
   const go = (p: string) => {
     setPublicPage(p)
@@ -188,7 +197,7 @@ function Landing({ onLogin }: { onLogin: () => void }) {
       <header className="store-header exact-header">
         <div className="store-header-inner">
           <button className="brand-button" onClick={() => go('home')} aria-label="Go to home">
-            <img className="brand-logo" src="/logo.png" alt="Artisan" />
+            <img className="brand-logo" src={logoUrl} alt="Artisan" />
           </button>
           <nav className={menu ? 'nav-open' : ''}>
             <a className="active" onClick={() => go('home')}>
