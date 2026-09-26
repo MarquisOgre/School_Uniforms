@@ -23,6 +23,7 @@ import {
 import { supabase } from './lib/supabase'
 import CheckoutFlow, { type CheckoutCartItem } from './CheckoutFlow'
 import { CustomerPageFrame, GlobalHeader } from './components/GlobalChrome'
+import ProductReviews from './ProductReviews'
 
 export type CustomerPage = 'dashboard' | 'packages' | 'products' | 'orders' | 'profile'
 type CartItem = CheckoutCartItem
@@ -883,6 +884,7 @@ function ProductDetail({
           </button>
         </div>
       </div>
+      {item.type === 'product' ? <ProductReviews productId={item.sourceId} /> : null}
     </div>
   )
 }
