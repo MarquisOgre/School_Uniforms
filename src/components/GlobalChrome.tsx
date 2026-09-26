@@ -165,31 +165,4 @@ export function CustomerPageFrame({
       </div>
     </div>
   )
-}: {
-  title: string
-  subtitle?: string
-  onBack: () => void
-  onLogout: () => void
-  cartCount: number
-  onCart: () => void
-  children: ReactNode
-}) {
-  return (
-    <div className="customer-page-frame">
-      <GlobalHeader
-        portal="customer"
-        title={title}
-        subtitle={subtitle}
-        onBack={onBack}
-        backLabel="Dashboard"
-        onLogout={onLogout}
-        cartCount={cartCount}
-        onCart={onCart}
-        schoolName={schoolName}
-        branchName={branchName}
-        userLabel={userLabel}
-      />
-      <main className="customer-page-frame-content">{children}</main>
-    </div>
-  )
 }
