@@ -3050,9 +3050,7 @@ function Coupons() {
               <strong>{x.code}</strong>
               <span>{x.discount_type}</span>
               <span>{x.discount_value}</span>
-              <span>
-                {x.usage_limit == null ? 'Unlimited' : Number(x.usage_limit)}
-              </span>
+              <span>{x.usage_limit == null ? 'Unlimited' : Number(x.usage_limit)}</span>
               <span>{usage[x.id] || 0}</span>
               <span>
                 {x.usage_limit == null
