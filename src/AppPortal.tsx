@@ -1305,13 +1305,29 @@ function Profile({
       case 'full_name':
         return !v ? 'Full Name is required.' : v.length < 2 ? 'Enter a valid full name.' : ''
       case 'phone':
-        return !v ? 'Mobile number is required.' : !/^[6-9]\d{9}$/.test(v) ? 'Enter a valid 10-digit mobile number.' : ''
+        return !v
+          ? 'Mobile number is required.'
+          : !/^[6-9]\d{9}$/.test(v)
+            ? 'Enter a valid 10-digit mobile number.'
+            : ''
       case 'email':
-        return !v ? 'Email is required.' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Enter a valid email address.' : ''
+        return !v
+          ? 'Email is required.'
+          : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+            ? 'Enter a valid email address.'
+            : ''
       case 'recipient_name':
-        return !v ? 'Recipient Name is required.' : v.length < 2 ? 'Enter a valid recipient name.' : ''
+        return !v
+          ? 'Recipient Name is required.'
+          : v.length < 2
+            ? 'Enter a valid recipient name.'
+            : ''
       case 'address_phone':
-        return !v ? 'Mobile number is required.' : !/^[6-9]\d{9}$/.test(v) ? 'Enter a valid 10-digit mobile number.' : ''
+        return !v
+          ? 'Mobile number is required.'
+          : !/^[6-9]\d{9}$/.test(v)
+            ? 'Enter a valid 10-digit mobile number.'
+            : ''
       case 'address_line1':
         return !v ? 'Address Line 1 is required.' : v.length < 5 ? 'Enter a complete address.' : ''
       case 'city':
@@ -1319,7 +1335,11 @@ function Profile({
       case 'state':
         return !v ? 'State is required.' : ''
       case 'postal_code':
-        return !v ? 'PIN / Postal Code is required.' : !/^\d{6}$/.test(v) ? 'Enter a valid 6-digit PIN / Postal Code.' : ''
+        return !v
+          ? 'PIN / Postal Code is required.'
+          : !/^\d{6}$/.test(v)
+            ? 'Enter a valid 6-digit PIN / Postal Code.'
+            : ''
       default:
         return ''
     }
@@ -1519,30 +1539,55 @@ function Profile({
           <div className="profile-form-grid">
             <label>
               Full Name <span className="required-star">*</span>
-              <input className={validateProfileField('full_name', profile.full_name) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('full_name', profile.full_name)
+                    ? 'profile-input-invalid'
+                    : ''
+                }
                 value={profile.full_name || ''}
                 onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
               />
-              {validateProfileField('full_name', profile.full_name) && <small className="profile-field-error">{validateProfileField('full_name', profile.full_name)}</small>}
+              {validateProfileField('full_name', profile.full_name) && (
+                <small className="profile-field-error">
+                  {validateProfileField('full_name', profile.full_name)}
+                </small>
+              )}
             </label>
             <label>
               Mobile <span className="required-star">*</span>
-              <input className={validateProfileField('phone', profile.phone) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('phone', profile.phone) ? 'profile-input-invalid' : ''
+                }
                 value={profile.phone || ''}
                 inputMode="numeric"
                 maxLength={10}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                onChange={(e) =>
+                  setProfile({ ...profile, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })
+                }
               />
-              {validateProfileField('phone', profile.phone) && <small className="profile-field-error">{validateProfileField('phone', profile.phone)}</small>}
+              {validateProfileField('phone', profile.phone) && (
+                <small className="profile-field-error">
+                  {validateProfileField('phone', profile.phone)}
+                </small>
+              )}
             </label>
             <label className="profile-field-full">
               Email <span className="required-star">*</span>
-              <input className={validateProfileField('email', profile.email) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('email', profile.email) ? 'profile-input-invalid' : ''
+                }
                 value={profile.email || ''}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                 type="email"
               />
-              {validateProfileField('email', profile.email) && <small className="profile-field-error">{validateProfileField('email', profile.email)}</small>}
+              {validateProfileField('email', profile.email) && (
+                <small className="profile-field-error">
+                  {validateProfileField('email', profile.email)}
+                </small>
+              )}
             </label>
           </div>
           <div className="profile-panel-actions">
@@ -1602,29 +1647,58 @@ function Profile({
           <div className="profile-form-grid">
             <label>
               Recipient Name <span className="required-star">*</span>
-              <input className={validateProfileField('recipient_name', address.recipient_name) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('recipient_name', address.recipient_name)
+                    ? 'profile-input-invalid'
+                    : ''
+                }
                 value={address.recipient_name || ''}
                 onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })}
               />
-              {validateProfileField('recipient_name', address.recipient_name) && <small className="profile-field-error">{validateProfileField('recipient_name', address.recipient_name)}</small>}
+              {validateProfileField('recipient_name', address.recipient_name) && (
+                <small className="profile-field-error">
+                  {validateProfileField('recipient_name', address.recipient_name)}
+                </small>
+              )}
             </label>
             <label>
               Mobile <span className="required-star">*</span>
-              <input className={validateProfileField('address_phone', address.phone) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('address_phone', address.phone)
+                    ? 'profile-input-invalid'
+                    : ''
+                }
                 value={address.phone || ''}
                 inputMode="numeric"
                 maxLength={10}
-                onChange={(e) => setAddress({ ...address, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                onChange={(e) =>
+                  setAddress({ ...address, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })
+                }
               />
-              {validateProfileField('address_phone', address.phone) && <small className="profile-field-error">{validateProfileField('address_phone', address.phone)}</small>}
+              {validateProfileField('address_phone', address.phone) && (
+                <small className="profile-field-error">
+                  {validateProfileField('address_phone', address.phone)}
+                </small>
+              )}
             </label>
             <label className="profile-field-full">
               Address Line 1 <span className="required-star">*</span>
-              <input className={validateProfileField('address_line1', address.address_line1) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('address_line1', address.address_line1)
+                    ? 'profile-input-invalid'
+                    : ''
+                }
                 value={address.address_line1 || ''}
                 onChange={(e) => setAddress({ ...address, address_line1: e.target.value })}
               />
-              {validateProfileField('address_line1', address.address_line1) && <small className="profile-field-error">{validateProfileField('address_line1', address.address_line1)}</small>}
+              {validateProfileField('address_line1', address.address_line1) && (
+                <small className="profile-field-error">
+                  {validateProfileField('address_line1', address.address_line1)}
+                </small>
+              )}
             </label>
             <label className="profile-field-full">
               Address Line 2
@@ -1635,27 +1709,55 @@ function Profile({
             </label>
             <label>
               City <span className="required-star">*</span>
-              <input className={validateProfileField('city', address.city) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('city', address.city) ? 'profile-input-invalid' : ''
+                }
                 value={address.city || ''}
                 onChange={(e) => setAddress({ ...address, city: e.target.value })}
               />
-              {validateProfileField('city', address.city) && <small className="profile-field-error">{validateProfileField('city', address.city)}</small>}
+              {validateProfileField('city', address.city) && (
+                <small className="profile-field-error">
+                  {validateProfileField('city', address.city)}
+                </small>
+              )}
             </label>
             <label>
               State <span className="required-star">*</span>
-              <input className={validateProfileField('state', address.state) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('state', address.state) ? 'profile-input-invalid' : ''
+                }
                 value={address.state || ''}
                 onChange={(e) => setAddress({ ...address, state: e.target.value })}
               />
-              {validateProfileField('state', address.state) && <small className="profile-field-error">{validateProfileField('state', address.state)}</small>}
+              {validateProfileField('state', address.state) && (
+                <small className="profile-field-error">
+                  {validateProfileField('state', address.state)}
+                </small>
+              )}
             </label>
             <label>
               PIN / Postal Code <span className="required-star">*</span>
-              <input className={validateProfileField('postal_code', address.postal_code) ? 'profile-input-invalid' : ''}
+              <input
+                className={
+                  validateProfileField('postal_code', address.postal_code)
+                    ? 'profile-input-invalid'
+                    : ''
+                }
                 value={address.postal_code || ''}
-                onChange={(e) => setAddress({ ...address, postal_code: e.target.value.replace(/\\D/g, '').slice(0, 6) })}
+                onChange={(e) =>
+                  setAddress({
+                    ...address,
+                    postal_code: e.target.value.replace(/\\D/g, '').slice(0, 6),
+                  })
+                }
               />
-              {validateProfileField('postal_code', address.postal_code) && <small className="profile-field-error">{validateProfileField('postal_code', address.postal_code)}</small>}
+              {validateProfileField('postal_code', address.postal_code) && (
+                <small className="profile-field-error">
+                  {validateProfileField('postal_code', address.postal_code)}
+                </small>
+              )}
             </label>
           </div>
           <div className="profile-panel-actions">
