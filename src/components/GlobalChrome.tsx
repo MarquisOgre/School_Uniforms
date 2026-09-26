@@ -102,7 +102,6 @@ export function CustomerPageFrame({
         onCart={onCart}
       />
       <main className="customer-page-frame-content">{children}</main>
-      <GlobalFooter portal="customer" />
     </div>
   )
 }
