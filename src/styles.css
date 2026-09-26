@@ -9557,7 +9557,6 @@ a {
   padding: 28px 42px 42px;
 }
 
-
 .product-card {
   position: relative;
 }
@@ -9569,13 +9568,13 @@ a {
   z-index: 5;
   width: 34px;
   height: 34px;
-  border: 1px solid rgba(255,255,255,.9);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  background: rgba(255,253,248,.96);
+  background: rgba(255, 253, 248, 0.96);
   color: #5d6864;
   display: grid;
   place-items: center;
-  box-shadow: 0 4px 12px rgba(23,39,45,.14);
+  box-shadow: 0 4px 12px rgba(23, 39, 45, 0.14);
   cursor: pointer;
 }
 

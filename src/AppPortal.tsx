@@ -569,7 +569,11 @@ function Dashboard({ setPage }: { setPage: (p: CustomerPage) => void }) {
           value={activeOrders === null ? '—' : String(activeOrders)}
           icon={<ClipboardList />}
         />
-        <Stat title="Saved items" value={savedItems === null ? "—" : String(savedItems)} icon={<Heart />} />
+        <Stat
+          title="Saved items"
+          value={savedItems === null ? '—' : String(savedItems)}
+          icon={<Heart />}
+        />
         <Stat title="School branch" value="Active" icon={<Building2 />} />
       </div>
       {/* <div className="section-row">
