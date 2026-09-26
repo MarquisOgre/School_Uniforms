@@ -20,7 +20,8 @@ const EMPTY: Omit<EmailTemplate, 'id' | 'updated_at'> = {
   name: '',
   description: '',
   subject: '',
-  html_body: '<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;padding:32px"><h1>{{site_name}}</h1><p>Hello {{customer_name}},</p><p>Your message goes here.</p></div>',
+  html_body:
+    '<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;padding:32px"><h1>{{site_name}}</h1><p>Hello {{customer_name}},</p><p>Your message goes here.</p></div>',
   text_body: 'Hello {{customer_name}},\n\nYour message goes here.',
   variables: ['site_name', 'customer_name'],
   enabled: true,
@@ -57,7 +58,9 @@ export default function EmailTemplates() {
     setLoading(true)
     const { data, error: e } = await supabase
       .from('email_templates')
-      .select('id,template_key,name,description,subject,html_body,text_body,variables,enabled,updated_at')
+      .select(
+        'id,template_key,name,description,subject,html_body,text_body,variables,enabled,updated_at',
+      )
       .order('name')
     if (e) setError(e.message)
     else setRows((data || []) as EmailTemplate[])
@@ -91,7 +94,10 @@ export default function EmailTemplates() {
     setSaving(true)
     setError('')
     const payload = {
-      template_key: editing.template_key.trim().toLowerCase().replace(/[^a-z0-9_]+/g, '_'),
+      template_key: editing.template_key
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_]+/g, '_'),
       name: editing.name.trim(),
       description: editing.description?.trim() || null,
       subject: editing.subject,
@@ -120,7 +126,10 @@ export default function EmailTemplates() {
       .update({ enabled: !row.enabled, updated_at: new Date().toISOString() })
       .eq('id', row.id)
     if (e) setError(e.message)
-    else setRows((current) => current.map((x) => (x.id === row.id ? { ...x, enabled: !x.enabled } : x)))
+    else
+      setRows((current) =>
+        current.map((x) => (x.id === row.id ? { ...x, enabled: !x.enabled } : x)),
+      )
   }
 
   return (
@@ -130,7 +139,10 @@ export default function EmailTemplates() {
           <div>
             <p className="eyebrow">EMAIL SYSTEM</p>
             <h1>Email Templates</h1>
-            <p>Manage system emails like WordPress: subject, HTML content, text fallback, variables and status.</p>
+            <p>
+              Manage system emails like WordPress: subject, HTML content, text fallback, variables
+              and status.
+            </p>
           </div>
           <button className="primary-button" onClick={startNew}>
             <Plus size={15} /> Add Template
@@ -143,26 +155,41 @@ export default function EmailTemplates() {
           <div className="workspace-toolbar">
             <div className="toolbar-search">
               <Mail size={15} />
-              <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search email templates" />
+              <input
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="Search email templates"
+              />
             </div>
-            <button className="secondary-button" onClick={() => void load()}>Refresh</button>
+            <button className="secondary-button" onClick={() => void load()}>
+              Refresh
+            </button>
           </div>
 
           {loading ? (
             <div className="workspace-empty">Loading email templates...</div>
           ) : (
             <div className="workspace-table">
-              <div className="workspace-row admin-table-header" style={{ gridTemplateColumns: '1.4fr 2fr 110px 130px' }}>
+              <div
+                className="workspace-row admin-table-header"
+                style={{ gridTemplateColumns: '1.4fr 2fr 110px 130px' }}
+              >
                 <strong>Template</strong>
                 <span>Description</span>
                 <span>Status</span>
                 <span>Actions</span>
               </div>
               {visible.map((row) => (
-                <div className="workspace-row" key={row.id} style={{ gridTemplateColumns: '1.4fr 2fr 110px 130px' }}>
+                <div
+                  className="workspace-row"
+                  key={row.id}
+                  style={{ gridTemplateColumns: '1.4fr 2fr 110px 130px' }}
+                >
                   <div>
                     <strong>{row.name}</strong>
-                    <div className="workspace-muted" style={{ fontSize: 11 }}>{row.template_key}</div>
+                    <div className="workspace-muted" style={{ fontSize: 11 }}>
+                      {row.template_key}
+                    </div>
                   </div>
                   <span>{row.description || '—'}</span>
                   <button
@@ -181,7 +208,16 @@ export default function EmailTemplates() {
                     {row.enabled ? 'Active' : 'Disabled'}
                   </button>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="secondary-button" onClick={() => { setEditing({ ...row, variables: Array.isArray(row.variables) ? row.variables : [] }); setPreview(false) }}>
+                    <button
+                      className="secondary-button"
+                      onClick={() => {
+                        setEditing({
+                          ...row,
+                          variables: Array.isArray(row.variables) ? row.variables : [],
+                        })
+                        setPreview(false)
+                      }}
+                    >
                       <Pencil size={14} /> Edit
                     </button>
                   </div>
@@ -197,40 +233,68 @@ export default function EmailTemplates() {
               <div className="panel-heading">
                 <div>
                   <h2>{editing.id ? 'Edit Email Template' : 'Add Email Template'}</h2>
-                  <p className="workspace-muted">Use double braces for dynamic values, for example {"{{customer_name}}"}.</p>
+                  <p className="workspace-muted">
+                    Use double braces for dynamic values, for example {'{{customer_name}}'}.
+                  </p>
                 </div>
-                <button className="icon-button" onClick={() => setEditing(null)} aria-label="Close"><X size={18} /></button>
+                <button className="icon-button" onClick={() => setEditing(null)} aria-label="Close">
+                  <X size={18} />
+                </button>
               </div>
 
               <div className="workspace-form-row">
                 <label className="workspace-field">
                   <span>Template Key</span>
-                  <input value={editing.template_key} disabled={!!editing.id} onChange={(e) => setEditing({ ...editing, template_key: e.target.value })} placeholder="order_received" />
+                  <input
+                    value={editing.template_key}
+                    disabled={!!editing.id}
+                    onChange={(e) => setEditing({ ...editing, template_key: e.target.value })}
+                    placeholder="order_received"
+                  />
                 </label>
                 <label className="workspace-field">
                   <span>Template Name</span>
-                  <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="New Order" />
+                  <input
+                    value={editing.name}
+                    onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                    placeholder="New Order"
+                  />
                 </label>
               </div>
 
               <label className="workspace-field">
                 <span>Description</span>
-                <input value={editing.description || ''} onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
+                <input
+                  value={editing.description || ''}
+                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                />
               </label>
 
               <label className="workspace-field">
                 <span>Email Subject</span>
-                <input value={editing.subject} onChange={(e) => setEditing({ ...editing, subject: e.target.value })} />
+                <input
+                  value={editing.subject}
+                  onChange={(e) => setEditing({ ...editing, subject: e.target.value })}
+                />
               </label>
 
               <div className="workspace-form-row">
                 <label className="workspace-field">
                   <span>HTML Body</span>
-                  <textarea value={editing.html_body} onChange={(e) => setEditing({ ...editing, html_body: e.target.value })} rows={16} style={{ fontFamily: 'monospace', fontSize: 12 }} />
+                  <textarea
+                    value={editing.html_body}
+                    onChange={(e) => setEditing({ ...editing, html_body: e.target.value })}
+                    rows={16}
+                    style={{ fontFamily: 'monospace', fontSize: 12 }}
+                  />
                 </label>
                 <label className="workspace-field">
                   <span>Plain Text Fallback</span>
-                  <textarea value={editing.text_body || ''} onChange={(e) => setEditing({ ...editing, text_body: e.target.value })} rows={16} />
+                  <textarea
+                    value={editing.text_body || ''}
+                    onChange={(e) => setEditing({ ...editing, text_body: e.target.value })}
+                    rows={16}
+                  />
                 </label>
               </div>
 
@@ -238,13 +302,33 @@ export default function EmailTemplates() {
                 <span>Variables (comma separated)</span>
                 <input
                   value={editing.variables.join(', ')}
-                  onChange={(e) => setEditing({ ...editing, variables: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      variables: e.target.value
+                        .split(',')
+                        .map((x) => x.trim())
+                        .filter(Boolean),
+                    })
+                  }
                   placeholder="site_name, customer_name, order_number"
                 />
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0', fontWeight: 700 }}>
-                <input type="checkbox" checked={editing.enabled} onChange={(e) => setEditing({ ...editing, enabled: e.target.checked })} />
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  margin: '12px 0',
+                  fontWeight: 700,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={editing.enabled}
+                  onChange={(e) => setEditing({ ...editing, enabled: e.target.checked })}
+                />
                 Template enabled
               </label>
 
@@ -252,7 +336,9 @@ export default function EmailTemplates() {
                 <button className="secondary-button" onClick={() => setPreview((x) => !x)}>
                   <Eye size={15} /> {preview ? 'Hide Preview' : 'Preview'}
                 </button>
-                <button className="secondary-button" onClick={() => setEditing(null)}>Cancel</button>
+                <button className="secondary-button" onClick={() => setEditing(null)}>
+                  Cancel
+                </button>
                 <button className="primary-button" disabled={saving} onClick={() => void save()}>
                   <Save size={15} /> {saving ? 'Saving...' : 'Save Template'}
                 </button>
@@ -260,13 +346,23 @@ export default function EmailTemplates() {
 
               {preview && (
                 <div style={{ marginTop: 18, borderTop: '1px solid #eee', paddingTop: 18 }}>
-                  <div className="workspace-muted" style={{ marginBottom: 8 }}>Subject Preview</div>
-                  <div style={{ fontWeight: 800, marginBottom: 14 }}>{replacePreview(editing.subject, editing.variables)}</div>
+                  <div className="workspace-muted" style={{ marginBottom: 8 }}>
+                    Subject Preview
+                  </div>
+                  <div style={{ fontWeight: 800, marginBottom: 14 }}>
+                    {replacePreview(editing.subject, editing.variables)}
+                  </div>
                   <iframe
                     title="Email preview"
                     sandbox=""
                     srcDoc={replacePreview(editing.html_body, editing.variables)}
-                    style={{ width: '100%', minHeight: 420, border: '1px solid #ddd', borderRadius: 8, background: '#fff' }}
+                    style={{
+                      width: '100%',
+                      minHeight: 420,
+                      border: '1px solid #ddd',
+                      borderRadius: 8,
+                      background: '#fff',
+                    }}
                   />
                 </div>
               )}
