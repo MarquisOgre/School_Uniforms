@@ -8,6 +8,7 @@ import {
   Package,
   ShoppingBag,
   Sparkles,
+  MessageCircle,
   UserRound,
   ClipboardList,
   LogOut,
@@ -15,6 +16,7 @@ import {
 import { supabase } from './lib/supabase'
 import AdminWorkspace from './AdminWorkspace'
 import { DEFAULT_HOME } from './HomePage'
+import SupportChatAdmin from './SupportChatAdmin'
 
 type AdminTool =
   | 'home'
@@ -27,6 +29,7 @@ type AdminTool =
   | 'students'
   | 'reports'
   | 'coupons'
+  | 'support'
 
 const ADMIN_NAV: Array<{
   key: AdminTool
@@ -43,6 +46,7 @@ const ADMIN_NAV: Array<{
   { key: 'students', label: 'Parents & Students', icon: UserRound },
   { key: 'reports', label: 'Reports', icon: FileSpreadsheet },
   { key: 'coupons', label: 'Coupons', icon: Sparkles },
+  { key: 'support', label: 'Support Chat', icon: MessageCircle },
 ]
 
 function AdminSidebar({
@@ -122,6 +126,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       students: '/admin/parents-students',
       reports: '/admin/reports',
       coupons: '/admin/coupons',
+      support: '/admin/support',
     }
     return paths[value]
   }
@@ -136,6 +141,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/parents-students') return 'students'
     if (path === '/admin/reports') return 'reports'
     if (path === '/admin/coupons') return 'coupons'
+    if (path === '/admin/support') return 'support'
     return 'packages'
   }
 
@@ -257,6 +263,12 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
         <HomepageEditor onBack={() => setTool('packages')} />
+      </AdminLayout>
+    )
+  if (tool === 'support')
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <SupportChatAdmin />
       </AdminLayout>
     )
   if (
