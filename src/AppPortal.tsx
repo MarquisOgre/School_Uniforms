@@ -35,6 +35,7 @@ export type CustomerPage = 'dashboard' | 'packages' | 'products' | 'orders' | 'p
 type CartItem = CheckoutCartItem & {
   productType?: string
   occasionType?: string
+  gender?: string
   material?: string
   brand?: string
   quality?: string
