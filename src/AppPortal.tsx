@@ -968,7 +968,7 @@ function Products({
         setLoading(false)
         return
       }
-      const products = (p.data ?? []) as Array<{
+      const products = (p.data ?? []) as unknown as Array<{
         id: string
         name: string
         description: string | null
@@ -1246,7 +1246,7 @@ function ProductDetail({
               }}
             />
           </div>
-          {item.imageGallery?.length ? (
+          {([item.image, ...(item.imageGallery || [])].filter((url): url is string => Boolean(url)).length > 1) ? (
             <div className="detail-gallery-thumbnails">
               {[item.image, ...(item.imageGallery || [])]
                 .filter((url): url is string => Boolean(url))
