@@ -8464,3 +8464,232 @@ a {
     border-bottom: 1px solid var(--line);
   }
 }
+
+
+/* School Portal - right-side cart drawer */
+.school-cart-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(15, 23, 22, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.school-cart-drawer {
+  width: min(430px, 92vw);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fffdf9;
+  border-left: 1px solid #e5ded2;
+  box-shadow: -18px 0 45px rgba(18, 35, 31, 0.16);
+  animation: school-cart-slide-in 180ms ease-out;
+}
+
+@keyframes school-cart-slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.school-cart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid #ebe5dc;
+}
+
+.school-cart-header h2 {
+  margin: 4px 0 0;
+  color: #132b34;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+}
+
+.school-cart-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ddd5c9;
+  border-radius: 50%;
+  background: transparent;
+  color: #53615f;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.school-cart-close:hover {
+  background: #f5f1eb;
+}
+
+.school-cart-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+}
+
+.school-cart-item {
+  display: flex;
+  gap: 13px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border: 1px solid #e4ddd2;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.school-cart-item > img,
+.school-cart-item-placeholder {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.school-cart-item-placeholder {
+  display: grid;
+  place-items: center;
+  background: #f2eee7;
+  color: #52635e;
+}
+
+.school-cart-item-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.school-cart-item-body > strong {
+  display: block;
+  color: #18343c;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.school-cart-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.school-cart-variants span,
+.school-cart-size {
+  display: inline-block;
+  color: #65706d;
+  font-size: 11px;
+}
+
+.school-cart-item-bottom {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.school-cart-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.school-cart-qty button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ddd5c9;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  color: #243b40;
+  font-size: 17px;
+}
+
+.school-cart-qty span {
+  min-width: 16px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.school-cart-item-bottom > strong {
+  margin-left: auto;
+  color: #17343c;
+  font-size: 14px;
+}
+
+.school-cart-remove {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: #c7463d;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.school-cart-footer {
+  padding: 18px 20px 24px;
+  border-top: 1px solid #e6dfd5;
+  background: #fffdf9;
+}
+
+.school-cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  color: #18343c;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.school-cart-total strong {
+  color: #2d6f49;
+}
+
+.school-cart-checkout {
+  width: 100%;
+  justify-content: center;
+}
+
+.school-cart-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+  color: #68736f;
+}
+
+.school-cart-empty h3 {
+  margin: 14px 0 4px;
+  color: #18343c;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 20px;
+}
+
+.school-cart-empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .school-cart-drawer {
+    width: 100%;
+  }
+
+  .school-cart-header {
+    padding: 18px;
+  }
+
+  .school-cart-items,
+  .school-cart-footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
