@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Plus, RefreshCw, Save, Trash2, Search, X, Download } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import EmailConfigSettings from './EmailConfigSettings'
 
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
 
@@ -3443,6 +3444,7 @@ function Settings() {
           </>
         )}
       </Panel>
+      <EmailConfigSettings />
       <BranchPaymentSettings />
     </>
   )
