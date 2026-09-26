@@ -180,7 +180,7 @@ export default function CheckoutFlow({
   const detailsValid = Boolean(
     studentId &&
       address.name.trim() &&
-      address.phone.trim() &&
+      /^[0-9]{10}$/.test(address.phone.trim()) &&
       address.line1.trim() &&
       address.city.trim() &&
       address.state.trim() &&
@@ -389,7 +389,17 @@ export default function CheckoutFlow({
                 {k !== 'line2' && <span>*</span>}
                 <input
                   value={(address as any)[k]}
-                  onChange={(e) => setAddress({ ...address, [k]: e.target.value })}
+                  type={k === 'phone' ? 'tel' : k === 'pincode' ? 'text' : 'text'}
+                  inputMode={k === 'phone' || k === 'pincode' ? 'numeric' : undefined}
+                  maxLength={k === 'phone' ? 10 : k === 'pincode' ? 6 : undefined}
+                  pattern={k === 'phone' ? '[0-9]{10}' : k === 'pincode' ? '[0-9]{6}' : undefined}
+                  onChange={(e) => {
+                    const value =
+                      k === 'phone' || k === 'pincode'
+                        ? e.target.value.replace(/\\D/g, '').slice(0, k === 'phone' ? 10 : 6)
+                        : e.target.value
+                    setAddress({ ...address, [k]: value })
+                  }}
                 />
               </label>
             ))}
