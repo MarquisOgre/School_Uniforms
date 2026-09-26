@@ -7904,10 +7904,14 @@ a {
 
 /* Product reviews */
 .product-reviews {
-  margin-top: 34px;
-  background: #fff;
-  border-top: 1px solid #ddd;
-  padding: 0 14px 42px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 34px auto 0;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 27px;
+  box-sizing: border-box;
 }
 
 .product-reviews-header {
