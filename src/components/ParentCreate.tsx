@@ -16,6 +16,7 @@ export default function ParentCreate({
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [studentCode, setStudentCode] = useState('')
   const [studentName, setStudentName] = useState('')
   const [dob, setDob] = useState('')
@@ -31,7 +32,7 @@ export default function ParentCreate({
     setBusy(true)
     setError('')
     setDone(false)
-    const { data, error: e } = await supabase.functions.invoke('create-parent-login', {
+    const { data, error: e } = await supabase.functions.invoke('create-parent-login-v2', {
       body: {
         school_id: schoolId,
         branch_id: branchId,
@@ -39,6 +40,7 @@ export default function ParentCreate({
         login_id: loginId,
         password,
         parent_phone: phone,
+        parent_email: email,
         student_code: studentCode,
         student_name: studentName,
         dob,
@@ -95,6 +97,15 @@ export default function ParentCreate({
             />
           </label>
           <label>
+            Parent Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="parent@example.com"
+            />
+          </label>
+          <label>
             Student ID
             <input value={studentCode} onChange={(e) => setStudentCode(e.target.value)} />
           </label>
@@ -140,7 +151,7 @@ export default function ParentCreate({
         <button
           className="primary-button import-button"
           disabled={
-            busy || !parentName || !loginId || !password || !studentCode || !studentName || !dob
+            busy || !parentName || !loginId || !password || !email || !studentCode || !studentName || !dob
           }
           onClick={() => void create()}
         >
