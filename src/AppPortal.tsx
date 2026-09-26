@@ -1299,32 +1299,37 @@ function ProductDetail({
 
           {item.type === 'product' ? (
             <div className="product-detail-information">
-              <div className="product-benefit-list">
-                {item.codAvailable !== false ? (
-                  <div>
-                    <CheckCircle2 size={20} />
-                    <strong>COD Available</strong>
-                  </div>
-                ) : null}
-                {item.customOrderCod === true ? (
-                  <div className="warning">
-                    <Ban size={20} />
-                    <strong>No COD on Custom Order (Embroidery)</strong>
-                  </div>
-                ) : null}
-                {item.easyReturns !== false ? (
-                  <div>
-                    <RotateCcw size={20} />
-                    <strong>Easy Returns & Exchange</strong>
-                  </div>
-                ) : null}
-                {item.expressShipping !== false ? (
-                  <div>
-                    <Truck size={20} />
-                    <strong>1–3 Day Express Shipping</strong>
-                  </div>
-                ) : null}
-              </div>
+              <details open className="product-benefits-accordion">
+                <summary>
+                  COD, Returns & Shipping <ChevronDown size={18} />
+                </summary>
+                <div className="product-benefit-list">
+                  {item.codAvailable !== false ? (
+                    <div>
+                      <CheckCircle2 size={20} />
+                      <strong>COD Available</strong>
+                    </div>
+                  ) : null}
+                  {item.customOrderCod === true ? (
+                    <div className="warning">
+                      <Ban size={20} />
+                      <strong>No COD on Custom Order (Embroidery)</strong>
+                    </div>
+                  ) : null}
+                  {item.easyReturns !== false ? (
+                    <div>
+                      <RotateCcw size={20} />
+                      <strong>Easy Returns & Exchange</strong>
+                    </div>
+                  ) : null}
+                  {item.expressShipping !== false ? (
+                    <div>
+                      <Truck size={20} />
+                      <strong>1–3 Day Express Shipping</strong>
+                    </div>
+                  ) : null}
+                </div>
+              </details>
 
               <details open>
                 <summary>
