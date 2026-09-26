@@ -3305,6 +3305,19 @@ function Settings() {
       setKeyId(data?.key_id || keyId)
       setKeyConfigured(!!data?.key_secret_configured)
       setWebhookConfigured(!!data?.webhook_secret_configured)
+      try {
+        localStorage.setItem(
+          'school_uniforms_razorpay_settings_ui',
+          JSON.stringify({
+            mode: data?.mode === 'live' ? 'live' : mode,
+            keyId: data?.key_id || keyId,
+            keyConfigured: !!data?.key_secret_configured,
+            webhookConfigured: !!data?.webhook_secret_configured,
+          }),
+        )
+      } catch {
+        // Ignore unavailable local storage.
+      }
       setKeySecret('')
       setWebhookSecret('')
       setSaved(true)
