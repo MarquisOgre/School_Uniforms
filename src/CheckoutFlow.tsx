@@ -229,12 +229,12 @@ export default function CheckoutFlow({
       const a = addressRow
       setAddress({
         name: a?.recipient_name || profile?.full_name || '',
-        phone: String(a?.phone || profile?.phone || '').replace(/\\D/g, '').slice(0, 10),
+        phone: String(a?.phone || profile?.phone || '').replace(/\D/g, '').slice(0, 10),
         line1: a?.address_line1 || '',
         line2: a?.address_line2 || '',
         city: a?.city || '',
         state: a?.state || 'Telangana',
-        pincode: String(a?.postal_code || '').replace(/\\D/g, '').slice(0, 6),
+        pincode: String(a?.postal_code || '').replace(/\D/g, '').slice(0, 6),
       })
 
       setHydrating(false)
@@ -500,7 +500,6 @@ export default function CheckoutFlow({
           {studentLoadError && (
             <div className="workspace-error checkout-validation-error">{studentLoadError}</div>
           )}
-          </div>
           <div className="checkout-actions">
             <button className="secondary-button" onClick={() => setStep('cart')}>
               Back
