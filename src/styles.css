@@ -8354,13 +8354,19 @@ a {
 .review-rating-picker {
   display: flex;
   gap: 4px;
-  color: #f21b23;
+  color: #b9b9b9;
 }
 
 .review-rating-picker button {
   border: 0;
   background: transparent;
   padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.review-rating-picker button.selected {
+  color: #f21b23;
 }
 
 .review-form input,
