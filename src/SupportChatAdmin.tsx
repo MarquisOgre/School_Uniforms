@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircle, Send } from 'lucide-react'
+import { MessageCircle, Send, Trash2 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
 type Conversation = {
@@ -117,6 +117,43 @@ export default function SupportChatAdmin() {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  const deleteConversation = async (conversation: Conversation) => {
+    if (!supabase) return
+    const confirmed = window.confirm(
+      `Delete the support chat with ${conversation.customer_name || 'Customer'}? This will permanently delete the conversation and all of its messages.`,
+    )
+    if (!confirmed) return
+
+    const client = supabase as any
+    setError('')
+    const messageDelete = await client
+      .from('support_messages')
+      .delete()
+      .eq('conversation_id', conversation.id)
+
+    if (messageDelete.error) {
+      setError(messageDelete.error.message)
+      return
+    }
+
+    const conversationDelete = await client
+      .from('support_conversations')
+      .delete()
+      .eq('id', conversation.id)
+
+    if (conversationDelete.error) {
+      setError(conversationDelete.error.message)
+      return
+    }
+
+    const remaining = conversations.filter((x) => x.id !== conversation.id)
+    setConversations(remaining)
+    if (selected === conversation.id) {
+      setSelected(remaining[0]?.id || null)
+      setMessages([])
+    }
+  }
+
   const send = async () => {
     const text = draft.trim()
     if (!text || !selected || !adminId || !supabase) return
@@ -155,7 +192,21 @@ export default function SupportChatAdmin() {
                 onClick={() => setSelected(conversation.id)}
               >
                 <strong>{conversation.customer_name}</strong>
-                <span>{conversation.status}</span>
+                <span className="admin-support-conversation-meta">
+                  <span>{conversation.status}</span>
+                  <span
+                    className="admin-support-delete"
+                    role="button"
+                    aria-label={`Delete chat with ${conversation.customer_name || 'Customer'}`}
+                    title="Delete conversation"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      void deleteConversation(conversation)
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </span>
+                </span>
               </button>
             ))
           ) : (
