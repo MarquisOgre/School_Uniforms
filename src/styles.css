@@ -6860,6 +6860,7 @@ a {
 /* Inline package component editor: each component stays on one clear row. */
 .package-items-inline {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 4px;
 }
@@ -6922,7 +6923,11 @@ a {
   font-weight: 800;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 760px) {
+  .package-items-inline {
+    grid-template-columns: 1fr;
+  }
+
   .package-item-inline-main {
     grid-template-columns: 1fr;
     gap: 8px;
