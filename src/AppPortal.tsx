@@ -32,7 +32,20 @@ import { CustomerPageFrame, GlobalHeader } from './components/GlobalChrome'
 import ProductReviews from './ProductReviews'
 
 export type CustomerPage = 'dashboard' | 'packages' | 'products' | 'orders' | 'profile'
-type CartItem = CheckoutCartItem
+type CartItem = CheckoutCartItem & {
+  productType?: string
+  occasionType?: string
+  material?: string
+  brand?: string
+  quality?: string
+  fabric?: string
+  care?: string
+  deliveryReturns?: string
+  codAvailable?: boolean
+  customOrderCod?: boolean
+  easyReturns?: boolean
+  expressShipping?: boolean
+}
 type CheckoutStep = 'cart' | 'details' | 'payment' | 'success'
 
 function CustomerPortal({
