@@ -9481,3 +9481,35 @@ a {
     grid-column: auto;
   }
 }
+
+
+/* Customer orders - compact multi-column layout */
+.orders-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.orders-list .order-card {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.orders-list .order-card-items {
+  flex: 1;
+}
+
+@media (max-width: 1050px) {
+  .orders-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .orders-list {
+    grid-template-columns: 1fr;
+  }
+}
