@@ -292,12 +292,16 @@ export default function CheckoutFlow({
         quantity: item.quantity,
         selected_variants:
           item.type === 'package'
-            ? item.selectedVariants || []
+            ? (item.selectedVariants || []).map((selection) => ({
+                package_item_id: selection.packageItemId,
+                variant_id: selection.variantId,
+                size_label: selection.sizeLabel,
+              }))
             : [
                 {
                   variant_id:
                     item.selectedVariants?.[0]?.variantId || item.variantOptions?.[0]?.id || '',
-                  sizeLabel: item.size,
+                  size_label: item.size,
                 },
               ],
       }))
