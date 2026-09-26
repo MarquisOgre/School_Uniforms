@@ -708,9 +708,7 @@ function Packages({
       const [p, pi] = await Promise.all([
         client
           .from('uniform_packages')
-          .select(
-            'id,name,description,gender,image_url,base_price,offer_price,discount_percentage',
-          )
+          .select('id,name,description,gender,image_url,base_price,offer_price,discount_percentage')
           .in('id', ids)
           .eq('status', 'active')
           .order('name'),
