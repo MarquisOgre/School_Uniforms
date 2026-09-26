@@ -3135,7 +3135,9 @@ function BranchPaymentSettings() {
     setLoading(false)
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+  }, [])
 
   const value = (branchId: string) =>
     settings.find((x) => x.branch_id === branchId) || {
@@ -3152,16 +3154,19 @@ function BranchPaymentSettings() {
   const save = async (row: any) => {
     if (!supabase) return
     setSaving(row.branch_id)
-    const r = await dbFrom('branch_payment_settings').upsert({
-      branch_id: row.branch_id,
-      pay_at_school_enabled: !!row.pay_at_school_enabled,
-      upi_enabled: !!row.upi_enabled,
-      razorpay_enabled: !!row.razorpay_enabled,
-      upi_id: row.upi_id?.trim() || null,
-      upi_payee_name: row.upi_payee_name?.trim() || null,
-      shipping_fee: Number(row.shipping_fee || 0),
-      free_shipping_above: Number(row.free_shipping_above || 0),
-    }, { onConflict: 'branch_id' })
+    const r = await dbFrom('branch_payment_settings').upsert(
+      {
+        branch_id: row.branch_id,
+        pay_at_school_enabled: !!row.pay_at_school_enabled,
+        upi_enabled: !!row.upi_enabled,
+        razorpay_enabled: !!row.razorpay_enabled,
+        upi_id: row.upi_id?.trim() || null,
+        upi_payee_name: row.upi_payee_name?.trim() || null,
+        shipping_fee: Number(row.shipping_fee || 0),
+        free_shipping_above: Number(row.free_shipping_above || 0),
+      },
+      { onConflict: 'branch_id' },
+    )
     if (r.error) setError(r.error.message)
     else await load()
     setSaving(null)
@@ -3175,29 +3180,91 @@ function BranchPaymentSettings() {
       <div className="panel-heading">
         <div>
           <h2>Branch Payment Settings</h2>
-          <span className="workspace-muted">Configure payment methods and delivery charges for each branch.</span>
+          <span className="workspace-muted">
+            Configure payment methods and delivery charges for each branch.
+          </span>
         </div>
       </div>
       <ErrorBox text={error} />
-      {loading ? <Loading /> : (
+      {loading ? (
+        <Loading />
+      ) : (
         <div className="workspace-table">
           <div className="workspace-row payment-settings-row admin-table-header">
-            <strong>Branch</strong><span>Pay at School</span><span>UPI</span><span>Razorpay</span>
-            <span>UPI ID</span><span>Payee Name</span><span>Shipping</span><span>Free Above</span><span>Actions</span>
+            <strong>Branch</strong>
+            <span>Pay at School</span>
+            <span>UPI</span>
+            <span>Razorpay</span>
+            <span>UPI ID</span>
+            <span>Payee Name</span>
+            <span>Shipping</span>
+            <span>Free Above</span>
+            <span>Actions</span>
           </div>
           {branches.map((b) => {
             const row = value(b.id)
             return (
               <div className="workspace-row payment-settings-row" key={b.id}>
                 <strong>{b.name}</strong>
-                <label className="admin-inline-check"><input type="checkbox" checked={!!row.pay_at_school_enabled} onChange={(e) => update(b.id, row, { pay_at_school_enabled: e.target.checked })} /> Pay at School</label>
-                <label className="admin-inline-check"><input type="checkbox" checked={!!row.upi_enabled} onChange={(e) => update(b.id, row, { upi_enabled: e.target.checked })} /> UPI</label>
-                <label className="admin-inline-check"><input type="checkbox" checked={!!row.razorpay_enabled} onChange={(e) => update(b.id, row, { razorpay_enabled: e.target.checked })} /> Razorpay</label>
-                <input className="admin-mini-input" value={row.upi_id || ''} placeholder="UPI ID" onChange={(e) => update(b.id, row, { upi_id: e.target.value })} />
-                <input className="admin-mini-input" value={row.upi_payee_name || ''} placeholder="Payee name" onChange={(e) => update(b.id, row, { upi_payee_name: e.target.value })} />
-                <input className="admin-mini-input" type="number" min="0" value={row.shipping_fee ?? 0} placeholder="Shipping" onChange={(e) => update(b.id, row, { shipping_fee: e.target.value })} />
-                <input className="admin-mini-input" type="number" min="0" value={row.free_shipping_above ?? 0} placeholder="Free above" onChange={(e) => update(b.id, row, { free_shipping_above: e.target.value })} />
-                <button className="primary-button" disabled={saving === b.id} onClick={() => void save(row)}>{saving === b.id ? 'Saving...' : 'Save'}</button>
+                <label className="admin-inline-check">
+                  <input
+                    type="checkbox"
+                    checked={!!row.pay_at_school_enabled}
+                    onChange={(e) => update(b.id, row, { pay_at_school_enabled: e.target.checked })}
+                  />{' '}
+                  Pay at School
+                </label>
+                <label className="admin-inline-check">
+                  <input
+                    type="checkbox"
+                    checked={!!row.upi_enabled}
+                    onChange={(e) => update(b.id, row, { upi_enabled: e.target.checked })}
+                  />{' '}
+                  UPI
+                </label>
+                <label className="admin-inline-check">
+                  <input
+                    type="checkbox"
+                    checked={!!row.razorpay_enabled}
+                    onChange={(e) => update(b.id, row, { razorpay_enabled: e.target.checked })}
+                  />{' '}
+                  Razorpay
+                </label>
+                <input
+                  className="admin-mini-input"
+                  value={row.upi_id || ''}
+                  placeholder="UPI ID"
+                  onChange={(e) => update(b.id, row, { upi_id: e.target.value })}
+                />
+                <input
+                  className="admin-mini-input"
+                  value={row.upi_payee_name || ''}
+                  placeholder="Payee name"
+                  onChange={(e) => update(b.id, row, { upi_payee_name: e.target.value })}
+                />
+                <input
+                  className="admin-mini-input"
+                  type="number"
+                  min="0"
+                  value={row.shipping_fee ?? 0}
+                  placeholder="Shipping"
+                  onChange={(e) => update(b.id, row, { shipping_fee: e.target.value })}
+                />
+                <input
+                  className="admin-mini-input"
+                  type="number"
+                  min="0"
+                  value={row.free_shipping_above ?? 0}
+                  placeholder="Free above"
+                  onChange={(e) => update(b.id, row, { free_shipping_above: e.target.value })}
+                />
+                <button
+                  className="primary-button"
+                  disabled={saving === b.id}
+                  onClick={() => void save(row)}
+                >
+                  {saving === b.id ? 'Saving...' : 'Save'}
+                </button>
               </div>
             )
           })}
@@ -3340,7 +3407,9 @@ function Settings() {
                   type="password"
                   value={keySecret}
                   onChange={(e) => setKeySecret(e.target.value)}
-                  placeholder={keyConfigured ? '••••••••••••••••  (configured)' : 'Enter Key Secret'}
+                  placeholder={
+                    keyConfigured ? '••••••••••••••••  (configured)' : 'Enter Key Secret'
+                  }
                   autoComplete="new-password"
                 />
               </label>
@@ -3375,7 +3444,8 @@ function Settings() {
 
             <div className="workspace-note">
               Configure this exact URL in Razorpay Dashboard → Webhooks and enable
-              payment.authorized, payment.captured, payment.failed, refund.created and refund.failed.
+              payment.authorized, payment.captured, payment.failed, refund.created and
+              refund.failed.
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '18px' }}>
