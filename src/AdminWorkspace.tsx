@@ -458,6 +458,7 @@ function Products() {
       easy_returns: editing.easy_returns !== false,
       express_shipping: editing.express_shipping !== false,
       image_url: editing.image_url || null,
+      image_gallery: Array.isArray(editing.image_gallery) ? editing.image_gallery : [],
       base_price: Number(editing.base_price || 0),
       offer_price:
         editing.offer_price === '' || editing.offer_price == null
@@ -559,6 +560,7 @@ function Products() {
               discount_percentage: '',
               offer_price: '',
               image_url: '',
+              image_gallery: [],
               status: 'active',
               category_id: categories[0]?.id || '',
             })
@@ -769,7 +771,7 @@ function Products() {
 
           <div className="workspace-form-row workspace-form-row-image-status">
             <label className="workspace-field">
-              <span>Product Image</span>
+              <span>Product Main Image</span>
               <ImagePicker
                 value={editing.image_url || ''}
                 folder="products"
@@ -778,6 +780,17 @@ function Products() {
               />
             </label>
 
+            <label className="workspace-field">
+              <span>Product Image Gallery</span>
+              <GalleryPicker
+                value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []}
+                folder="products"
+                onChange={(v) => setEditing({ ...editing, image_gallery: v })}
+              />
+            </label>
+          </div>
+
+          <div className="workspace-form-row">
             <Select
               label="Status"
               value={editing.status}
@@ -905,6 +918,78 @@ function Products() {
         </EditModal>
       )}
     </>
+  )
+}
+
+function GalleryPicker({
+  value,
+  onChange,
+  folder = 'products',
+}: {
+  value: string[]
+  onChange: (v: string[]) => void
+  folder?: string
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  const uploadImages = async (files: FileList | null) => {
+    if (!supabase || !files?.length) return
+    setUploading(true)
+    setError('')
+    const urls: string[] = []
+    for (const file of Array.from(files)) {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const safeName =
+        file.name.replace(/[^a-zA-Z0-9.-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') ||
+        `image.${extension}`
+      const storagePath = `${folder}/gallery-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`
+      const result = await supabase.storage.from('package-images').upload(storagePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type,
+      })
+      if (result.error) {
+        setError(result.error.message)
+        continue
+      }
+      urls.push(supabase.storage.from('package-images').getPublicUrl(storagePath).data.publicUrl)
+    }
+    if (urls.length) onChange([...value, ...urls])
+    setUploading(false)
+  }
+
+  return (
+    <div className="workspace-gallery-picker">
+      <div className="workspace-gallery-grid">
+        {value.map((url, index) => (
+          <div className="workspace-gallery-thumb" key={url + index}>
+            <img src={url} alt={`Gallery ${index + 1}`} />
+            <button
+              type="button"
+              onClick={() => onChange(value.filter((_, i) => i !== index))}
+              aria-label="Remove gallery image"
+            >
+              <X size={13} />
+            </button>
+          </div>
+        ))}
+        <label className="workspace-gallery-add">
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple
+            onChange={(e) => {
+              void uploadImages(e.target.files)
+              e.currentTarget.value = ''
+            }}
+          />
+          <Plus size={20} />
+          <span>{uploading ? 'Uploading...' : 'Add Images'}</span>
+        </label>
+      </div>
+      {error ? <div className="workspace-image-error">{error}</div> : null}
+    </div>
   )
 }
 
