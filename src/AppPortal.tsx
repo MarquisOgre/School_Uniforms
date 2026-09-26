@@ -352,7 +352,11 @@ function CustomerPortal({
                 <p className="eyebrow">SHOPPING CART</p>
                 <h2>Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h2>
               </div>
-              <button className="school-cart-close" onClick={() => setCartOpen(false)} aria-label="Close cart">
+              <button
+                className="school-cart-close"
+                onClick={() => setCartOpen(false)}
+                aria-label="Close cart"
+              >
                 ×
               </button>
             </div>
@@ -374,7 +378,14 @@ function CustomerPortal({
                         {item.type === 'package' && item.selectedVariants?.length ? (
                           <div className="school-cart-variants">
                             {item.selectedVariants.map((v: any) => (
-                              <span key={v.packageItemId || v.package_item_id || v.variantId || v.variant_id}>
+                              <span
+                                key={
+                                  v.packageItemId ||
+                                  v.package_item_id ||
+                                  v.variantId ||
+                                  v.variant_id
+                                }
+                              >
                                 {v.sizeLabel || v.size_label || 'Selected'}
                               </span>
                             ))}
@@ -384,12 +395,26 @@ function CustomerPortal({
                         ) : null}
                         <div className="school-cart-item-bottom">
                           <div className="school-cart-qty">
-                            <button onClick={() => update(item.id, -1)} aria-label="Decrease quantity">−</button>
+                            <button
+                              onClick={() => update(item.id, -1)}
+                              aria-label="Decrease quantity"
+                            >
+                              −
+                            </button>
                             <span>{item.quantity}</span>
-                            <button onClick={() => update(item.id, 1)} aria-label="Increase quantity">+</button>
+                            <button
+                              onClick={() => update(item.id, 1)}
+                              aria-label="Increase quantity"
+                            >
+                              +
+                            </button>
                           </div>
                           <strong>₹{(item.price * item.quantity).toLocaleString('en-IN')}</strong>
-                          <button className="school-cart-remove" onClick={() => remove(item.id)} aria-label="Remove item">
+                          <button
+                            className="school-cart-remove"
+                            onClick={() => remove(item.id)}
+                            aria-label="Remove item"
+                          >
                             ×
                           </button>
                         </div>
