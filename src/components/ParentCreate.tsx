@@ -151,7 +151,14 @@ export default function ParentCreate({
         <button
           className="primary-button import-button"
           disabled={
-            busy || !parentName || !loginId || !password || !email || !studentCode || !studentName || !dob
+            busy ||
+            !parentName ||
+            !loginId ||
+            !password ||
+            !email ||
+            !studentCode ||
+            !studentName ||
+            !dob
           }
           onClick={() => void create()}
         >
