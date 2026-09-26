@@ -151,6 +151,7 @@ function App() {
           setSchoolName(sn)
           setBranchName(bn)
           setCustomerPage('dashboard')
+          void import('./AppPortal')
           window.history.pushState(
             { schoolUniformApp: 'customer', screen: 'page:dashboard', page: 'dashboard' },
             '',
