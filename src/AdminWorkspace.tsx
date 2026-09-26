@@ -9,7 +9,6 @@ type ModuleKey =
   | 'products'
   | 'packages'
   | 'orders'
-  | 'payments'
   | 'inventory'
   | 'students'
   | 'reports'
@@ -29,8 +28,10 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
     title: 'Uniform Packages',
     description: 'Build packages from your individual products.',
   },
-  orders: { title: 'Orders', description: 'Review customer orders, totals and order status.' },
-  payments: { title: 'Payments', description: 'Review payment transactions and payment status.' },
+  orders: {
+    title: 'Orders & Payments',
+    description: 'Review orders, payment transactions, totals and status in one place.',
+  },
   inventory: { title: 'Inventory', description: 'Monitor stock by branch, product and variant.' },
   students: {
     title: 'Parents & Students',
@@ -97,7 +98,7 @@ export default function AdminWorkspace({
                 <input
                   value={ordersSearch}
                   onChange={(e) => setOrdersSearch(e.target.value)}
-                  placeholder="Search orders"
+                  placeholder="Search orders or payments"
                 />
               </div>
               <button
@@ -107,14 +108,6 @@ export default function AdminWorkspace({
                 <RefreshCw size={15} /> Refresh
               </button>
             </div>
-          ) : module === 'payments' ? (
-            <button
-              className="secondary-button"
-              onClick={() => window.dispatchEvent(new CustomEvent('payments:refresh'))}
-              style={{ flexShrink: 0 }}
-            >
-              <RefreshCw size={15} /> Refresh
-            </button>
           ) : null}
         </div>
         <ModuleBody module={module} ordersSearch={ordersSearch} />
@@ -133,8 +126,6 @@ function ModuleBody({ module, ordersSearch }: { module: ModuleKey; ordersSearch?
       return <Packages />
     case 'orders':
       return <OrdersAdmin search={ordersSearch || ''} />
-    case 'payments':
-      return <PaymentsAdmin />
     case 'inventory':
       return <InventoryAdmin />
     case 'students':
@@ -1599,6 +1590,7 @@ function Packages() {
 
 function OrdersAdmin({ search }: { search: string }) {
   const [rows, setRows] = useState<any[]>([]),
+    [unmatchedPayments, setUnmatchedPayments] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
     [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
@@ -1606,7 +1598,7 @@ function OrdersAdmin({ search }: { search: string }) {
   const load = async () => {
     if (!supabase) return
     setLoading(true)
-    const [o, p, s, b, oi, pi, products] = await Promise.all([
+    const [o, p, s, b, oi, pi, products, payments] = await Promise.all([
       dbFrom('orders').select('*').order('created_at', { ascending: false }),
       dbFrom('profiles').select('id,full_name,login_id'),
       dbFrom('students').select('id,full_name,student_code'),
@@ -1620,6 +1612,9 @@ function OrdersAdmin({ search }: { search: string }) {
         .select('package_id,product_id,quantity,sort_order')
         .order('sort_order'),
       dbFrom('products').select('id,name'),
+      dbFrom('payments')
+        .select('id,order_id,provider_payment_id,provider,amount,status,paid_at,created_at')
+        .order('created_at', { ascending: false }),
     ])
 
     const pm = Object.fromEntries((p.data ?? []).map((x: any) => [x.id, x]))
@@ -1634,6 +1629,14 @@ function OrdersAdmin({ search }: { search: string }) {
     }
 
     const itemsByOrder: Record<string, string[]> = {}
+    const paymentsByOrder: Record<string, any[]> = {}
+    const orderIds = new Set((o.data ?? []).map((x: any) => x.id))
+
+    for (const payment of payments.data ?? []) {
+      if (!payment.order_id || !orderIds.has(payment.order_id)) continue
+      if (!paymentsByOrder[payment.order_id]) paymentsByOrder[payment.order_id] = []
+      paymentsByOrder[payment.order_id].push(payment)
+    }
 
     for (const item of oi.data ?? []) {
       const orderItems = itemsByOrder[item.order_id] || []
@@ -1663,7 +1666,11 @@ function OrdersAdmin({ search }: { search: string }) {
         student: sm[x.student_id]?.full_name || sm[x.student_id]?.student_code || '—',
         branch: bm[x.branch_id]?.name || '—',
         products: itemsByOrder[x.id] ?? [],
+        payments: paymentsByOrder[x.id] ?? [],
       })),
+    )
+    setUnmatchedPayments(
+      (payments.data ?? []).filter((payment: any) => !payment.order_id || !orderIds.has(payment.order_id)),
     )
     setError(
       o.error?.message ||
@@ -1673,6 +1680,7 @@ function OrdersAdmin({ search }: { search: string }) {
         oi.error?.message ||
         pi.error?.message ||
         products.error?.message ||
+        payments.error?.message ||
         '',
     )
     setLoading(false)
@@ -1682,7 +1690,11 @@ function OrdersAdmin({ search }: { search: string }) {
     void load()
     const refreshHandler = () => void load()
     window.addEventListener('orders:refresh', refreshHandler)
-    return () => window.removeEventListener('orders:refresh', refreshHandler)
+    window.addEventListener('payments:refresh', refreshHandler)
+    return () => {
+      window.removeEventListener('orders:refresh', refreshHandler)
+      window.removeEventListener('payments:refresh', refreshHandler)
+    }
   }, [])
 
   const orderStatusOptions = [
@@ -1723,9 +1735,28 @@ function OrdersAdmin({ search }: { search: string }) {
   }
 
   const filtered = rows.filter((x) =>
-    [x.order_number, x.status, x.customer, x.student, x.branch, ...(x.products || [])].some((v) =>
-      String(v).toLowerCase().includes(search.toLowerCase()),
-    ),
+    [
+      x.order_number,
+      x.status,
+      x.customer,
+      x.student,
+      x.branch,
+      ...(x.products || []),
+      ...(x.payments || []).flatMap((payment: any) => [
+        payment.provider_payment_id,
+        payment.provider,
+        payment.status,
+      ]),
+    ].some((v) => String(v ?? '').toLowerCase().includes(search.toLowerCase())),
+  )
+  const filteredUnmatchedPayments = unmatchedPayments.filter((payment) =>
+    [
+      payment.provider_payment_id,
+      payment.id,
+      payment.order_id,
+      payment.provider,
+      payment.status,
+    ].some((value) => String(value ?? '').toLowerCase().includes(search.toLowerCase())),
   )
 
   return (
@@ -1735,6 +1766,9 @@ function OrdersAdmin({ search }: { search: string }) {
         <Loading />
       ) : (
         <Panel>
+          <div className="panel-heading">
+            <h2>Orders & Payments</h2>
+          </div>
           <div className="workspace-scroll">
             <table>
               <thead>
@@ -1744,7 +1778,8 @@ function OrdersAdmin({ search }: { search: string }) {
                   <th>Student</th>
                   <th>Branch</th>
                   <th>Products</th>
-                  <th>Status</th>
+                  <th>Order Status</th>
+                  <th>Payment Transactions</th>
                   <th>Total</th>
                   <th>Date</th>
                 </tr>
@@ -1794,8 +1829,67 @@ function OrdersAdmin({ search }: { search: string }) {
                         ))}
                       </select>
                     </td>
+                    <td>
+                      <div style={{ display: 'grid', gap: '8px', minWidth: '190px' }}>
+                        {x.payments.length ? (
+                          x.payments.map((payment: any) => (
+                            <div key={payment.id} style={{ display: 'grid', gap: '2px' }}>
+                              <strong>{payment.provider_payment_id || payment.id.slice(0, 8)}</strong>
+                              <span>
+                                {payment.provider || '—'} · {payment.status || 'Unknown'}
+                              </span>
+                              <span>
+                                ₹{Number(payment.amount || 0).toLocaleString('en-IN')} ·{' '}
+                                {payment.paid_at
+                                  ? new Date(payment.paid_at).toLocaleDateString('en-IN')
+                                  : 'Not paid'}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <span>No payment recorded</span>
+                        )}
+                      </div>
+                    </td>
                     <td>₹{Number(x.grand_total || 0).toLocaleString('en-IN')}</td>
                     <td>{new Date(x.created_at).toLocaleDateString('en-IN')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
+      {!loading && filteredUnmatchedPayments.length > 0 && (
+        <Panel>
+          <div className="panel-heading">
+            <h2>Payments Without a Matching Order</h2>
+          </div>
+          <div className="workspace-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Payment</th>
+                  <th>Order Reference</th>
+                  <th>Provider</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Paid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUnmatchedPayments.map((payment) => (
+                  <tr key={payment.id}>
+                    <td>{payment.provider_payment_id || payment.id.slice(0, 8)}</td>
+                    <td>{payment.order_id || '—'}</td>
+                    <td>{payment.provider || '—'}</td>
+                    <td>₹{Number(payment.amount || 0).toLocaleString('en-IN')}</td>
+                    <td>{payment.status || 'Unknown'}</td>
+                    <td>
+                      {payment.paid_at
+                        ? new Date(payment.paid_at).toLocaleDateString('en-IN')
+                        : '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1807,179 +1901,6 @@ function OrdersAdmin({ search }: { search: string }) {
   )
 }
 
-function PaymentsAdmin() {
-  const [rows, setRows] = useState<any[]>([]),
-    [settings, setSettings] = useState<any[]>([]),
-    [branches, setBranches] = useState<any[]>([]),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(true),
-    [updatingStatus, setUpdatingStatus] = useState<string | null>(null),
-    [saving, setSaving] = useState<string | null>(null)
-
-  const load = async () => {
-    if (!supabase) return
-    setLoading(true)
-    const [p, o, b, s] = await Promise.all([
-      dbFrom('payments').select('*').order('created_at', { ascending: false }),
-      dbFrom('orders').select('id,order_number,status'),
-      dbFrom('branches').select('id,name').order('name'),
-      dbFrom('branch_payment_settings').select('*'),
-    ])
-    const om = Object.fromEntries((o.data ?? []).map((x: any) => [x.id, x]))
-    setRows(
-      (p.data ?? []).map((x: any) => ({
-        ...x,
-        order_number: om[x.order_id]?.order_number || '—',
-        order_status: om[x.order_id]?.status || 'pending',
-      })),
-    )
-    setBranches(b.data ?? [])
-    setSettings(s.data ?? [])
-    setError(p.error?.message || o.error?.message || b.error?.message || s.error?.message || '')
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    void load()
-    const refreshHandler = () => void load()
-    window.addEventListener('payments:refresh', refreshHandler)
-    return () => window.removeEventListener('payments:refresh', refreshHandler)
-  }, [])
-
-  const updateOrderStatus = async (orderId: string, status: string) => {
-    if (!supabase || !orderId) return
-    setUpdatingStatus(orderId)
-    const result = await dbFrom('orders')
-      .update({ status })
-      .eq('id', orderId)
-      .select('id,status')
-      .maybeSingle()
-    if (result.error) {
-      setError(result.error.message)
-    } else {
-      setRows((current) =>
-        current.map((row) => (row.order_id === orderId ? { ...row, order_status: status } : row)),
-      )
-    }
-    setUpdatingStatus(null)
-  }
-
-  const value = (branchId: string) =>
-    settings.find((x) => x.branch_id === branchId) || {
-      branch_id: branchId,
-      pay_at_school_enabled: true,
-      upi_enabled: false,
-      razorpay_enabled: false,
-      upi_id: '',
-      upi_payee_name: '',
-      shipping_fee: 0,
-      free_shipping_above: 0,
-    }
-
-  const save = async (row: any) => {
-    if (!supabase) return
-    setSaving(row.branch_id)
-    const r = await dbFrom('branch_payment_settings').upsert(
-      {
-        branch_id: row.branch_id,
-        pay_at_school_enabled: !!row.pay_at_school_enabled,
-        upi_enabled: !!row.upi_enabled,
-        upi_id: row.upi_id?.trim() || null,
-        upi_payee_name: row.upi_payee_name?.trim() || null,
-        shipping_fee: Number(row.shipping_fee || 0),
-        free_shipping_above: Number(row.free_shipping_above || 0),
-      },
-      { onConflict: 'branch_id' },
-    )
-    if (r.error) setError(r.error.message)
-    else await load()
-    setSaving(null)
-  }
-
-  const orderStatusOptions = [
-    ['pending', 'Order Received'],
-    ['confirmed', 'Order Confirmed'],
-    ['processing', 'Order Processing'],
-    ['ready', 'Order Ready'],
-    ['packed', 'Order Packed'],
-    ['shipped', 'Order Shipped'],
-    ['out_for_delivery', 'Out for Delivery'],
-    ['delivered', 'Order Delivered'],
-    ['cancelled', 'Order Cancelled'],
-    ['return_requested', 'Return Requested'],
-    ['return_approved', 'Return Approved'],
-    ['returned', 'Order Returned'],
-    ['refund_processing', 'Refund Processing'],
-    ['refunded', 'Refund Completed'],
-  ]
-
-  return (
-    <>
-      <ErrorBox text={error} />
-      {loading ? (
-        <Loading />
-      ) : (
-        <>
-          <Panel>
-            <div className="panel-heading">
-              <h2>Payment Transactions</h2>
-            </div>
-            <div className="workspace-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Payment</th>
-                    <th>Order</th>
-                    <th>Provider</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Paid</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((x) => (
-                    <tr key={x.id}>
-                      <td>{x.provider_payment_id || x.id.slice(0, 8)}</td>
-                      <td>{x.order_number}</td>
-                      <td>{x.provider || '—'}</td>
-                      <td>₹{Number(x.amount || 0).toLocaleString('en-IN')}</td>
-                      <td>
-                        <select
-                          value={x.order_status || 'pending'}
-                          disabled={!x.order_id || updatingStatus === x.order_id}
-                          onChange={(e) => void updateOrderStatus(x.order_id, e.target.value)}
-                          aria-label={`Order status for ${x.order_number}`}
-                          style={{
-                            minWidth: '150px',
-                            height: '34px',
-                            border: '1px solid var(--line)',
-                            borderRadius: '7px',
-                            padding: '0 9px',
-                            background: '#fff',
-                            color: 'var(--ink)',
-                            fontSize: '10px',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {orderStatusOptions.map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td>{x.paid_at ? new Date(x.paid_at).toLocaleDateString('en-IN') : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Panel>
-        </>
-      )}
-    </>
-  )
-}
 function InventoryAdmin() {
   const [rows, setRows] = useState<any[]>([]),
     [error, setError] = useState(''),
@@ -3135,9 +3056,7 @@ function BranchPaymentSettings() {
     setLoading(false)
   }
 
-  useEffect(() => {
-    void load()
-  }, [])
+  useEffect(() => { void load() }, [])
 
   const value = (branchId: string) =>
     settings.find((x) => x.branch_id === branchId) || {
@@ -3154,19 +3073,16 @@ function BranchPaymentSettings() {
   const save = async (row: any) => {
     if (!supabase) return
     setSaving(row.branch_id)
-    const r = await dbFrom('branch_payment_settings').upsert(
-      {
-        branch_id: row.branch_id,
-        pay_at_school_enabled: !!row.pay_at_school_enabled,
-        upi_enabled: !!row.upi_enabled,
-        razorpay_enabled: !!row.razorpay_enabled,
-        upi_id: row.upi_id?.trim() || null,
-        upi_payee_name: row.upi_payee_name?.trim() || null,
-        shipping_fee: Number(row.shipping_fee || 0),
-        free_shipping_above: Number(row.free_shipping_above || 0),
-      },
-      { onConflict: 'branch_id' },
-    )
+    const r = await dbFrom('branch_payment_settings').upsert({
+      branch_id: row.branch_id,
+      pay_at_school_enabled: !!row.pay_at_school_enabled,
+      upi_enabled: !!row.upi_enabled,
+      razorpay_enabled: !!row.razorpay_enabled,
+      upi_id: row.upi_id?.trim() || null,
+      upi_payee_name: row.upi_payee_name?.trim() || null,
+      shipping_fee: Number(row.shipping_fee || 0),
+      free_shipping_above: Number(row.free_shipping_above || 0),
+    }, { onConflict: 'branch_id' })
     if (r.error) setError(r.error.message)
     else await load()
     setSaving(null)
@@ -3180,91 +3096,29 @@ function BranchPaymentSettings() {
       <div className="panel-heading">
         <div>
           <h2>Branch Payment Settings</h2>
-          <span className="workspace-muted">
-            Configure payment methods and delivery charges for each branch.
-          </span>
+          <span className="workspace-muted">Configure payment methods and delivery charges for each branch.</span>
         </div>
       </div>
       <ErrorBox text={error} />
-      {loading ? (
-        <Loading />
-      ) : (
+      {loading ? <Loading /> : (
         <div className="workspace-table">
           <div className="workspace-row payment-settings-row admin-table-header">
-            <strong>Branch</strong>
-            <span>Pay at School</span>
-            <span>UPI</span>
-            <span>Razorpay</span>
-            <span>UPI ID</span>
-            <span>Payee Name</span>
-            <span>Shipping</span>
-            <span>Free Above</span>
-            <span>Actions</span>
+            <strong>Branch</strong><span>Pay at School</span><span>UPI</span><span>Razorpay</span>
+            <span>UPI ID</span><span>Payee Name</span><span>Shipping</span><span>Free Above</span><span>Actions</span>
           </div>
           {branches.map((b) => {
             const row = value(b.id)
             return (
               <div className="workspace-row payment-settings-row" key={b.id}>
                 <strong>{b.name}</strong>
-                <label className="admin-inline-check">
-                  <input
-                    type="checkbox"
-                    checked={!!row.pay_at_school_enabled}
-                    onChange={(e) => update(b.id, row, { pay_at_school_enabled: e.target.checked })}
-                  />{' '}
-                  Pay at School
-                </label>
-                <label className="admin-inline-check">
-                  <input
-                    type="checkbox"
-                    checked={!!row.upi_enabled}
-                    onChange={(e) => update(b.id, row, { upi_enabled: e.target.checked })}
-                  />{' '}
-                  UPI
-                </label>
-                <label className="admin-inline-check">
-                  <input
-                    type="checkbox"
-                    checked={!!row.razorpay_enabled}
-                    onChange={(e) => update(b.id, row, { razorpay_enabled: e.target.checked })}
-                  />{' '}
-                  Razorpay
-                </label>
-                <input
-                  className="admin-mini-input"
-                  value={row.upi_id || ''}
-                  placeholder="UPI ID"
-                  onChange={(e) => update(b.id, row, { upi_id: e.target.value })}
-                />
-                <input
-                  className="admin-mini-input"
-                  value={row.upi_payee_name || ''}
-                  placeholder="Payee name"
-                  onChange={(e) => update(b.id, row, { upi_payee_name: e.target.value })}
-                />
-                <input
-                  className="admin-mini-input"
-                  type="number"
-                  min="0"
-                  value={row.shipping_fee ?? 0}
-                  placeholder="Shipping"
-                  onChange={(e) => update(b.id, row, { shipping_fee: e.target.value })}
-                />
-                <input
-                  className="admin-mini-input"
-                  type="number"
-                  min="0"
-                  value={row.free_shipping_above ?? 0}
-                  placeholder="Free above"
-                  onChange={(e) => update(b.id, row, { free_shipping_above: e.target.value })}
-                />
-                <button
-                  className="primary-button"
-                  disabled={saving === b.id}
-                  onClick={() => void save(row)}
-                >
-                  {saving === b.id ? 'Saving...' : 'Save'}
-                </button>
+                <label className="admin-inline-check"><input type="checkbox" checked={!!row.pay_at_school_enabled} onChange={(e) => update(b.id, row, { pay_at_school_enabled: e.target.checked })} /> Pay at School</label>
+                <label className="admin-inline-check"><input type="checkbox" checked={!!row.upi_enabled} onChange={(e) => update(b.id, row, { upi_enabled: e.target.checked })} /> UPI</label>
+                <label className="admin-inline-check"><input type="checkbox" checked={!!row.razorpay_enabled} onChange={(e) => update(b.id, row, { razorpay_enabled: e.target.checked })} /> Razorpay</label>
+                <input className="admin-mini-input" value={row.upi_id || ''} placeholder="UPI ID" onChange={(e) => update(b.id, row, { upi_id: e.target.value })} />
+                <input className="admin-mini-input" value={row.upi_payee_name || ''} placeholder="Payee name" onChange={(e) => update(b.id, row, { upi_payee_name: e.target.value })} />
+                <input className="admin-mini-input" type="number" min="0" value={row.shipping_fee ?? 0} placeholder="Shipping" onChange={(e) => update(b.id, row, { shipping_fee: e.target.value })} />
+                <input className="admin-mini-input" type="number" min="0" value={row.free_shipping_above ?? 0} placeholder="Free above" onChange={(e) => update(b.id, row, { free_shipping_above: e.target.value })} />
+                <button className="primary-button" disabled={saving === b.id} onClick={() => void save(row)}>{saving === b.id ? 'Saving...' : 'Save'}</button>
               </div>
             )
           })}
@@ -3407,9 +3261,7 @@ function Settings() {
                   type="password"
                   value={keySecret}
                   onChange={(e) => setKeySecret(e.target.value)}
-                  placeholder={
-                    keyConfigured ? '••••••••••••••••  (configured)' : 'Enter Key Secret'
-                  }
+                  placeholder={keyConfigured ? '••••••••••••••••  (configured)' : 'Enter Key Secret'}
                   autoComplete="new-password"
                 />
               </label>
@@ -3444,8 +3296,7 @@ function Settings() {
 
             <div className="workspace-note">
               Configure this exact URL in Razorpay Dashboard → Webhooks and enable
-              payment.authorized, payment.captured, payment.failed, refund.created and
-              refund.failed.
+              payment.authorized, payment.captured, payment.failed, refund.created and refund.failed.
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '18px' }}>

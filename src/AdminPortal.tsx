@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type React from 'react'
 import {
   Building2,
-  CreditCard,
   FileSpreadsheet,
   Home,
   Package,
@@ -25,7 +24,6 @@ type AdminTool =
   | 'products'
   | 'packages'
   | 'orders'
-  | 'payments'
   | 'inventory'
   | 'students'
   | 'reports'
@@ -42,8 +40,7 @@ const ADMIN_NAV: Array<{
   { key: 'schools', label: 'Schools & Branches', icon: Building2 },
   { key: 'products', label: 'Products & Variants', icon: ShoppingBag },
   { key: 'packages', label: 'Uniform Packages', icon: Package },
-  { key: 'orders', label: 'Orders', icon: ClipboardList },
-  { key: 'payments', label: 'Payments', icon: CreditCard },
+  { key: 'orders', label: 'Orders & Payments', icon: ClipboardList },
   { key: 'inventory', label: 'Inventory', icon: ClipboardList },
   { key: 'students', label: 'Parents & Students', icon: UserRound },
   { key: 'reports', label: 'Reports', icon: FileSpreadsheet },
@@ -124,7 +121,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       products: '/admin/products',
       packages: '/admin/uniform-packages',
       orders: '/admin/orders',
-      payments: '/admin/payments',
       inventory: '/admin/inventory',
       students: '/admin/parents-students',
       reports: '/admin/reports',
@@ -139,8 +135,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/homepage') return 'home'
     if (path === '/admin/schools') return 'schools'
     if (path === '/admin/products') return 'products'
-    if (path === '/admin/orders') return 'orders'
-    if (path === '/admin/payments') return 'payments'
+    if (path === '/admin/orders' || path === '/admin/payments') return 'orders'
     if (path === '/admin/inventory') return 'inventory'
     if (path === '/admin/parents-students') return 'students'
     if (path === '/admin/reports') return 'reports'
@@ -287,7 +282,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     tool === 'products' ||
     tool === 'packages' ||
     tool === 'orders' ||
-    tool === 'payments' ||
     tool === 'inventory' ||
     tool === 'students' ||
     tool === 'reports' ||
