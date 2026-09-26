@@ -123,7 +123,8 @@ export default function CheckoutFlow({
       ])
 
       if (authError) {
-        if (!cancelled) setStudentLoadError('Your login session could not be verified. Please sign in again.')
+        if (!cancelled)
+          setStudentLoadError('Your login session could not be verified. Please sign in again.')
       }
 
       const user = userData?.user
@@ -137,11 +138,7 @@ export default function CheckoutFlow({
       }
 
       const [{ data: profile }, { data: addressRow }] = await Promise.all([
-        client
-          .from('profiles')
-          .select('full_name,phone,login_id')
-          .eq('id', user.id)
-          .maybeSingle(),
+        client.from('profiles').select('full_name,phone,login_id').eq('id', user.id).maybeSingle(),
         client
           .from('customer_addresses')
           .select('*')
@@ -229,12 +226,16 @@ export default function CheckoutFlow({
       const a = addressRow
       setAddress({
         name: a?.recipient_name || profile?.full_name || '',
-        phone: String(a?.phone || profile?.phone || '').replace(/\D/g, '').slice(0, 10),
+        phone: String(a?.phone || profile?.phone || '')
+          .replace(/\D/g, '')
+          .slice(0, 10),
         line1: a?.address_line1 || '',
         line2: a?.address_line2 || '',
         city: a?.city || '',
         state: a?.state || 'Telangana',
-        pincode: String(a?.postal_code || '').replace(/\D/g, '').slice(0, 6),
+        pincode: String(a?.postal_code || '')
+          .replace(/\D/g, '')
+          .slice(0, 6),
       })
 
       setHydrating(false)
@@ -268,8 +269,7 @@ export default function CheckoutFlow({
       '&cu=INR'
     )
   }, [settings, payable])
-  const selectedStudentId =
-    checkoutStudents.length === 1 ? checkoutStudents[0].id : studentId
+  const selectedStudentId = checkoutStudents.length === 1 ? checkoutStudents[0].id : studentId
   const detailsValid = Boolean(
     selectedStudentId &&
       address.name.trim() &&
