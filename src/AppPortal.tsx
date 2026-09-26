@@ -224,9 +224,6 @@ function CustomerPortal({
           update={update}
           remove={remove}
           students={students}
-          schoolName={schoolName}
-          branchName={branchName}
-          userLabel={studentId}
           onComplete={() => {
             setCart([])
             setCheckout('success')
