@@ -444,7 +444,19 @@ function Products() {
       name,
       slug,
       description: editing.description || null,
+      product_type: editing.product_type || null,
+      occasion_type: editing.occasion_type || null,
       gender: editing.gender,
+      material: editing.material || null,
+      brand: editing.brand || null,
+      quality: editing.quality || null,
+      fabric: editing.fabric || null,
+      care: editing.care || null,
+      delivery_returns: editing.delivery_returns || null,
+      cod_available: editing.cod_available !== false,
+      custom_order_cod: editing.custom_order_cod === true,
+      easy_returns: editing.easy_returns !== false,
+      express_shipping: editing.express_shipping !== false,
       image_url: editing.image_url || null,
       base_price: Number(editing.base_price || 0),
       offer_price:
@@ -530,7 +542,19 @@ function Products() {
             setEditing({
               name: '',
               description: '',
+              product_type: '',
+              occasion_type: '',
               gender: 'unisex',
+              material: '',
+              brand: '',
+              quality: '',
+              fabric: '',
+              care: '',
+              delivery_returns: '',
+              cod_available: true,
+              custom_order_cod: false,
+              easy_returns: true,
+              express_shipping: true,
               base_price: '',
               discount_percentage: '',
               offer_price: '',
@@ -615,6 +639,19 @@ function Products() {
             />
           </div>
 
+          <div className="workspace-form-row">
+            <Field
+              label="Product Type"
+              value={editing.product_type || ''}
+              onChange={(v) => setEditing({ ...editing, product_type: v })}
+            />
+            <Field
+              label="Occasion Type"
+              value={editing.occasion_type || ''}
+              onChange={(v) => setEditing({ ...editing, occasion_type: v })}
+            />
+          </div>
+
           <div className="workspace-form-row workspace-form-row-description-gender">
             <Field
               label="Description"
@@ -629,6 +666,48 @@ function Products() {
               onChange={(v) => setEditing({ ...editing, gender: v })}
             />
           </div>
+
+          <div className="workspace-form-row">
+            <Field
+              label="Material"
+              value={editing.material || ''}
+              onChange={(v) => setEditing({ ...editing, material: v })}
+            />
+            <Field
+              label="Brand"
+              value={editing.brand || ''}
+              onChange={(v) => setEditing({ ...editing, brand: v })}
+            />
+          </div>
+
+          <div className="workspace-form-row">
+            <Field
+              label="Quality"
+              value={editing.quality || ''}
+              onChange={(v) => setEditing({ ...editing, quality: v })}
+            />
+            <Field
+              label="Fabric"
+              value={editing.fabric || ''}
+              onChange={(v) => setEditing({ ...editing, fabric: v })}
+            />
+          </div>
+
+          <div className="workspace-form-row workspace-form-row-description-gender">
+            <Field
+              label="Care Instructions"
+              value={editing.care || ''}
+              onChange={(v) => setEditing({ ...editing, care: v })}
+              area
+            />
+            <Field
+              label="Delivery & Returns"
+              value={editing.delivery_returns || ''}
+              onChange={(v) => setEditing({ ...editing, delivery_returns: v })}
+              area
+            />
+          </div>
+
 
           <div className="workspace-form-row workspace-form-row-pricing">
             <Field
@@ -652,6 +731,13 @@ function Products() {
               type="number"
               min="0"
             />
+          </div>
+
+          <div className="workspace-product-benefits">
+            <label><input type="checkbox" checked={editing.cod_available !== false} onChange={(e) => setEditing({ ...editing, cod_available: e.target.checked })} /> COD Available</label>
+            <label><input type="checkbox" checked={editing.custom_order_cod === true} onChange={(e) => setEditing({ ...editing, custom_order_cod: e.target.checked })} /> No COD on Custom Order (Embroidery)</label>
+            <label><input type="checkbox" checked={editing.easy_returns !== false} onChange={(e) => setEditing({ ...editing, easy_returns: e.target.checked })} /> Easy Returns & Exchange</label>
+            <label><input type="checkbox" checked={editing.express_shipping !== false} onChange={(e) => setEditing({ ...editing, express_shipping: e.target.checked })} /> 1–3 Day Express Shipping</label>
           </div>
 
           <div className="workspace-form-row workspace-form-row-image-status">
