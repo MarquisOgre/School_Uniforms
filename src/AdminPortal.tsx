@@ -368,13 +368,7 @@ function CmsSectionHeading({
   )
 }
 
-function HeroImageUpload({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (url: string) => void
-}) {
+function HeroImageUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
@@ -411,11 +405,7 @@ function HeroImageUpload({
   return (
     <div className="cms-image-upload">
       <div className="cms-image-upload-preview">
-        {value ? (
-          <img src={value} alt="Hero slide preview" />
-        ) : (
-          <span>No image selected</span>
-        )}
+        {value ? <img src={value} alt="Hero slide preview" /> : <span>No image selected</span>}
       </div>
       <label className="cms-upload-button">
         <Upload size={15} />
