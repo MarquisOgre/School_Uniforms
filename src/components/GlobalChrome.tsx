@@ -50,7 +50,9 @@ export function GlobalHeader({
         )}
         {portal === 'customer' && schoolName && (
           <div className="customer-header-user">
-            <div className="customer-header-avatar">{(userLabel || 'U').slice(0, 1).toUpperCase()}</div>
+            <div className="customer-header-avatar">
+              {(userLabel || 'U').slice(0, 1).toUpperCase()}
+            </div>
             <div>
               <strong>{userLabel || 'Parent / Student'}</strong>
               <span>Parent / Student</span>
