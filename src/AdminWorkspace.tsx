@@ -459,6 +459,25 @@ function Products() {
     await load()
   }
 
+  const deleteVariant = async () => {
+    if (!supabase || !variantEditing?.id) return
+    const confirmed = window.confirm(
+      `Delete this variant permanently? This will remove the variant and cannot be undone.\n\n${variantEditing.variant_name || variantEditing.sku || 'Selected variant'}`,
+    )
+    if (!confirmed) return
+
+    const productId = variantEditing.product_id
+    const r = await dbFrom('product_variants').delete().eq('id', variantEditing.id)
+    if (r.error) {
+      setError(r.error.message)
+      return
+    }
+
+    setVariantEditing(null)
+    setError('')
+    await loadVariants(productId)
+  }
+
   const saveVariant = async () => {
     if (!supabase || !variantEditing) return
 
@@ -469,17 +488,21 @@ function Products() {
 
     const sku = nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)
 
+    const sizeLabel = String(variantEditing.size_label || '').trim()
+    const productName = String(editing?.name || '').trim()
+    const variantName = sizeLabel ? `${productName} - Size ${sizeLabel}` : productName
+
     const p = {
       product_id: variantEditing.product_id,
       sku,
-      size_label: String(variantEditing.size_label || '').trim() || null,
+      size_label: sizeLabel || null,
       color: String(variantEditing.color || '').trim() || null,
-      variant_name: String(variantEditing.variant_name || '').trim() || null,
+      variant_name: variantName || null,
       price:
         variantEditing.price === '' || variantEditing.price == null
           ? null
           : Number(variantEditing.price),
-      status: variantEditing.status,
+      status: 'active',
     }
 
     const r = variantEditing.id
@@ -956,9 +979,14 @@ function Products() {
               onChange={(v) => setVariantEditing({ ...variantEditing, color: v })}
             />
             <Field
-              label="Variant Name"
-              value={variantEditing.variant_name || ''}
-              onChange={(v) => setVariantEditing({ ...variantEditing, variant_name: v })}
+              label="Variant Name (Auto-generated)"
+              value={
+                String(variantEditing.size_label || '').trim()
+                  ? `${String(editing?.name || '').trim()} - Size ${String(variantEditing.size_label).trim()}`
+                  : String(editing?.name || '').trim()
+              }
+              onChange={() => undefined}
+              readOnly
             />
           </div>
           <div className="workspace-form-row">
@@ -970,13 +998,15 @@ function Products() {
               min="0"
               clearZeroOnFocus
             />
-            <Select
-              label="Status"
-              value={variantEditing.status || 'active'}
-              options={['active', 'inactive', 'suspended']}
-              onChange={(v) => setVariantEditing({ ...variantEditing, status: v })}
-            />
+            <div className="workspace-field" />
           </div>
+          {variantEditing.id ? (
+            <div className="variant-delete-row">
+              <button type="button" className="variant-delete-button" onClick={() => void deleteVariant()}>
+                Delete Variant
+              </button>
+            </div>
+          ) : null}
         </EditModal>
       )}
     </>
