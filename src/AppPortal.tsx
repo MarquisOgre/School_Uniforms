@@ -1504,7 +1504,7 @@ function ProductDetail({
                   </summary>
                   <p className="product-info-text">{item.deliveryReturns || 'Delivery and return eligibility may vary by school, branch and product. Please check the applicable order terms before purchase.'}</p>
                 </details>
-              ) : null
+              ) : null}
             </div>
           ) : null}
         </div>
