@@ -766,6 +766,122 @@ a {
   margin: auto;
   padding: 39px 42px;
 }
+/* Compact customer dashboard: keep the main dashboard within one desktop viewport */
+.dashboard-content {
+  padding: 18px 24px 20px;
+  max-width: 1180px;
+  box-sizing: border-box;
+}
+
+.dashboard-content .welcome-banner {
+  min-height: 150px;
+  box-sizing: border-box;
+  padding: 24px 30px;
+  border-radius: 18px;
+}
+
+.dashboard-content .welcome-banner h2 {
+  font-size: 29px;
+  margin-bottom: 6px;
+}
+
+.dashboard-content .welcome-banner p:not(.eyebrow) {
+  line-height: 1.4;
+  margin: 0;
+}
+
+.dashboard-content .banner-icon {
+  width: 88px;
+  height: 88px;
+}
+
+.dashboard-content .portal-grid {
+  margin: 12px 0 18px;
+  gap: 12px;
+}
+
+.dashboard-content .stat {
+  padding: 13px 15px;
+  min-height: 62px;
+  box-sizing: border-box;
+}
+
+.dashboard-content .stat > div {
+  width: 34px;
+  height: 34px;
+}
+
+.dashboard-content .parent-children-section {
+  margin: 14px 0 18px;
+}
+
+.dashboard-content .parent-children-grid {
+  gap: 10px;
+}
+
+.dashboard-content .parent-family-heading,
+.dashboard-content .parent-child-card {
+  min-height: 68px;
+  padding: 11px 13px;
+  box-sizing: border-box;
+}
+
+.dashboard-content .parent-child-avatar {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+}
+
+.dashboard-content .shop-cards {
+  gap: 14px;
+}
+
+.dashboard-content .shop-card {
+  min-height: 150px;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.dashboard-content .shop-card h3 {
+  font-size: 20px;
+  margin: 12px 0 5px;
+}
+
+.dashboard-content .shop-card p {
+  line-height: 1.45;
+  min-height: 32px;
+  margin: 0 0 14px;
+}
+
+@media (min-width: 1000px) {
+  .portal:has(.dashboard-content) {
+    overflow: hidden;
+  }
+
+  .portal:has(.dashboard-content) .portal-main {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-content {
+    padding: 14px 18px 18px;
+  }
+
+  .dashboard-content .welcome-banner {
+    min-height: 130px;
+    padding: 20px 22px;
+  }
+
+  .dashboard-content .banner-icon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .dashboard-content .parent-children-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 .welcome-banner {
   border-radius: 22px;
   background: var(--ink);
