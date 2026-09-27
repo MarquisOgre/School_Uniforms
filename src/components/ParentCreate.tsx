@@ -4,11 +4,9 @@ import { supabase } from '../lib/supabase'
 import { GlobalFooter, GlobalHeader } from './GlobalChrome'
 
 export default function ParentCreate({
-  schoolId,
   branchId,
   onBack,
 }: {
-  schoolId: string
   branchId: string
   onBack: () => void
 }) {
@@ -34,7 +32,6 @@ export default function ParentCreate({
     setDone(false)
     const { data, error: e } = await supabase.functions.invoke('create-parent-login-v2', {
       body: {
-        school_id: schoolId,
         branch_id: branchId,
         parent_name: parentName,
         login_id: loginId,
