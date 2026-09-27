@@ -20,7 +20,6 @@ type GlobalHeaderProps = {
   onLogout?: () => void
   cartCount?: number
   onCart?: () => void
-  schoolName?: string
   branchName?: string
   userLabel?: string
 }
@@ -34,7 +33,6 @@ export function GlobalHeader({
   onLogout,
   cartCount = 0,
   onCart,
-  schoolName,
   branchName,
   userLabel,
 }: GlobalHeaderProps) {
@@ -129,7 +127,6 @@ export function CustomerPageFrame({
   onLogout: () => void
   cartCount: number
   onCart: () => void
-  schoolName: string
   branchName: string
   userLabel: string
   children: ReactNode
@@ -151,7 +148,6 @@ export function CustomerPageFrame({
         onLogout={onLogout}
         cartCount={cartCount}
         onCart={onCart}
-        schoolName={schoolName}
         branchName={branchName}
         userLabel={userLabel}
       />
@@ -179,7 +175,7 @@ export function CustomerPageFrame({
           <div className="portal-header checkout-portal-header">
             <div>
               <p className="eyebrow">
-                {schoolName} — {branchName}
+                {branchName}
               </p>
               <h1>{title}</h1>
             </div>
