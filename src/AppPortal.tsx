@@ -1267,6 +1267,14 @@ function ProductDetail({
     ? item.variantOptions
     : (item.sizeOptions || []).map((x) => ({ id: x, label: x }))
   const selectedProductOption = productOptions.find((x: any) => x.id === size)
+  const variantPrices =
+    item.type === 'product'
+      ? productOptions
+          .map((x) => (x.price == null ? Number(item.price) : Number(x.price)))
+          .filter((price) => Number.isFinite(price))
+      : []
+  const lowestProductPrice = variantPrices.length ? Math.min(...variantPrices) : Number(item.price)
+  const highestProductPrice = variantPrices.length ? Math.max(...variantPrices) : Number(item.price)
   const selectedUnitPrice =
     item.type === 'product' && selectedProductOption?.price != null
       ? Number(selectedProductOption.price)
@@ -1376,7 +1384,11 @@ function ProductDetail({
               ))}
             </div>
           ) : null}
-          <strong className="detail-price">₹{selectedUnitPrice.toLocaleString('en-IN')}</strong>
+          <strong className="detail-price">
+            {item.type === 'product' && !size
+              ? `₹${lowestProductPrice.toLocaleString('en-IN')} - ₹${highestProductPrice.toLocaleString('en-IN')}`
+              : `₹${selectedUnitPrice.toLocaleString('en-IN')}`}
+          </strong>
           {item.type === 'product' ? (
             <div className="detail-size-selector">
               <div className="detail-size-heading">
