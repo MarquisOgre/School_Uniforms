@@ -264,4 +264,34 @@ CREATE POLICY support_conversations_customer_insert ON public.support_conversati
 FOR INSERT TO authenticated
 WITH CHECK (customer_user_id=(select auth.uid()) AND branch_id=(select app_private.current_user_branch_id()));
 
+-- Auth-created customer profiles are only created when a branch is supplied.
+-- Parent creation passes branch_id through auth metadata.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path=''
+AS $
+DECLARE
+  v_branch_id uuid;
+BEGIN
+  v_branch_id := nullif(new.raw_user_meta_data ->> 'branch_id','')::uuid;
+  IF v_branch_id IS NULL THEN
+    RETURN new;
+  END IF;
+
+  INSERT INTO public.profiles (id, full_name, role, branch_id, phone)
+  VALUES (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'full_name',''),
+    'customer',
+    v_branch_id,
+    new.phone
+  )
+  ON CONFLICT (id) DO NOTHING;
+
+  RETURN new;
+END;
+$;
+
 COMMIT;
