@@ -2062,7 +2062,7 @@ function ParentStudents() {
     setLoading(true)
     const [studentsResult, branchesResult] = await Promise.all([
       dbFrom('students').select('*').order('created_at', { ascending: false }).limit(200),
-      dbFrom('branches').select('id,name,school_id').order('name'),
+      dbFrom('branches').select('id,name').order('name'),
     ])
     setRows(studentsResult.data ?? [])
     setBranches(branchesResult.data ?? [])
@@ -2085,7 +2085,6 @@ function ParentStudents() {
       gender: '',
       date_of_birth: '',
       status: 'active',
-      school_id: firstBranch?.school_id || '',
       branch_id: firstBranch?.id || '',
       father_name: '',
     })
@@ -2105,13 +2104,12 @@ function ParentStudents() {
       setError('Student Code and Full Name are required.')
       return
     }
-    if (!editing.school_id || !editing.branch_id) {
-      setError('School and Branch are required.')
+    if (!editing.branch_id) {
+      setError('Branch is required.')
       return
     }
 
     const payload = {
-      school_id: editing.school_id,
       branch_id: editing.branch_id,
       student_code: editing.student_code.trim(),
       full_name: editing.full_name.trim(),
@@ -2281,7 +2279,6 @@ function ParentStudents() {
               setEditing({
                 ...editing,
                 branch_id: v,
-                school_id: branch?.school_id || editing.school_id,
               })
             }}
           />
