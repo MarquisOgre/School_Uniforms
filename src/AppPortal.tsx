@@ -151,7 +151,7 @@ function CustomerPortal({
       const { data: linkedStudents } = await client
         .from('students')
         .select(
-          'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status',
+          'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,branch_id,status',
         )
         .in('id', linkedIds)
         .eq('status', 'active')
@@ -264,7 +264,7 @@ function CustomerPortal({
         <GlobalHeader
           portal="customer"
           title="Product Details"
-          subtitle={schoolName + ' • ' + branchName}
+          subtitle={branchName}
           onBack={() => setPage('dashboard')}
           backLabel="Dashboard"
           onLogout={onLogout}
@@ -403,8 +403,7 @@ function CustomerPortal({
           ) : (
             <Profile
               studentId={studentId}
-              schoolId={schoolId}
-              branchId={branchId}
+                            branchId={branchId}
               students={students}
             />
           )}
@@ -1737,7 +1736,6 @@ function Profile({
   students = [],
 }: {
   studentId: string
-  schoolId: string
   branchId: string
   students?: any[]
 }) {
@@ -1808,7 +1806,7 @@ function Profile({
         const sr = await client
           .from('students')
           .select(
-            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status',
+            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,branch_id,status',
           )
           .in('id', studentIds)
           .eq('status', 'active')
@@ -1818,7 +1816,7 @@ function Profile({
         } else {
           const linkedStudents = (sr.data || []) as any[]
           selectedStudent =
-            linkedStudents.find((s) => s.school_id === schoolId && s.branch_id === branchId) ||
+            linkedStudents.find((s) => s.branch_id === branchId) ||
             linkedStudents[0] ||
             null
         }
@@ -1831,7 +1829,7 @@ function Profile({
         const byCode = await client
           .from('students')
           .select(
-            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status',
+            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,branch_id,status',
           )
           .eq('student_code', studentId)
           .eq('branch_id', branchId)
@@ -1861,7 +1859,7 @@ function Profile({
     return () => {
       cancelled = true
     }
-  }, [studentId, schoolId, branchId])
+  }, [studentId, branchId])
 
   const validateProfileField = (field: string, value: string) => {
     const v = String(value || '').trim()
