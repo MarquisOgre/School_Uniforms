@@ -4902,6 +4902,13 @@ a {
   color: #fff;
 }
 
+.variant-delete-header-button {
+  min-height: 38px;
+  margin-right: auto;
+}
+
+
+
 .workspace-modal-actions {
   display: flex;
   align-items: center;
