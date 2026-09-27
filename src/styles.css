@@ -5177,8 +5177,8 @@ a {
 }
 .login-fields-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 18px;
+  grid-template-columns: 1fr;
+  column-gap: 0;
   row-gap: 0;
 }
 .login-field {
@@ -5228,8 +5228,8 @@ a {
 }
 .demo-credentials-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 28px;
+  grid-template-columns: 1fr;
+  column-gap: 0;
   row-gap: 0;
 }
 .demo-credential-row {
