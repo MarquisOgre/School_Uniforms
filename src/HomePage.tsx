@@ -878,14 +878,14 @@ export default function HomePage({
   }, [showLogin, branches.length])
   async function login() {
     const client = supabase
-    if (!client || !school || !branch || !studentId.trim() || !password || loggingIn) return
+    if (!client || !branch || !studentId.trim() || !password || loggingIn) return
     setLoggingIn(true)
     setError('')
     const { data, error } = await client.functions.invoke('student-parent-login', {
-      body: { school_id: school, branch_id: branch, login_id: studentId.trim(), password },
+      body: { branch_id: branch, login_id: studentId.trim(), password },
     })
     if (error || !data?.session) {
-      setError(data?.error ?? 'Invalid school, branch, ID, or password.')
+      setError(data?.error ?? 'Invalid branch, ID, or password.')
       setLoggingIn(false)
       return
     }
@@ -898,23 +898,20 @@ export default function HomePage({
       setLoggingIn(false)
       return
     }
-    const schoolName = schools.find((x) => x.id === school)?.name ?? 'Your School'
     const branchName = branches.find((x) => x.id === branch)?.name ?? 'Your Branch'
     localStorage.setItem(
       'school_uniform_portal_context',
       JSON.stringify({
         mode: 'store',
-        school,
         branch,
         studentId: studentId.trim(),
-        schoolName,
         branchName,
         customerPage: 'dashboard',
       }),
     )
     setShowLogin(false)
     setLoggingIn(false)
-    onLoginSuccess(school, branch, studentId.trim(), schoolName, branchName)
+    onLoginSuccess(branch, studentId.trim(), branchName)
   }
   return (
     <>
