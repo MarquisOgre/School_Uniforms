@@ -933,43 +933,20 @@ export default function HomePage({
             </p>
             <div className="login-fields-grid">
               <div className="login-field">
-                <label>School</label>
-                <div className="input-wrap select-wrap">
-                  <Building2 size={18} />
-                  <select
-                    value={school}
-                    disabled={loadingSchools}
-                    onChange={(e) => void selectSchool(e.target.value)}
-                  >
-                    <option value="">
-                      {loadingSchools ? 'Loading schools...' : 'Select your school'}
-                    </option>
-                    {schools.map((x) => (
-                      <option key={x.id} value={x.id}>
-                        {x.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={17} />
-                </div>
-              </div>
-              <div className="login-field">
                 <label>Branch</label>
                 <div className="input-wrap select-wrap">
                   <MapPin size={18} />
                   <select
                     value={branch}
-                    disabled={!school || loadingBranches}
+                    disabled={loadingBranches}
                     onChange={(e) => setBranch(e.target.value)}
                   >
                     <option value="">
-                      {!school
-                        ? 'Select school first'
-                        : loadingBranches
-                          ? 'Loading branches...'
-                          : branches.length
-                            ? 'Select your branch'
-                            : 'No active branches'}
+                      {loadingBranches
+                        ? 'Loading branches...'
+                        : branches.length
+                          ? 'Select your branch'
+                          : 'No active branches'}
                     </option>
                     {branches.map((x) => (
                       <option key={x.id} value={x.id}>
@@ -1020,7 +997,7 @@ export default function HomePage({
             {error && <p className="login-error">{error}</p>}
             <button
               className="primary-button"
-              disabled={!school || !branch || !studentId.trim() || !password || loggingIn}
+              disabled={!branch || !studentId.trim() || !password || loggingIn}
               onClick={() => void login()}
             >
               {loggingIn ? 'SIGNING IN...' : 'SIGN IN TO PORTAL'}
@@ -1029,13 +1006,9 @@ export default function HomePage({
             <div className="demo-credentials" aria-label="Demo user credentials">
               <div className="demo-credentials-title">DEMO USER</div>
               <div className="demo-credentials-grid">
-                <div className="demo-credential-row">
-                  <span>School</span>
-                  <strong>Vignan Schools</strong>
-                </div>
-                <div className="demo-credential-row">
+                                <div className="demo-credential-row">
                   <span>Branch</span>
-                  <strong>Vignan's Bo Tree School — Nizampet</strong>
+                  <strong>Narayana Schools — CBSE</strong>
                 </div>
                 <div className="demo-credential-row">
                   <span>Student / Parent ID</span>
