@@ -745,7 +745,7 @@ function Products() {
           </div>
 
           <div className="workspace-form-row workspace-form-row-image-status">
-            <label className="workspace-field">
+            <div className="workspace-field">
               <span>Product Main Image</span>
               <ImagePicker
                 value={editing.image_url || ''}
@@ -753,16 +753,16 @@ function Products() {
                 alt="Selected product"
                 onChange={(v) => setEditing({ ...editing, image_url: v })}
               />
-            </label>
+            </div>
 
-            <label className="workspace-field">
+            <div className="workspace-field">
               <span>Product Image Gallery</span>
               <GalleryPicker
                 value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []}
                 folder="products"
                 onChange={(v) => setEditing({ ...editing, image_gallery: v })}
               />
-            </label>
+            </div>
           </div>
 
           <div className="workspace-form-row">
