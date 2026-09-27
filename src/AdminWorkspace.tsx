@@ -958,6 +958,7 @@ function Products() {
           title={variantEditing.id ? 'Edit Variant' : 'Add Variant'}
           onClose={() => setVariantEditing(null)}
           onSave={saveVariant}
+          onDelete={variantEditing.id ? () => void deleteVariant() : undefined}
         >
           <div className="workspace-form-row">
             <Field
@@ -1000,17 +1001,6 @@ function Products() {
             />
             <div className="workspace-field" />
           </div>
-          {variantEditing.id ? (
-            <div className="variant-delete-row">
-              <button
-                type="button"
-                className="variant-delete-button"
-                onClick={() => void deleteVariant()}
-              >
-                Delete Variant
-              </button>
-            </div>
-          ) : null}
         </EditModal>
       )}
     </>
@@ -3077,11 +3067,13 @@ function EditModal({
   title,
   onClose,
   onSave,
+  onDelete,
   children,
 }: {
   title: string
   onClose: () => void
   onSave: () => void
+  onDelete?: () => void
   children: ReactNode
 }) {
   return (
@@ -3090,6 +3082,11 @@ function EditModal({
         <div className="workspace-modal-header">
           <h2>{title}</h2>
           <div className="workspace-modal-actions">
+            {onDelete ? (
+              <button type="button" className="variant-delete-button variant-delete-header-button" onClick={onDelete}>
+                Delete Variant
+              </button>
+            ) : null}
             <button className="secondary-button" onClick={onClose}>
               Cancel
             </button>
