@@ -5297,9 +5297,9 @@ a {
 }
 .login-card-large .login-logo-image {
   display: block;
-  width: clamp(150px, 18vw, 210px);
+  width: clamp(180px, 22vw, 250px);
   height: auto;
-  max-height: 70px;
+  max-height: 90px;
   object-fit: contain;
 }
 .login-card-large > .eyebrow,
