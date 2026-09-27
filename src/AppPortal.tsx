@@ -1036,8 +1036,7 @@ function Products({
       const variantOptions: Record<
         string,
         { id: string; label: string; price?: number | null; disabled?: boolean }[]
-      > =
-        Object.fromEntries(ids.map((id) => [id, []]))
+      > = Object.fromEntries(ids.map((id) => [id, []]))
       variants.forEach((x) => {
         if (x.size_label && sizes[x.product_id] && !sizes[x.product_id].includes(x.size_label)) {
           sizes[x.product_id].push(x.size_label)
