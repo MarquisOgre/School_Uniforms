@@ -49,7 +49,7 @@ type CartItem = CheckoutCartItem & {
   easyReturns?: boolean
   expressShipping?: boolean
   imageGallery?: string[]
-  variantOptions?: { id: string; label: string; price?: number | null }[]
+  variantOptions?: { id: string; label: string; price?: number | null; disabled?: boolean }[]
   sizeOptions?: string[]
 }
 type CheckoutStep = 'cart' | 'details' | 'payment' | 'success'
@@ -1018,6 +1018,7 @@ function Products({
             id: x.id,
             label: x.size_label,
             price: x.price == null ? null : Number(x.price),
+            disabled: x.status !== 'active',
           })
         }
       })
