@@ -803,42 +803,59 @@ function Products() {
                 </button>
               </div>
 
-              <div className="workspace-table workspace-scroll">
-                {variantsLoading ? (
-                  <div className="workspace-empty">Loading variants and variant prices...</div>
-                ) : (
-                  <>
-                    <div className="workspace-row product-row variant-row admin-table-header">
-                      <strong>SKU</strong>
-                      <span>Size</span>
-                      <span>Color</span>
-                      <span>Price</span>
-                      <span>Actions</span>
-                    </div>
-                    {variants.map((v) => (
-                      <div className="workspace-row product-row variant-row" key={v.id}>
-                        <strong>{v.sku}</strong>
-                        <span>{v.size_label || '—'}</span>
-                        <span>{v.color || '—'}</span>
-                        <span>
-                          ₹{Number(v.price ?? editing.base_price ?? 0).toLocaleString('en-IN')}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setError('')
-                            setVariantEditing({ ...v, price: v.price ?? '' })
-                          }}
-                        >
-                          Edit
-                        </button>
+              <div className="workspace-variants-panel">
+                <div className="workspace-variants-summary">
+                  <strong>{variantsLoading ? 'Loading variants…' : `${variants.length} variant${variants.length === 1 ? '' : 's'} loaded`}</strong>
+                  <span>
+                    Variant price is used when set; otherwise the product base price is shown.
+                  </span>
+                </div>
+                <div className="workspace-table workspace-scroll workspace-variants-table">
+                  {variantsLoading ? (
+                    <div className="workspace-empty">Loading variants and variant prices...</div>
+                  ) : (
+                    <>
+                      <div className="workspace-row product-row variant-row admin-table-header">
+                        <strong>SKU</strong>
+                        <span>Size</span>
+                        <span>Color</span>
+                        <span>Price</span>
+                        <span>Actions</span>
                       </div>
-                    ))}
-                    {!variants.length && (
-                      <div className="workspace-empty">No variants added yet.</div>
-                    )}
-                  </>
-                )}
+                      {variants.map((v) => {
+                        const effectivePrice = v.price ?? editing.base_price ?? 0
+                        return (
+                          <div className="workspace-row product-row variant-row" key={v.id}>
+                            <strong>{v.sku}</strong>
+                            <span>{v.size_label || '—'}</span>
+                            <span>{v.color || '—'}</span>
+                            <span>
+                              ₹{Number(effectivePrice).toLocaleString('en-IN')}
+                              {v.price == null && (
+                                <small className="workspace-price-fallback">Base</small>
+                              )}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setError('')
+                                setVariantEditing({
+                                  ...v,
+                                  price: v.price ?? editing.base_price ?? '',
+                                })
+                              }}
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        )
+                      })}
+                      {!variants.length && (
+                        <div className="workspace-empty">No variants added yet.</div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </>
           )}
