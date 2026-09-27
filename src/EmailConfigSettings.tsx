@@ -246,7 +246,6 @@ export default function EmailConfigSettings() {
           <div className="workspace-note">
             <strong>Zoho:</strong> Port 465 uses SSL. Port 587 uses STARTTLS. If your Zoho account
             has two-factor authentication enabled, use a Zoho application-specific password.
-            citeturn1search0turn1search10
           </div>
 
           <div className="workspace-note" style={{ marginTop: 10 }}>
