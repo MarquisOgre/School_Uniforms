@@ -20,10 +20,7 @@ function userClient(req: Request) {
 }
 
 function serviceClient() {
-  return createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  )
+  return createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!)
 }
 
 Deno.serve(async (req) => {
@@ -31,19 +28,13 @@ Deno.serve(async (req) => {
 
   try {
     const client = userClient(req)
-    const {
-      data: { user },
-      error: authError,
-    } = await client.auth.getUser()
-
+    const { data: { user }, error: authError } = await client.auth.getUser()
     if (authError || !user) return json({ error: "Unauthorized" }, 401)
 
     const admin = serviceClient()
 
     if (req.method === "GET") {
-      const { data, error } = await admin.rpc("admin_get_email_config", {
-        p_admin_user_id: user.id,
-      })
+      const { data, error } = await admin.rpc("admin_get_email_config", { p_admin_user_id: user.id })
       if (error) return json({ error: error.message }, 500)
       return json(data || {})
     }
@@ -51,19 +42,13 @@ Deno.serve(async (req) => {
     if (req.method !== "POST") return json({ error: "Method not allowed" }, 405)
 
     const body = await req.json()
-    const port = Number(body?.smtp_port || 465)
-
     const { data, error } = await admin.rpc("admin_save_email_config", {
       p_admin_user_id: user.id,
-      p_provider: "zoho_smtp",
+      p_provider: "resend",
       p_from_name: String(body?.from_name || "School Uniforms"),
       p_from_email: String(body?.from_email || ""),
       p_reply_to: String(body?.reply_to || "") || null,
-      p_smtp_host: String(body?.smtp_host || "smtp.zoho.com"),
-      p_smtp_port: port,
-      p_smtp_user: String(body?.smtp_user || ""),
-      p_smtp_password: String(body?.smtp_password || "") || null,
-      p_smtp_secure: port === 465 ? true : body?.smtp_secure !== false,
+      p_api_key: String(body?.api_key || "") || null,
       p_enabled: body?.enabled !== false,
     })
 
