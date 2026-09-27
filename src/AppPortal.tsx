@@ -1018,6 +1018,20 @@ function Products({
           })
         }
       })
+
+      // Always display sizes in natural ascending order (4, 6, 8, 10, 12...)
+      // instead of PostgreSQL's lexicographic order (10, 12, 14, ..., 4, 40...).
+      Object.values(sizes).forEach((options) =>
+        options.sort((a, b) =>
+          a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+        ),
+      )
+      Object.values(variantOptions).forEach((options) =>
+        options.sort((a, b) =>
+          a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }),
+        ),
+      )
+
       if (!cancelled)
         setItems(
           products.map((x) => ({
