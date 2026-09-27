@@ -5,18 +5,8 @@ type Table<Row extends Record<string, unknown>> = {
   Relationships: []
 }
 
-type SchoolRow = {
-  id: string
-  name: string
-  code: string
-  logo_url: string | null
-  status: 'active' | 'inactive' | 'suspended'
-  created_at: string
-  updated_at: string
-}
 type BranchRow = {
   id: string
-  school_id: string
   name: string
   code: string
   address_line1: string | null
@@ -34,7 +24,6 @@ type ProfileRow = {
   id: string
   full_name: string | null
   role: 'admin' | 'school_manager' | 'branch_manager' | 'customer'
-  school_id: string | null
   branch_id: string | null
   login_id: string | null
   phone: string | null
@@ -122,7 +111,6 @@ type PackageItemRow = {
 export type Database = {
   public: {
     Tables: {
-      schools: Table<SchoolRow>
       branches: Table<BranchRow>
       profiles: Table<ProfileRow>
       students: Table<StudentRow>
@@ -143,7 +131,6 @@ export type Database = {
   }
 }
 
-export type School = Database['public']['Tables']['schools']['Row']
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Student = Database['public']['Tables']['students']['Row']
 export type Product = Database['public']['Tables']['products']['Row']
