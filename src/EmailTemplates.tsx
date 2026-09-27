@@ -27,6 +27,33 @@ const EMPTY: Omit<EmailTemplate, 'id' | 'updated_at'> = {
   enabled: true,
 }
 
+const inputStyle: CSSProperties = {
+  width: '100%',
+  boxSizing: 'border-box',
+  minHeight: 38,
+  padding: '9px 11px',
+  border: '1px solid #ddd8cf',
+  borderRadius: 9,
+  background: '#fff',
+  color: '#17272d',
+  fontSize: 13,
+  outline: 'none',
+}
+
+const textareaStyle: CSSProperties = {
+  ...inputStyle,
+  minHeight: 180,
+  resize: 'vertical',
+  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  lineHeight: 1.5,
+}
+
+const hintStyle: CSSProperties = {
+  color: '#737d84',
+  fontSize: 11,
+  lineHeight: 1.4,
+}
+
 function replacePreview(value: string, variables: string[]) {
   const sample: Record<string, string> = {
     site_name: 'School Uniforms',

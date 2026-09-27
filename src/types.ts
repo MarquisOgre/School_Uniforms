@@ -95,6 +95,12 @@ type EmailTemplateRow = {
   created_at: string
   updated_at: string
 }
+type SiteBrandingRow = {
+  id: number
+  logo_url: string | null
+  favicon_url: string | null
+  updated_at: string
+}
 type PackageItemRow = {
   id: string
   package_id: string
@@ -118,6 +124,7 @@ export type Database = {
       uniform_packages: Table<UniformPackageRow>
       package_items: Table<PackageItemRow>
       email_templates: Table<EmailTemplateRow>
+      site_branding: Table<SiteBrandingRow>
     }
     Views: Record<string, never>
     Functions: Record<string, never>

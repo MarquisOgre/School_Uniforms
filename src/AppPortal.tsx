@@ -44,6 +44,11 @@ type CartItem = CheckoutCartItem & {
   fabric?: string
   care?: string
   deliveryReturns?: string
+  showCodReturnsShipping?: boolean
+  showDetails?: boolean
+  showDescription?: boolean
+  showQualityCare?: boolean
+  showDeliveryReturns?: boolean
   codAvailable?: boolean
   customOrderCod?: boolean
   easyReturns?: boolean
@@ -596,7 +601,7 @@ function Dashboard({
   }, [])
 
   return (
-    <div className="portal-content">
+    <div className="portal-content dashboard-content">
       <div className="welcome-banner">
         <div>
           {/* <p className="eyebrow">YOUR SCHOOL STORE</p> */}
@@ -1246,7 +1251,12 @@ function ProductDetail({
     [quantity, setQuantity] = useState(1),
     [mainImage, setMainImage] = useState(item.image || '/category-packages.jpg'),
     [bundleSizes, setBundleSizes] = useState<Record<string, string>>({})
-  const productOptions = item.variantOptions?.length
+  const productOptions: {
+    id: string
+    label: string
+    price?: number | null
+    disabled?: boolean
+  }[] = item.variantOptions?.length
     ? item.variantOptions
     : (item.sizeOptions || []).map((x) => ({ id: x, label: x }))
   const selectedProductOption = productOptions.find((x: any) => x.id === size)
