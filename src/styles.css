@@ -9610,10 +9610,11 @@ a {
 }
 
 .global-header-customer .global-brand img {
-  width: clamp(190px, 15vw, 205px);
-  height: 50px;
-  max-height: 50px;
-  padding: 2px 4px;
+  width: 240px;
+  height: 64px;
+  max-width: 240px;
+  max-height: 64px;
+  padding: 0;
   box-sizing: border-box;
   background: #fff;
   border-radius: 6px;
