@@ -37,7 +37,7 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
   inventory: { title: 'Inventory', description: 'Monitor stock by branch, product and variant.' },
   students: {
     title: 'Parents & Students',
-    description: 'Manage student records and school relationships.',
+    description: 'Manage parent and student records with direct branch assignments.',
   },
   reports: {
     title: 'Reports',
