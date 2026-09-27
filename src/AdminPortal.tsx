@@ -23,7 +23,7 @@ const EmailTemplates = lazy(() => import('./EmailTemplates'))
 
 type AdminTool =
   | 'home'
-  | 'schools'
+  | 'branches'
   | 'products'
   | 'packages'
   | 'orders'
@@ -41,7 +41,7 @@ const ADMIN_NAV: Array<{
   icon: React.ComponentType<{ size?: number }>
 }> = [
   { key: 'home', label: 'Homepage', icon: Home },
-  { key: 'schools', label: 'Schools & Branches', icon: Building2 },
+  { key: 'branches', label: 'Branches', icon: Building2 },
   { key: 'products', label: 'Products & Variants', icon: ShoppingBag },
   { key: 'packages', label: 'Uniform Packages', icon: Package },
   { key: 'orders', label: 'Orders & Payments', icon: ClipboardList },
@@ -122,7 +122,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   const adminPathForTool = (value: AdminTool) => {
     const paths: Record<AdminTool, string> = {
       home: '/admin/homepage',
-      schools: '/admin/schools',
+      branches: '/admin/branches',
       products: '/admin/products',
       packages: '/admin/uniform-packages',
       orders: '/admin/orders',
@@ -139,7 +139,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
 
   const adminToolFromPath = (path: string): AdminTool => {
     if (path === '/admin/homepage') return 'home'
-    if (path === '/admin/schools') return 'schools'
+    if (path === '/admin/branches' || path === '/admin/schools') return 'branches'
     if (path === '/admin/products') return 'products'
     if (path === '/admin/orders' || path === '/admin/payments') return 'orders'
     if (path === '/admin/inventory') return 'inventory'
