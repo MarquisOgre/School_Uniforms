@@ -848,55 +848,34 @@ export default function HomePage({
   }, [])
 
   useEffect(() => {
-    if (!showLogin || schools.length) return
+    if (!showLogin || branches.length) return
     let cancelled = false
     async function load() {
       const client = supabase
       if (!client) {
         setError('Supabase is not configured.')
-        setLoadingSchools(false)
         return
       }
-      setLoadingSchools(true)
+      setLoadingBranches(true)
       const { data, error } = await client
-        .from('schools')
+        .from('branches')
         .select('id,name')
         .eq('status', 'active')
         .order('name')
       if (cancelled) return
-      if (error) setError(`Unable to load schools (${error.code ?? 'unknown'}): ${error.message}`)
-      else setSchools(data ?? [])
-      setLoadingSchools(false)
+      if (error) setError('Unable to load branches: ' + error.message)
+      else {
+        const list = data ?? []
+        setBranches(list)
+        if (list.length === 1) setBranch(list[0].id)
+      }
+      setLoadingBranches(false)
     }
     void load()
     return () => {
       cancelled = true
     }
-  }, [showLogin, schools.length])
-  async function selectSchool(value: string) {
-    setSchool(value)
-    setBranch('')
-    setBranches([])
-    setStudentId('')
-    setPassword('')
-    setError('')
-    const client = supabase
-    if (!value || !client) return
-    setLoadingBranches(true)
-    const { data, error } = await client
-      .from('branches')
-      .select('id,name')
-      .eq('school_id', value)
-      .eq('status', 'active')
-      .order('name')
-    if (error) setError(`Unable to load branches (${error.code ?? 'unknown'}): ${error.message}`)
-    else {
-      const list = data ?? []
-      setBranches(list)
-      if (list.length === 1) setBranch(list[0].id)
-    }
-    setLoadingBranches(false)
-  }
+  }, [showLogin, branches.length])
   async function login() {
     const client = supabase
     if (!client || !school || !branch || !studentId.trim() || !password || loggingIn) return
