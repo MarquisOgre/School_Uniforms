@@ -337,7 +337,6 @@ export default function CheckoutFlow({
   const selectedStudentId = selectedStudent?.id || ''
   const selectedStudentMatchesContext = Boolean(
     selectedStudent &&
-      selectedStudent.school_id === schoolId &&
       selectedStudent.branch_id === branchId,
   )
   const fieldError = (key: string) => {
@@ -416,7 +415,6 @@ export default function CheckoutFlow({
       }))
       const client = supabase as any
       const { data, error: rpcError } = await client.rpc('place_school_order', {
-        p_school_id: schoolId,
         p_branch_id: branchId,
         p_student_id: selectedStudentId || null,
         p_items: payloadItems,
