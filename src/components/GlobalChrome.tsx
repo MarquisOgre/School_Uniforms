@@ -57,7 +57,7 @@ export function GlobalHeader({
     <header className={`global-header global-header-${portal}`}>
       <div className="global-header-inner">
         <div className="global-brand">
-          <img src={logo} alt="Artisan" />
+          <img src="/Narayana-Logo.png" alt="Narayana Schools" />
           {portal === 'admin' && (
             <div>
               <strong>{title}</strong>
