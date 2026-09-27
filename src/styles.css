@@ -9612,6 +9612,10 @@ a {
 .global-header-customer .global-brand img {
   width: clamp(180px, 14vw, 220px);
   max-height: 60px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 8px;
   object-fit: contain;
 }
 
