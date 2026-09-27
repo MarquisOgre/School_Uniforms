@@ -49,6 +49,8 @@ type CartItem = CheckoutCartItem & {
   easyReturns?: boolean
   expressShipping?: boolean
   imageGallery?: string[]
+  variantOptions?: { id: string; label: string; price?: number | null }[]
+  sizeOptions?: string[]
 }
 type CheckoutStep = 'cart' | 'details' | 'payment' | 'success'
 
@@ -995,7 +997,7 @@ function Products({
       const priceMap = Object.fromEntries(branchProducts.map((x) => [x.product_id, x.branch_price]))
       const pv = await client
         .from('product_variants')
-        .select('id,product_id,size_label,variant_name,status')
+        .select('id,product_id,size_label,variant_name,price,status')
         .in('product_id', ids)
         .order('size_label')
       const variants = (pv.data ?? []) as Array<{
@@ -1003,6 +1005,7 @@ function Products({
         product_id: string
         size_label: string | null
         variant_name: string | null
+        price: number | null
         status: string | null
       }>
       const sizes: Record<string, string[]> = Object.fromEntries(ids.map((id) => [id, []]))
@@ -1015,6 +1018,7 @@ function Products({
           variantOptions[x.product_id].push({
             id: x.id,
             label: x.size_label,
+            price: x.price == null ? null : Number(x.price),
           })
         }
       })
@@ -1231,6 +1235,11 @@ function ProductDetail({
   const productOptions = item.variantOptions?.length
     ? item.variantOptions
     : (item.sizeOptions || []).map((x) => ({ id: x, label: x }))
+  const selectedProductOption = productOptions.find((x: any) => x.id === size)
+  const selectedUnitPrice =
+    item.type === 'product' && selectedProductOption?.price != null
+      ? Number(selectedProductOption.price)
+      : item.price
   const packageComponents = item.bundleComponents || []
   const requiredComponents = packageComponents.filter((x) => x.required && x.requiresSize)
   const ready =
@@ -1336,7 +1345,7 @@ function ProductDetail({
               ))}
             </div>
           ) : null}
-          <strong className="detail-price">₹{item.price.toLocaleString('en-IN')}</strong>
+          <strong className="detail-price">₹{selectedUnitPrice.toLocaleString('en-IN')}</strong>
           {item.type === 'product' ? (
             <div className="detail-size-selector">
               <div className="detail-size-heading">
@@ -1384,6 +1393,7 @@ function ProductDetail({
               onClick={() =>
                 onAdd({
                   ...item,
+                  price: selectedUnitPrice,
                   size:
                     item.type === 'package'
                       ? 'Multiple'
@@ -1401,6 +1411,7 @@ function ProductDetail({
               onClick={() =>
                 onBuyNow({
                   ...item,
+                  price: selectedUnitPrice,
                   size:
                     item.type === 'package'
                       ? 'Multiple'
