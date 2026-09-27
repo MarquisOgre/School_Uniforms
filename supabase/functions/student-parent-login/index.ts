@@ -18,17 +18,16 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    const { school_id, branch_id, login_id, password } = await req.json();
+    const { branch_id, login_id, password } = await req.json();
 
     if (
-      typeof school_id !== "string" ||
       typeof branch_id !== "string" ||
       typeof login_id !== "string" ||
       typeof password !== "string" ||
       !login_id.trim() ||
       !password
     ) {
-      return json({ error: "School, branch, ID and password are required." }, 400);
+      return json({ error: "Branch, ID and password are required." }, 400);
     }
 
     const url = Deno.env.get("SUPABASE_URL");
@@ -46,32 +45,23 @@ Deno.serve(async (req) => {
 
     const { data: profile, error: profileError } = await admin
       .from("profiles")
-      .select("id, full_name, role, school_id, branch_id, status")
-      .eq("school_id", school_id)
+      .select("id, full_name, role, branch_id, status")
       .eq("branch_id", branch_id)
       .eq("login_id", login_id.trim())
       .maybeSingle();
 
     if (profileError || !profile || profile.status !== "active") {
-      return json({ error: "Invalid school, branch, ID, or password." }, 401);
+      return json({ error: "Invalid branch, ID, or password." }, 401);
     }
-
-    const { data: school } = await admin
-      .from("schools")
-      .select("id")
-      .eq("id", school_id)
-      .eq("status", "active")
-      .maybeSingle();
 
     const { data: branch } = await admin
       .from("branches")
       .select("id")
       .eq("id", branch_id)
-      .eq("school_id", school_id)
       .eq("status", "active")
       .maybeSingle();
 
-    if (!school || !branch) {
+    if (!branch) {
       return json({ error: "Invalid school, branch, ID, or password." }, 401);
     }
 
@@ -100,7 +90,6 @@ Deno.serve(async (req) => {
         id: profile.id,
         full_name: profile.full_name,
         role: profile.role,
-        school_id: profile.school_id,
         branch_id: profile.branch_id,
         login_id: login_id.trim(),
       },
