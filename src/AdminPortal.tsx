@@ -297,7 +297,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       </AdminLayout>
     )
   if (
-    tool === 'schools' ||
+    tool === 'branches' ||
     tool === 'products' ||
     tool === 'packages' ||
     tool === 'orders' ||
