@@ -10459,3 +10459,132 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Final mobile portal layout override
+   Keep the customer app stacked on small screens so the main content
+   remains visible below the horizontal navigation. */
+@media (max-width: 820px) {
+  .portal {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .portal-layout {
+    display: block;
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .portal .sidebar {
+    position: relative;
+    width: 100%;
+    flex: none;
+    height: auto;
+    min-height: 0;
+    padding: 10px 12px;
+    overflow: visible;
+  }
+
+  .portal .sidebar nav {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 6px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .portal .sidebar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .portal .sidebar nav button {
+    flex: 0 0 auto;
+    min-height: 42px;
+    height: 42px;
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+
+  .portal .portal-main {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .portal .portal-header {
+    position: relative;
+    top: auto;
+    padding: 16px 18px;
+  }
+
+  .portal-content {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 18px 14px 32px;
+  }
+
+  .dashboard-content {
+    padding: 14px;
+  }
+
+  .dashboard-content .portal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-content .parent-children-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-content .shop-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-banner {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .catalog-grid {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .global-header-inner {
+    min-height: 64px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .global-header-customer .global-brand img {
+    width: 205px;
+    height: 56px;
+    max-width: 205px;
+    max-height: 56px;
+  }
+
+  .portal .portal-header {
+    padding: 14px 14px;
+  }
+
+  .portal-content,
+  .dashboard-content {
+    padding: 12px;
+  }
+
+  .welcome-banner {
+    padding: 20px 18px;
+  }
+
+  .welcome-banner h2 {
+    font-size: 26px;
+  }
+}
