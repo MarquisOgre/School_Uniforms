@@ -805,7 +805,11 @@ function Products() {
 
               <div className="workspace-variants-panel">
                 <div className="workspace-variants-summary">
-                  <strong>{variantsLoading ? 'Loading variants…' : `${variants.length} variant${variants.length === 1 ? '' : 's'} loaded`}</strong>
+                  <strong>
+                    {variantsLoading
+                      ? 'Loading variants…'
+                      : `${variants.length} variant${variants.length === 1 ? '' : 's'} loaded`}
+                  </strong>
                   <span>
                     Variant price is used when set; otherwise the product base price is shown.
                   </span>
