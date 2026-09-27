@@ -467,11 +467,7 @@ function Products() {
       return
     }
 
-    const sku = nextVariantSku(
-      String(editing?.name || ''),
-      variants,
-      variantEditing.id,
-    )
+    const sku = nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)
 
     const p = {
       product_id: variantEditing.product_id,
