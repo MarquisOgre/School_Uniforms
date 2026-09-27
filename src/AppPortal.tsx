@@ -1471,7 +1471,9 @@ function ProductDetail({
                   <summary>
                     Description <ChevronDown size={18} />
                   </summary>
-                  <p className="product-info-text">{item.text || 'School-approved uniform product for regular school use.'}</p>
+                  <p className="product-info-text">
+                    {item.text || 'School-approved uniform product for regular school use.'}
+                  </p>
                 </details>
               ) : null}
 
@@ -1491,7 +1493,9 @@ function ProductDetail({
                     </div>
                     <div className="product-info-care">
                       <strong>Care:</strong>
-                      <span>{item.care || 'Follow the care instructions provided with the product.'}</span>
+                      <span>
+                        {item.care || 'Follow the care instructions provided with the product.'}
+                      </span>
                     </div>
                   </div>
                 </details>
@@ -1502,7 +1506,10 @@ function ProductDetail({
                   <summary>
                     Delivery & Returns <ChevronDown size={18} />
                   </summary>
-                  <p className="product-info-text">{item.deliveryReturns || 'Delivery and return eligibility may vary by school, branch and product. Please check the applicable order terms before purchase.'}</p>
+                  <p className="product-info-text">
+                    {item.deliveryReturns ||
+                      'Delivery and return eligibility may vary by school, branch and product. Please check the applicable order terms before purchase.'}
+                  </p>
                 </details>
               ) : null}
             </div>
