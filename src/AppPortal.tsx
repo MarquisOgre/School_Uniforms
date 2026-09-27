@@ -596,7 +596,7 @@ function Dashboard({
   }, [])
 
   return (
-    <div className="portal-content">
+    <div className="portal-content dashboard-content">
       <div className="welcome-banner">
         <div>
           {/* <p className="eyebrow">YOUR SCHOOL STORE</p> */}
