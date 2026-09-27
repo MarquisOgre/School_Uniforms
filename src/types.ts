@@ -33,7 +33,6 @@ type ProfileRow = {
 }
 type StudentRow = {
   id: string
-  school_id: string
   branch_id: string
   user_id: string | null
   student_code: string
