@@ -55,8 +55,6 @@ type CartItem = CheckoutCartItem & {
 type CheckoutStep = 'cart' | 'details' | 'payment' | 'success'
 
 function CustomerPortal({
-  schoolId,
-  schoolName,
   branchName,
   branchId,
   studentId,
@@ -64,8 +62,6 @@ function CustomerPortal({
   setPage,
   onLogout,
 }: {
-  schoolId: string
-  schoolName: string
   branchName: string
   branchId: string
   studentId: string
@@ -114,7 +110,7 @@ function CustomerPortal({
       }
 
       // Load the students actually linked to this Parent / Student account.
-      // Do not rely only on school/branch filtering because checkout requires
+      // Do not rely only on branch filtering because checkout requires
       // the student's UUID, while the login ID is a separate value.
       const { data: links, error: linksError } = await client
         .from('parent_student_links')
@@ -134,9 +130,8 @@ function CustomerPortal({
         const { data: byCode } = await client
           .from('students')
           .select(
-            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status',
+            'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,branch_id,status',
           )
-          .eq('school_id', schoolId)
           .eq('branch_id', branchId)
           .eq('student_code', studentId)
           .eq('status', 'active')
@@ -180,8 +175,7 @@ function CustomerPortal({
 
       // The parent link is the source of truth for customer access. Do not
       // discard a valid linked student just because the portal context was
-      // restored with a stale/different school or branch value. Checkout will
-      // validate the selected student's school/branch before placing an order.
+      // restored with a stale/different branch value. Checkout validates the selected student's branch before placing an order.
       if (!cancelled) setStudents(enrichedStudents)
     }
 
@@ -189,7 +183,7 @@ function CustomerPortal({
     return () => {
       cancelled = true
     }
-  }, [schoolId, branchId, studentId])
+  }, [branchId, studentId])
   const add = (item: CartItem) => {
     setCart((items) => {
       const cartKey = item.id + '|' + JSON.stringify(item.selectedVariants || [])
@@ -243,13 +237,11 @@ function CustomerPortal({
         onLogout={onLogout}
         cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
         onCart={() => setCheckout('cart')}
-        schoolName={schoolName}
         branchName={branchName}
         userLabel={studentId}
       >
         <Suspense fallback={<div className="workspace-empty">Loading checkout...</div>}>
           <CheckoutFlow
-            schoolId={schoolId}
             branchId={branchId}
             cart={cart}
             total={total}
@@ -278,7 +270,6 @@ function CustomerPortal({
           onLogout={onLogout}
           cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
           onCart={() => setCheckout('cart')}
-          schoolName={schoolName}
           branchName={branchName}
           userLabel={studentId}
         />
@@ -1843,7 +1834,6 @@ function Profile({
             'id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status',
           )
           .eq('student_code', studentId)
-          .eq('school_id', schoolId)
           .eq('branch_id', branchId)
           .eq('status', 'active')
           .maybeSingle()
