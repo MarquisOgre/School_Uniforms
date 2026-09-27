@@ -1,3 +1,4 @@
+import nodemailer from "npm:nodemailer@7.0.6"
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -84,8 +85,8 @@ Deno.serve(async (req) => {
     if (configError || !config?.enabled) {
       return json({ skipped: true, reason: configError?.message || "System email is disabled" })
     }
-    if (!config?.api_key || !config?.from_email) {
-      return json({ skipped: true, reason: "Email provider is not configured" })
+    if (!config?.smtp_host || !config?.smtp_user || !config?.smtp_password || !config?.from_email) {
+      return json({ skipped: true, reason: "Zoho SMTP is not configured" })
     }
 
     const { data: customer } = await admin.auth.admin.getUserById(order.customer_user_id)
@@ -106,30 +107,28 @@ Deno.serve(async (req) => {
       refund_amount: String(order.grand_total || ""),
     }
 
-    const payload = {
-      from: config.from_name ? config.from_name + " <" + config.from_email + ">" : config.from_email,
-      to: [to],
+    const transporter = nodemailer.createTransport({
+      host: String(config.smtp_host),
+      port: Number(config.smtp_port || 465),
+      secure: Boolean(config.smtp_secure),
+      auth: {
+        user: String(config.smtp_user),
+        pass: String(config.smtp_password),
+      },
+    })
+
+    const result = await transporter.sendMail({
+      from: config.from_name
+        ? config.from_name + " <" + config.from_email + ">"
+        : config.from_email,
+      to,
       subject: render(String(template.subject || ""), vars),
       html: render(String(template.html_body || ""), vars),
       text: render(String(template.text_body || ""), vars),
-      ...(config.reply_to ? { reply_to: config.reply_to } : {}),
-    }
-
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + config.api_key,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
+      ...(config.reply_to ? { replyTo: config.reply_to } : {}),
     })
 
-    const result = await response.json()
-    if (!response.ok) {
-      return json({ error: result?.message || "Resend rejected the email" }, 502)
-    }
-
-    return json({ success: true, email_id: result?.id || null })
+    return json({ success: true, email_id: result?.messageId || null })
   } catch (error) {
     return json({ error: error instanceof Error ? error.message : "Unexpected error" }, 500)
   }
