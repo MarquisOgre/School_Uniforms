@@ -1193,8 +1193,8 @@ a {
 
 .profile-readonly-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
 }
 .profile-readonly-grid div {
   padding: 13px;
