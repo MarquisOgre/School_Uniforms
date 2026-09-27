@@ -444,6 +444,11 @@ function Products() {
       custom_order_cod: editing.custom_order_cod === true,
       easy_returns: editing.easy_returns !== false,
       express_shipping: editing.express_shipping !== false,
+      show_cod_returns_shipping: editing.show_cod_returns_shipping !== false,
+      show_details: editing.show_details !== false,
+      show_description: editing.show_description !== false,
+      show_quality_care: editing.show_quality_care !== false,
+      show_delivery_returns: editing.show_delivery_returns !== false,
       image_url: editing.image_url || null,
       image_gallery: Array.isArray(editing.image_gallery) ? editing.image_gallery : [],
       base_price: Number(editing.base_price || 0),
@@ -543,6 +548,11 @@ function Products() {
               custom_order_cod: false,
               easy_returns: true,
               express_shipping: true,
+              show_cod_returns_shipping: true,
+              show_details: true,
+              show_description: true,
+              show_quality_care: true,
+              show_delivery_returns: true,
               base_price: '',
               discount_percentage: '',
               offer_price: '',
@@ -753,6 +763,56 @@ function Products() {
                 onChange={(e) => setEditing({ ...editing, express_shipping: e.target.checked })}
               />{' '}
               1–3 Day Express Shipping
+            </label>
+          </div>
+
+          <div className="workspace-product-benefits">
+            <div className="workspace-muted" style={{ gridColumn: '1 / -1', fontWeight: 600 }}>
+              Product Detail Sections
+            </div>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.show_cod_returns_shipping !== false}
+                onChange={(e) =>
+                  setEditing({ ...editing, show_cod_returns_shipping: e.target.checked })
+                }
+              />{' '}
+              COD, Returns & Shipping
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.show_details !== false}
+                onChange={(e) => setEditing({ ...editing, show_details: e.target.checked })}
+              />{' '}
+              Details
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.show_description !== false}
+                onChange={(e) => setEditing({ ...editing, show_description: e.target.checked })}
+              />{' '}
+              Description
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.show_quality_care !== false}
+                onChange={(e) => setEditing({ ...editing, show_quality_care: e.target.checked })}
+              />{' '}
+              Quality & Care
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={editing.show_delivery_returns !== false}
+                onChange={(e) =>
+                  setEditing({ ...editing, show_delivery_returns: e.target.checked })
+                }
+              />{' '}
+              Delivery & Returns
             </label>
           </div>
 
