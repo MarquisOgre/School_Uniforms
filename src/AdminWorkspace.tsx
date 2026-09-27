@@ -423,11 +423,40 @@ function Products() {
 
     if (r.error) {
       setError(r.error.message)
-    } else {
-      setEditing(null)
-      setVariants([])
-      await load()
+      return
     }
+
+    if (editing.id && variants.length) {
+      const base = variantSkuBase(name)
+      const normalizedSkus = variants.map((variant, index) => ({
+        id: variant.id,
+        sku: `${base}-${index + 1}`,
+      }))
+
+      for (const variant of normalizedSkus) {
+        const temp = await dbFrom('product_variants')
+          .update({ sku: `__TMP__-${variant.id}` })
+          .eq('id', variant.id)
+        if (temp.error) {
+          setError(temp.error.message)
+          return
+        }
+      }
+
+      for (const variant of normalizedSkus) {
+        const updated = await dbFrom('product_variants')
+          .update({ sku: variant.sku })
+          .eq('id', variant.id)
+        if (updated.error) {
+          setError(updated.error.message)
+          return
+        }
+      }
+    }
+
+    setEditing(null)
+    setVariants([])
+    await load()
   }
 
   const saveVariant = async () => {
