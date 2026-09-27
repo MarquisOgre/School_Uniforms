@@ -7,7 +7,7 @@ import SiteBrandingSettings from './SiteBrandingSettings'
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
 
 type ModuleKey =
-  | 'schools'
+  | 'branches'
   | 'products'
   | 'packages'
   | 'orders'
@@ -18,9 +18,9 @@ type ModuleKey =
   | 'settings'
 
 const META: Record<ModuleKey, { title: string; description: string }> = {
-  schools: {
-    title: 'Schools & Branches',
-    description: 'Manage schools, branches, contact details and active status.',
+  branches: {
+    title: 'Branches',
+    description: 'Manage branches, contact details and active status.',
   },
   products: {
     title: 'Products & Variants',
@@ -122,8 +122,8 @@ export default function AdminWorkspace({
 
 function ModuleBody({ module, ordersSearch }: { module: ModuleKey; ordersSearch?: string }) {
   switch (module) {
-    case 'schools':
-      return <Schools />
+    case 'branches':
+      return <Branches />
     case 'products':
       return <Products />
     case 'packages':
@@ -163,67 +163,49 @@ function ErrorBox({ text }: { text: string }) {
   return text ? <div className="workspace-error">{text}</div> : null
 }
 
-function Schools() {
-  const [schools, setSchools] = useState<any[]>([]),
-    [branches, setBranches] = useState<any[]>([]),
-    [editing, setEditing] = useState<any>(null),
-    [branchEditing, setBranchEditing] = useState<any>(null),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(true)
+function Branches() {
+  const [branches, setBranches] = useState<any[]>([])
+  const [editing, setEditing] = useState<any>(null)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+
   const load = async () => {
     if (!supabase) return
     setLoading(true)
-    const a = await dbFrom('schools').select('*').order('name')
-    const b = await dbFrom('branches').select('*').order('name')
-    setSchools(a.data ?? [])
-    setBranches(b.data ?? [])
-    setError(a.error?.message || b.error?.message || '')
+    const result = await dbFrom('branches').select('*').order('name')
+    setBranches(result.data ?? [])
+    setError(result.error?.message || '')
     setLoading(false)
   }
+
   useEffect(() => {
     void load()
   }, [])
-  const saveSchool = async () => {
+
+  const saveBranch = async () => {
     if (!supabase || !editing) return
     const payload = {
       name: editing.name,
       code: editing.code,
-      logo_url: editing.logo_url || null,
+      address_line1: editing.address_line1 || null,
+      address_line2: editing.address_line2 || null,
+      city: editing.city || null,
+      state: editing.state || null,
+      postal_code: editing.postal_code || null,
+      phone: editing.phone || null,
+      email: editing.email || null,
       status: editing.status,
     }
     const r = editing.id
-      ? await dbFrom('schools').update(payload).eq('id', editing.id)
-      : await dbFrom('schools').insert(payload)
+      ? await dbFrom('branches').update(payload).eq('id', editing.id)
+      : await dbFrom('branches').insert(payload)
     if (r.error) setError(r.error.message)
     else {
       setEditing(null)
       await load()
     }
   }
-  const saveBranch = async () => {
-    if (!supabase || !branchEditing) return
-    const payload = {
-      school_id: branchEditing.school_id,
-      name: branchEditing.name,
-      code: branchEditing.code,
-      address_line1: branchEditing.address_line1 || null,
-      address_line2: branchEditing.address_line2 || null,
-      city: branchEditing.city || null,
-      state: branchEditing.state || null,
-      postal_code: branchEditing.postal_code || null,
-      phone: branchEditing.phone || null,
-      email: branchEditing.email || null,
-      status: branchEditing.status,
-    }
-    const r = branchEditing.id
-      ? await dbFrom('branches').update(payload).eq('id', branchEditing.id)
-      : await dbFrom('branches').insert(payload)
-    if (r.error) setError(r.error.message)
-    else {
-      setBranchEditing(null)
-      await load()
-    }
-  }
+
   return (
     <>
       <Toolbar onRefresh={load}>
@@ -231,77 +213,40 @@ function Schools() {
           className="primary-button"
           onClick={() => setEditing({ name: '', code: '', status: 'active' })}
         >
-          <Plus size={15} /> Add School
+          <Plus size={15} /> Add Branch
         </button>
       </Toolbar>
       <ErrorBox text={error} />
       {loading ? (
         <Loading />
       ) : (
-        <>
-          <Panel>
-            <h2>Schools</h2>
-            <div className="workspace-table">
-              <div className="workspace-row admin-table-header school-row">
-                <strong>School</strong>
-                <span>Code</span>
-                <span>Status</span>
-                <span>Actions</span>
+        <Panel>
+          <div className="workspace-table">
+            <div className="workspace-row admin-table-header branch-row">
+              <strong>Branch</strong>
+              <span>Code</span>
+              <span>Status</span>
+              <span>Actions</span>
+            </div>
+            {branches.map((x) => (
+              <div className="workspace-row branch-row" key={x.id}>
+                <strong>{x.name}</strong>
+                <span>{x.code}</span>
+                <span>{x.status}</span>
+                <button onClick={() => setEditing({ ...x })}>Edit</button>
               </div>
-              {schools.map((x) => (
-                <div className="workspace-row school-row" key={x.id}>
-                  <strong>{x.name}</strong>
-                  <span>{x.code}</span>
-                  <span>{x.status}</span>
-                  <button onClick={() => setEditing({ ...x })}>Edit</button>
-                </div>
-              ))}
-            </div>
-          </Panel>
-          <Panel>
-            <div className="panel-heading">
-              <h2>Branches</h2>
-              <button
-                className="secondary-button"
-                onClick={() =>
-                  setBranchEditing({
-                    school_id: schools[0]?.id || '',
-                    name: '',
-                    code: '',
-                    status: 'active',
-                  })
-                }
-              >
-                <Plus size={15} /> Add Branch
-              </button>
-            </div>
-            <div className="workspace-table">
-              <div className="workspace-row admin-table-header branch-row">
-                <strong>Branch</strong>
-                <span>School</span>
-                <span>Code</span>
-                <span>Actions</span>
-              </div>
-              {branches.map((x) => (
-                <div className="workspace-row branch-row" key={x.id}>
-                  <strong>{x.name}</strong>
-                  <span>{schools.find((s) => s.id === x.school_id)?.name || '—'}</span>
-                  <span>{x.code}</span>
-                  <button onClick={() => setBranchEditing({ ...x })}>Edit</button>
-                </div>
-              ))}
-            </div>
-          </Panel>
-        </>
+            ))}
+          </div>
+        </Panel>
       )}
       {editing && (
         <EditModal
-          title={editing.id ? 'Edit School' : 'Add School'}
+          title={editing.id ? 'Edit Branch' : 'Add Branch'}
           onClose={() => setEditing(null)}
-          onSave={saveSchool}
+          onSave={saveBranch}
         >
           <Field
-            label="School Name"
+            label="Branch Name"
             value={editing.name}
             onChange={(v) => setEditing({ ...editing, name: v })}
           />
@@ -311,9 +256,24 @@ function Schools() {
             onChange={(v) => setEditing({ ...editing, code: v })}
           />
           <Field
-            label="Logo URL"
-            value={editing.logo_url || ''}
-            onChange={(v) => setEditing({ ...editing, logo_url: v })}
+            label="City"
+            value={editing.city || ''}
+            onChange={(v) => setEditing({ ...editing, city: v })}
+          />
+          <Field
+            label="State"
+            value={editing.state || ''}
+            onChange={(v) => setEditing({ ...editing, state: v })}
+          />
+          <Field
+            label="Phone"
+            value={editing.phone || ''}
+            onChange={(v) => setEditing({ ...editing, phone: v })}
+          />
+          <Field
+            label="Email"
+            value={editing.email || ''}
+            onChange={(v) => setEditing({ ...editing, email: v })}
           />
           <Select
             label="Status"
@@ -323,56 +283,9 @@ function Schools() {
           />
         </EditModal>
       )}
-      {branchEditing && (
-        <EditModal
-          title={branchEditing.id ? 'Edit Branch' : 'Add Branch'}
-          onClose={() => setBranchEditing(null)}
-          onSave={saveBranch}
-        >
-          <Select
-            label="School"
-            value={branchEditing.school_id}
-            options={schools.map((x) => x.id)}
-            labels={Object.fromEntries(schools.map((x) => [x.id, x.name]))}
-            onChange={(v) => setBranchEditing({ ...branchEditing, school_id: v })}
-          />
-          <Field
-            label="Branch Name"
-            value={branchEditing.name}
-            onChange={(v) => setBranchEditing({ ...branchEditing, name: v })}
-          />
-          <Field
-            label="Code"
-            value={branchEditing.code}
-            onChange={(v) => setBranchEditing({ ...branchEditing, code: v })}
-          />
-          <Field
-            label="City"
-            value={branchEditing.city || ''}
-            onChange={(v) => setBranchEditing({ ...branchEditing, city: v })}
-          />
-          <Field
-            label="State"
-            value={branchEditing.state || ''}
-            onChange={(v) => setBranchEditing({ ...branchEditing, state: v })}
-          />
-          <Field
-            label="Phone"
-            value={branchEditing.phone || ''}
-            onChange={(v) => setBranchEditing({ ...branchEditing, phone: v })}
-          />
-          <Select
-            label="Status"
-            value={branchEditing.status}
-            options={['active', 'inactive', 'suspended']}
-            onChange={(v) => setBranchEditing({ ...branchEditing, status: v })}
-          />
-        </EditModal>
-      )}
     </>
   )
 }
-
 function Products() {
   const [rows, setRows] = useState<any[]>([]),
     [categories, setCategories] = useState<any[]>([]),
