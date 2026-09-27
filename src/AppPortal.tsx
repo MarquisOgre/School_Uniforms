@@ -1444,23 +1444,23 @@ function ProductDetail({
                   <div className="product-info-grid">
                     <div>
                       <strong>Product Type:</strong>
-                      <span>{item.productType || '—'}</span>
+                      <span>{item.productType || 'School Uniform Product'}</span>
                     </div>
                     <div>
                       <strong>Occasion Type:</strong>
-                      <span>{item.occasionType || '—'}</span>
+                      <span>{item.occasionType || 'School Wear'}</span>
                     </div>
                     <div>
                       <strong>Gender:</strong>
-                      <span>{item.gender || '—'}</span>
+                      <span>{item.gender || 'Unisex'}</span>
                     </div>
                     <div>
                       <strong>Material:</strong>
-                      <span>{item.material || '—'}</span>
+                      <span>{item.material || 'Uniform Fabric'}</span>
                     </div>
                     <div>
                       <strong>Brand:</strong>
-                      <span>{item.brand || '—'}</span>
+                      <span>{item.brand || 'School Approved'}</span>
                     </div>
                   </div>
                 </details>
@@ -1471,7 +1471,7 @@ function ProductDetail({
                   <summary>
                     Description <ChevronDown size={18} />
                   </summary>
-                  <p className="product-info-text">{item.text || '—'}</p>
+                  <p className="product-info-text">{item.text || 'School-approved uniform product for regular school use.'}</p>
                 </details>
               ) : null}
 
@@ -1483,15 +1483,15 @@ function ProductDetail({
                   <div className="product-info-grid">
                     <div>
                       <strong>Quality:</strong>
-                      <span>{item.quality || '—'}</span>
+                      <span>{item.quality || 'School-approved quality'}</span>
                     </div>
                     <div>
                       <strong>Fabric:</strong>
-                      <span>{item.fabric || '—'}</span>
+                      <span>{item.fabric || 'Uniform-grade fabric'}</span>
                     </div>
                     <div className="product-info-care">
                       <strong>Care:</strong>
-                      <span>{item.care || '—'}</span>
+                      <span>{item.care || 'Follow the care instructions provided with the product.'}</span>
                     </div>
                   </div>
                 </details>
@@ -1502,7 +1502,7 @@ function ProductDetail({
                   <summary>
                     Delivery & Returns <ChevronDown size={18} />
                   </summary>
-                  <p className="product-info-text">{item.deliveryReturns || '—'}</p>
+                  <p className="product-info-text">{item.deliveryReturns || 'Delivery and return eligibility may vary by school, branch and product. Please check the applicable order terms before purchase.'}</p>
                 </details>
               ) : null
             </div>
