@@ -4880,6 +4880,28 @@ a {
   min-height: 80px;
   resize: vertical;
 }
+.variant-delete-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+.variant-delete-button {
+  border: 1px solid #b53a3a;
+  border-radius: 7px;
+  background: #fff5f5;
+  color: #b53a3a;
+  padding: 9px 13px;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.variant-delete-button:hover {
+  background: #b53a3a;
+  color: #fff;
+}
+
 .workspace-modal-actions {
   display: flex;
   align-items: center;
