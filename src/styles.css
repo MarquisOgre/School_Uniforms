@@ -3149,8 +3149,8 @@ a {
   padding: 0 22px;
 }
 .exact-header .brand-logo {
-  width: 194px;
-  max-height: 48px;
+  width: 240px;
+  max-height: 64px;
 }
 .exact-header nav {
   gap: 30px;
@@ -3758,7 +3758,8 @@ a {
 }
 @media (max-width: 600px) {
   .exact-header .brand-logo {
-    width: 150px;
+    width: 180px;
+    max-height: 52px;
   }
   .exact-header nav {
     display: none;
@@ -4931,8 +4932,8 @@ a {
   padding-inline: clamp(18px, 2.4vw, 42px);
 }
 .exact-header .brand-logo {
-  width: clamp(150px, 11vw, 194px);
-  max-height: clamp(40px, 3.2vw, 52px);
+  width: clamp(180px, 13.5vw, 240px);
+  max-height: clamp(48px, 4vw, 64px);
   object-fit: contain;
 }
 .exact-header nav {
@@ -4966,7 +4967,8 @@ a {
     gap: clamp(10px, 1.3vw, 18px);
   }
   .exact-header .brand-logo {
-    width: clamp(130px, 15vw, 165px);
+    width: clamp(160px, 18vw, 200px);
+    max-height: 58px;
   }
   .exact-header nav a {
     font-size: 11px;
@@ -5273,9 +5275,9 @@ a {
 }
 .login-card-large .login-logo-image {
   display: block;
-  width: clamp(150px, 18vw, 210px);
+  width: clamp(180px, 22vw, 250px);
   height: auto;
-  max-height: 70px;
+  max-height: 90px;
   object-fit: contain;
 }
 
@@ -6319,7 +6321,8 @@ a {
     display: none;
   }
   .global-brand img {
-    width: 145px;
+    width: 175px;
+    max-height: 54px;
   }
   .global-header-actions {
     gap: 6px;
@@ -6931,7 +6934,8 @@ a {
   }
 
   .global-brand img {
-    width: 138px;
+    width: 165px;
+    max-height: 52px;
   }
 
   .global-header-actions {
@@ -9606,8 +9610,8 @@ a {
 }
 
 .global-header-customer .global-brand img {
-  width: clamp(145px, 11vw, 175px);
-  max-height: 48px;
+  width: clamp(180px, 14vw, 220px);
+  max-height: 60px;
   object-fit: contain;
 }
 
