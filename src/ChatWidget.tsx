@@ -3,7 +3,6 @@ import { MessageCircle, Send, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
 type ChatWidgetProps = {
-  schoolId?: string
   branchId?: string
 }
 
@@ -14,7 +13,7 @@ type Message = {
   created_at: string
 }
 
-export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
+export default function ChatWidget({ branchId }: ChatWidgetProps) {
   const [open, setOpen] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -50,7 +49,7 @@ export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
   }, [])
 
   useEffect(() => {
-    if (!open || !authenticated || !schoolId || !branchId || !supabase) return
+    if (!open || !authenticated || !branchId || !supabase) return
     let cancelled = false
     const client = supabase as any
 
@@ -68,7 +67,6 @@ export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
         .from('support_conversations')
         .select('id,status,updated_at')
         .eq('customer_user_id', user.id)
-        .eq('school_id', schoolId)
         .eq('branch_id', branchId)
         .neq('status', 'closed')
         .order('updated_at', { ascending: false })
@@ -86,7 +84,6 @@ export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
           .from('support_conversations')
           .insert({
             customer_user_id: user.id,
-            school_id: schoolId,
             branch_id: branchId,
             status: 'open',
           })
@@ -117,7 +114,7 @@ export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
     return () => {
       cancelled = true
     }
-  }, [open, authenticated, schoolId, branchId])
+  }, [open, authenticated, branchId])
 
   useEffect(() => {
     if (!conversationId || !supabase) return
@@ -202,12 +199,11 @@ export default function ChatWidget({ schoolId, branchId }: ChatWidgetProps) {
                 Parent / Student Login
               </button>
             </div>
-          ) : !schoolId || !branchId ? (
+          ) : !branchId ? (
             <div className="chat-login-prompt">
               <MessageCircle size={34} />
               <p>
-                Your school store is not selected yet. Open your school store to start chatting with
-                support.
+                Your branch is not selected yet. Open your branch store to start chatting with support.
               </p>
             </div>
           ) : (
