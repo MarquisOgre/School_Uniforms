@@ -45,7 +45,7 @@ Deno.serve(async(req)=>{
     if(!branch||branch.status!=="active") return json({error:"Invalid branch."},400)
     const {data:existingProfile}=await admin.from("profiles").select("id").eq("branch_id",branchId).eq("login_id",loginId).maybeSingle()
     if(existingProfile) return json({error:"That Parent Login ID already exists for this branch."},409)
-    const created=await admin.auth.admin.createUser({email:parentEmail,password,email_confirm:true})
+    const created=await admin.auth.admin.createUser({email:parentEmail,password,email_confirm:true,user_metadata:{branch_id:branchId,full_name:parentName}})
     if(created.error||!created.data.user) return json({error:created.error?.message||"Unable to create parent authentication account."},400)
     const parentId=created.data.user.id
     const {error:profileError}=await admin.from("profiles").upsert({id:parentId,full_name:parentName,role:"customer",branch_id:branchId,login_id:loginId,phone:phone||null,status:"active"})
