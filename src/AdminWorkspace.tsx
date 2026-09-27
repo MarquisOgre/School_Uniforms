@@ -807,35 +807,37 @@ function Products() {
                 {variantsLoading ? (
                   <div className="workspace-empty">Loading variants and variant prices...</div>
                 ) : (
-                <>
-                <div className="workspace-row product-row variant-row admin-table-header">
-                  <strong>SKU</strong>
-                  <span>Size</span>
-                  <span>Color</span>
-                  <span>Price</span>
-                  <span>Actions</span>
-                </div>
-                {variants.map((v) => (
-                  <div className="workspace-row product-row variant-row" key={v.id}>
-                    <strong>{v.sku}</strong>
-                    <span>{v.size_label || '—'}</span>
-                    <span>{v.color || '—'}</span>
-                    <span>
-                      ₹{Number(v.price ?? editing.base_price ?? 0).toLocaleString('en-IN')}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setError('')
-                        setVariantEditing({ ...v, price: v.price ?? '' })
-                      }}
-                    >
-                      Edit
-                    </button>
-                  </div>
-                ))}
-                {!variants.length && <div className="workspace-empty">No variants added yet.</div>}
-                </>
+                  <>
+                    <div className="workspace-row product-row variant-row admin-table-header">
+                      <strong>SKU</strong>
+                      <span>Size</span>
+                      <span>Color</span>
+                      <span>Price</span>
+                      <span>Actions</span>
+                    </div>
+                    {variants.map((v) => (
+                      <div className="workspace-row product-row variant-row" key={v.id}>
+                        <strong>{v.sku}</strong>
+                        <span>{v.size_label || '—'}</span>
+                        <span>{v.color || '—'}</span>
+                        <span>
+                          ₹{Number(v.price ?? editing.base_price ?? 0).toLocaleString('en-IN')}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setError('')
+                            setVariantEditing({ ...v, price: v.price ?? '' })
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    ))}
+                    {!variants.length && (
+                      <div className="workspace-empty">No variants added yet.</div>
+                    )}
+                  </>
                 )}
               </div>
             </>
