@@ -342,7 +342,7 @@ function CustomerPortal({
                   ? 'My Orders'
                   : 'My Profile'
         }
-        subtitle={schoolName + ' • ' + branchName}
+        subtitle={branchName}
         onBack={() => setPage('dashboard')}
         backLabel="Dashboard"
         onLogout={onLogout}
