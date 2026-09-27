@@ -1002,7 +1002,11 @@ function Products() {
           </div>
           {variantEditing.id ? (
             <div className="variant-delete-row">
-              <button type="button" className="variant-delete-button" onClick={() => void deleteVariant()}>
+              <button
+                type="button"
+                className="variant-delete-button"
+                onClick={() => void deleteVariant()}
+              >
                 Delete Variant
               </button>
             </div>
