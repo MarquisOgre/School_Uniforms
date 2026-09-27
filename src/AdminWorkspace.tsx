@@ -292,6 +292,7 @@ function Products() {
     [editing, setEditing] = useState<any>(null),
     [variantEditing, setVariantEditing] = useState<any>(null),
     [variants, setVariants] = useState<any[]>([]),
+    [variantsLoading, setVariantsLoading] = useState(false),
     [itemVariants, setItemVariants] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
@@ -311,13 +312,25 @@ function Products() {
   }
 
   const loadVariants = async (productId: string) => {
-    if (!supabase || !productId) return
+    if (!supabase || !productId) {
+      setVariants([])
+      return
+    }
+
+    setVariantsLoading(true)
+    setVariants([])
     const r = await dbFrom('product_variants')
-      .select('*')
+      .select('id,product_id,sku,size_label,color,variant_name,price,status')
       .eq('product_id', productId)
       .order('size_label')
-    setVariants(r.data ?? [])
-    if (r.error) setError(r.error.message || '')
+
+    if (r.error) {
+      setVariants([])
+      setError(r.error.message || 'Unable to load product variants.')
+    } else {
+      setVariants(r.data ?? [])
+    }
+    setVariantsLoading(false)
   }
 
   useEffect(() => {
@@ -509,6 +522,7 @@ function Products() {
                 <button
                   onClick={() => {
                     setError('')
+                    setVariants([])
                     setEditing({
                       ...x,
                       base_price: x.base_price ?? '',
@@ -532,6 +546,7 @@ function Products() {
           onClose={() => {
             setEditing(null)
             setVariants([])
+            setVariantsLoading(false)
             setVariantEditing(null)
           }}
           onSave={save}
@@ -789,6 +804,10 @@ function Products() {
               </div>
 
               <div className="workspace-table workspace-scroll">
+                {variantsLoading ? (
+                  <div className="workspace-empty">Loading variants and variant prices...</div>
+                ) : (
+                <>
                 <div className="workspace-row product-row variant-row admin-table-header">
                   <strong>SKU</strong>
                   <span>Size</span>
@@ -816,6 +835,8 @@ function Products() {
                   </div>
                 ))}
                 {!variants.length && <div className="workspace-empty">No variants added yet.</div>}
+                </>
+                )}
               </div>
             </>
           )}
