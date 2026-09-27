@@ -1506,10 +1506,23 @@ function ProductDetail({
                   <summary>
                     Delivery & Returns <ChevronDown size={18} />
                   </summary>
-                  <p className="product-info-text">
-                    {item.deliveryReturns ||
-                      'Delivery and return eligibility may vary by school, branch and product. Please check the applicable order terms before purchase.'}
-                  </p>
+                  <div className="product-benefit-list">
+                    <div>
+                      <Truck size={20} />
+                      <strong>Free Delivery on all orders</strong>
+                    </div>
+                    {item.codAvailable !== false ? (
+                      <div>
+                        <CheckCircle2 size={20} />
+                        <strong>Pay on delivery available</strong>
+                      </div>
+                    ) : null}
+                    {item.deliveryReturns ? (
+                      <div className="product-info-text">
+                        {item.deliveryReturns}
+                      </div>
+                    ) : null}
+                  </div>
                 </details>
               ) : null}
             </div>
