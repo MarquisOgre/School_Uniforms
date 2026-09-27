@@ -45,7 +45,6 @@ type StudentOption = {
   full_name: string
   class_name: string | null
   section: string | null
-  school_id?: string | null
   branch_id?: string | null
   status?: string | null
 }
@@ -98,7 +97,6 @@ type Address = {
 }
 
 export default function CheckoutFlow({
-  schoolId,
   branchId,
   cart,
   total,
@@ -109,7 +107,6 @@ export default function CheckoutFlow({
   students,
   onComplete,
 }: {
-  schoolId: string
   branchId: string
   cart: CheckoutCartItem[]
   total: number
@@ -211,7 +208,7 @@ export default function CheckoutFlow({
       if (linkedIds.length) {
         const { data: linkedStudents } = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
+          .select('id,student_code,full_name,class_name,section,branch_id,status')
           .in('id', linkedIds)
           .eq('status', 'active')
           .order('full_name')
@@ -225,9 +222,8 @@ export default function CheckoutFlow({
       if (!resolvedStudents.length) {
         const { data: ownStudents } = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
+          .select('id,student_code,full_name,class_name,section,branch_id,status')
           .eq('user_id', user.id)
-          .eq('school_id', schoolId)
           .eq('branch_id', branchId)
           .eq('status', 'active')
           .order('full_name')
@@ -238,9 +234,8 @@ export default function CheckoutFlow({
       if (!resolvedStudents.length && profile?.login_id) {
         const { data: byCode } = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
+          .select('id,student_code,full_name,class_name,section,branch_id,status')
           .eq('student_code', profile.login_id)
-          .eq('school_id', schoolId)
           .eq('branch_id', branchId)
           .eq('status', 'active')
           .maybeSingle()
@@ -261,10 +256,9 @@ export default function CheckoutFlow({
         setStudentId(resolvedStudents[0].id)
         const onlyStudent = resolvedStudents[0]
         setStudentLoadError(
-          onlyStudent.school_id &&
-            onlyStudent.branch_id &&
-            (onlyStudent.school_id !== schoolId || onlyStudent.branch_id !== branchId)
-            ? 'Your linked student is active, but the student is assigned to a different school or branch. Please contact the school administrator to correct the student assignment.'
+          onlyStudent.branch_id &&
+            onlyStudent.branch_id !== branchId
+            ? 'Your linked student is active, but the student is assigned to a different branch. Please contact the administrator to correct the student assignment.'
             : '',
         )
       } else if (resolvedStudents.length === 0) {
@@ -305,7 +299,7 @@ export default function CheckoutFlow({
     return () => {
       cancelled = true
     }
-  }, [branchId, schoolId, students])
+  }, [branchId, students])
   useEffect(() => {
     if (step === 'success') {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -379,7 +373,7 @@ export default function CheckoutFlow({
     : !selectedStudent
       ? 'Please select a student.'
       : !selectedStudentMatchesContext
-        ? 'This student is assigned to a different school or branch.'
+        ? 'This student is assigned to a different branch.'
         : ''
   const detailsValid = Boolean(
     selectedStudentId &&
