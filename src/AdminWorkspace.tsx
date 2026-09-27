@@ -3081,6 +3081,7 @@ function Field({
   min,
   clearZeroOnFocus = false,
   placeholder,
+  readOnly = false,
 }: {
   label: string
   value: string
