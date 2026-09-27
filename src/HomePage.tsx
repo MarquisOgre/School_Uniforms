@@ -828,24 +828,15 @@ export default function HomePage({
   onLoginSuccess,
   onAdmin,
 }: {
-  onLoginSuccess: (
-    school: string,
-    branch: string,
-    studentId: string,
-    schoolName: string,
-    branchName: string,
-  ) => void
+  onLoginSuccess: (branch: string, studentId: string, branchName: string) => void
   onAdmin: () => void
 }) {
   const [showLogin, setShowLogin] = useState(false),
-    [schools, setSchools] = useState<SchoolOption[]>([]),
     [branches, setBranches] = useState<BranchOption[]>([])
-  const [school, setSchool] = useState(''),
-    [branch, setBranch] = useState(''),
+  const [branch, setBranch] = useState(''),
     [studentId, setStudentId] = useState(''),
     [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false),
-    [loadingSchools, setLoadingSchools] = useState(true),
     [loadingBranches, setLoadingBranches] = useState(false),
     [loggingIn, setLoggingIn] = useState(false),
     [error, setError] = useState('')
