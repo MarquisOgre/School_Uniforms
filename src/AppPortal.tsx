@@ -1040,6 +1040,11 @@ function Products({
             customOrderCod: x.custom_order_cod === true,
             easyReturns: x.easy_returns !== false,
             expressShipping: x.express_shipping !== false,
+            showCodReturnsShipping: x.show_cod_returns_shipping !== false,
+            showDetails: x.show_details !== false,
+            showDescription: x.show_description !== false,
+            showQualityCare: x.show_quality_care !== false,
+            showDeliveryReturns: x.show_delivery_returns !== false,
             sourceId: x.id,
             image: x.image_url || '/category-accessories.jpg',
             imageGallery: Array.isArray(x.image_gallery) ? x.image_gallery : [],
@@ -1397,99 +1402,109 @@ function ProductDetail({
 
           {item.type === 'product' ? (
             <div className="product-detail-information">
-              <details className="product-benefits-accordion">
-                <summary>
-                  COD, Returns & Shipping <ChevronDown size={18} />
-                </summary>
-                <div className="product-benefit-list">
-                  {item.codAvailable !== false ? (
+              {item.showCodReturnsShipping !== false ? (
+                <details className="product-benefits-accordion">
+                  <summary>
+                    COD, Returns & Shipping <ChevronDown size={18} />
+                  </summary>
+                  <div className="product-benefit-list">
+                    {item.codAvailable !== false ? (
+                      <div>
+                        <CheckCircle2 size={20} />
+                        <strong>COD Available</strong>
+                      </div>
+                    ) : null}
+                    {item.customOrderCod === true ? (
+                      <div className="warning">
+                        <Ban size={20} />
+                        <strong>No COD on Custom Order (Embroidery)</strong>
+                      </div>
+                    ) : null}
+                    {item.easyReturns !== false ? (
+                      <div>
+                        <RotateCcw size={20} />
+                        <strong>Easy Returns & Exchange</strong>
+                      </div>
+                    ) : null}
+                    {item.expressShipping !== false ? (
+                      <div>
+                        <Truck size={20} />
+                        <strong>1–3 Day Express Shipping</strong>
+                      </div>
+                    ) : null}
+                  </div>
+                </details>
+              ) : null}
+
+              {item.showDetails !== false ? (
+                <details>
+                  <summary>
+                    Details <ChevronDown size={18} />
+                  </summary>
+                  <div className="product-info-grid">
                     <div>
-                      <CheckCircle2 size={20} />
-                      <strong>COD Available</strong>
+                      <strong>Product Type:</strong>
+                      <span>{item.productType || '—'}</span>
                     </div>
-                  ) : null}
-                  {item.customOrderCod === true ? (
-                    <div className="warning">
-                      <Ban size={20} />
-                      <strong>No COD on Custom Order (Embroidery)</strong>
-                    </div>
-                  ) : null}
-                  {item.easyReturns !== false ? (
                     <div>
-                      <RotateCcw size={20} />
-                      <strong>Easy Returns & Exchange</strong>
+                      <strong>Occasion Type:</strong>
+                      <span>{item.occasionType || '—'}</span>
                     </div>
-                  ) : null}
-                  {item.expressShipping !== false ? (
                     <div>
-                      <Truck size={20} />
-                      <strong>1–3 Day Express Shipping</strong>
+                      <strong>Gender:</strong>
+                      <span>{item.gender || '—'}</span>
                     </div>
-                  ) : null}
-                </div>
-              </details>
+                    <div>
+                      <strong>Material:</strong>
+                      <span>{item.material || '—'}</span>
+                    </div>
+                    <div>
+                      <strong>Brand:</strong>
+                      <span>{item.brand || '—'}</span>
+                    </div>
+                  </div>
+                </details>
+              ) : null}
 
-              <details>
-                <summary>
-                  Details <ChevronDown size={18} />
-                </summary>
-                <div className="product-info-grid">
-                  <div>
-                    <strong>Product Type:</strong>
-                    <span>{item.productType || '—'}</span>
-                  </div>
-                  <div>
-                    <strong>Occasion Type:</strong>
-                    <span>{item.occasionType || '—'}</span>
-                  </div>
-                  <div>
-                    <strong>Gender:</strong>
-                    <span>{item.gender || '—'}</span>
-                  </div>
-                  <div>
-                    <strong>Material:</strong>
-                    <span>{item.material || '—'}</span>
-                  </div>
-                  <div>
-                    <strong>Brand:</strong>
-                    <span>{item.brand || '—'}</span>
-                  </div>
-                </div>
-              </details>
+              {item.showDescription !== false ? (
+                <details>
+                  <summary>
+                    Description <ChevronDown size={18} />
+                  </summary>
+                  <p className="product-info-text">{item.text || '—'}</p>
+                </details>
+              ) : null}
 
-              <details>
-                <summary>
-                  Description <ChevronDown size={18} />
-                </summary>
-                <p className="product-info-text">{item.text || '—'}</p>
-              </details>
+              {item.showQualityCare !== false ? (
+                <details>
+                  <summary>
+                    Quality & Care <ChevronDown size={18} />
+                  </summary>
+                  <div className="product-info-grid">
+                    <div>
+                      <strong>Quality:</strong>
+                      <span>{item.quality || '—'}</span>
+                    </div>
+                    <div>
+                      <strong>Fabric:</strong>
+                      <span>{item.fabric || '—'}</span>
+                    </div>
+                    <div className="product-info-care">
+                      <strong>Care:</strong>
+                      <span>{item.care || '—'}</span>
+                    </div>
+                  </div>
+                </details>
+              ) : null}
 
-              <details>
-                <summary>
-                  Quality & Care <ChevronDown size={18} />
-                </summary>
-                <div className="product-info-grid">
-                  <div>
-                    <strong>Quality:</strong>
-                    <span>{item.quality || '—'}</span>
-                  </div>
-                  <div>
-                    <strong>Fabric:</strong>
-                    <span>{item.fabric || '—'}</span>
-                  </div>
-                  <div className="product-info-care">
-                    <strong>Care:</strong>
-                    <span>{item.care || '—'}</span>
-                  </div>
-                </div>
-              </details>
-
-              <details>
-                <summary>
-                  Delivery & Returns <ChevronDown size={18} />
-                </summary>
-                <p className="product-info-text">{item.deliveryReturns || '—'}</p>
-              </details>
+              {item.showDeliveryReturns !== false ? (
+                <details>
+                  <summary>
+                    Delivery & Returns <ChevronDown size={18} />
+                  </summary>
+                  <p className="product-info-text">{item.deliveryReturns || '—'}</p>
+                </details>
+              ) : null
             </div>
           ) : null}
         </div>
