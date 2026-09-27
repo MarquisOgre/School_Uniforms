@@ -3083,7 +3083,11 @@ function EditModal({
           <h2>{title}</h2>
           <div className="workspace-modal-actions">
             {onDelete ? (
-              <button type="button" className="variant-delete-button variant-delete-header-button" onClick={onDelete}>
+              <button
+                type="button"
+                className="variant-delete-button variant-delete-header-button"
+                onClick={onDelete}
+              >
                 Delete Variant
               </button>
             ) : null}
