@@ -133,12 +133,20 @@ function CustomerPortal({
         // itself identifies the student.
         const { data: byCode } = await client
           .from('students')
-          .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
+          .select('id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status')
           .eq('school_id', schoolId)
           .eq('branch_id', branchId)
           .eq('student_code', studentId)
           .eq('status', 'active')
           .maybeSingle()
+        if (byCode) {
+          const { data: branch } = await client
+            .from('branches')
+            .select('id,name,code')
+            .eq('id', byCode.branch_id)
+            .maybeSingle()
+          byCode.branch_name = branch?.name || branch?.code || ''
+        }
         if (!cancelled) setStudents(byCode ? [byCode] : [])
         return
       }
@@ -150,11 +158,27 @@ function CustomerPortal({
         .eq('status', 'active')
         .order('full_name')
 
+      const branchIds = Array.from(
+        new Set((linkedStudents ?? []).map((s: any) => s.branch_id).filter(Boolean)),
+      )
+      const branchMap = new Map<string, any>()
+      if (branchIds.length) {
+        const { data: branches } = await client
+          .from('branches')
+          .select('id,name,code')
+          .in('id', branchIds)
+        ;(branches ?? []).forEach((branch: any) => branchMap.set(branch.id, branch))
+      }
+      const enrichedStudents = (linkedStudents ?? []).map((s: any) => ({
+        ...s,
+        branch_name: branchMap.get(s.branch_id)?.name || branchMap.get(s.branch_id)?.code || '',
+      }))
+
       // The parent link is the source of truth for customer access. Do not
       // discard a valid linked student just because the portal context was
       // restored with a stale/different school or branch value. Checkout will
       // validate the selected student's school/branch before placing an order.
-      if (!cancelled) setStudents(linkedStudents ?? [])
+      if (!cancelled) setStudents(enrichedStudents)
     }
 
     void loadLinkedStudents()
@@ -2140,6 +2164,18 @@ function Profile({
                   </span>
                 </div>
                 <div className="profile-readonly-grid">
+                  <div>
+                    <span>Branch</span>
+                    <strong>{child.branch_name || child.branch_code || '—'}</strong>
+                  </div>
+                  <div>
+                    <span>Class</span>
+                    <strong>{child.class_name || '—'}</strong>
+                  </div>
+                  <div>
+                    <span>Section</span>
+                    <strong>{child.section || '—'}</strong>
+                  </div>
                   <div>
                     <span>Gender</span>
                     <strong>{child.gender || '—'}</strong>
