@@ -1518,9 +1518,7 @@ function ProductDetail({
                       </div>
                     ) : null}
                     {item.deliveryReturns ? (
-                      <div className="product-info-text">
-                        {item.deliveryReturns}
-                      </div>
+                      <div className="product-info-text">{item.deliveryReturns}</div>
                     ) : null}
                   </div>
                 </details>
