@@ -205,7 +205,7 @@ function Landing({ onLogin }: { onLogin: () => void }) {
       <header className="store-header exact-header">
         <div className="store-header-inner">
           <button className="brand-button" onClick={() => go('home')} aria-label="Go to home">
-            <img className="brand-logo" src={logoUrl} alt="Artisan" />
+            <img className="brand-logo" src="/Narayana-Logo.png" alt="Narayana Schools" />
           </button>
           <nav className={menu ? 'nav-open' : ''}>
             <a className="active" onClick={() => go('home')}>
@@ -922,7 +922,7 @@ export default function HomePage({
               <X size={20} />
             </button>
             <div className="brand-mark">
-              <img className="login-logo-image" src="/logo.png" alt="Artisan" />
+              <img className="login-logo-image" src="/Narayana-Logo.png" alt="Narayana Schools" />
             </div>
             <p className="eyebrow">SECURE SCHOOL PORTAL</p>
             <h1>Welcome back</h1>
