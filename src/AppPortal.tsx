@@ -818,19 +818,19 @@ function Packages({
       const names = Object.fromEntries(
         ((pr.data ?? []) as Array<{ id: string; name: string }>).map((x) => [x.id, x.name]),
       )
-      const variantsByProduct: Record<string, { id: string; label: string }[]> = Object.fromEntries(
-        productIds.map((id) => [id, []]),
-      )
+      const variantsByProduct: Record<string, { id: string; label: string; disabled?: boolean }[]> =
+        Object.fromEntries(productIds.map((id) => [id, []]))
       ;(
         (pv.data ?? []) as Array<{
           id: string
           product_id: string
           size_label: string | null
           variant_name: string | null
+          status?: string | null
         }>
       ).forEach((x) => {
         if (x.size_label && variantsByProduct[x.product_id])
-          variantsByProduct[x.product_id].push({ id: x.id, label: x.size_label })
+          variantsByProduct[x.product_id].push({ id: x.id, label: x.size_label, disabled: false })
       })
       const priceMap = Object.fromEntries(branchPackages.map((x) => [x.package_id, x.branch_price]))
       Object.values(variantsByProduct).forEach((options) =>
@@ -1012,6 +1012,11 @@ function Products({
         image_url: string | null
         image_gallery: string[] | null
         base_price: number | null
+        show_cod_returns_shipping: boolean | null
+        show_details: boolean | null
+        show_description: boolean | null
+        show_quality_care: boolean | null
+        show_delivery_returns: boolean | null
       }>
       const priceMap = Object.fromEntries(branchProducts.map((x) => [x.product_id, x.branch_price]))
       const pv = await client
@@ -1028,8 +1033,10 @@ function Products({
         status: string | null
       }>
       const sizes: Record<string, string[]> = Object.fromEntries(ids.map((id) => [id, []]))
-      const variantOptions: Record<string, { id: string; label: string; price?: number | null }[]> =
-        Object.fromEntries(ids.map((id) => [id, []]))
+      const variantOptions: Record<
+        string,
+        { id: string; label: string; price?: number | null; disabled?: boolean }[]
+      > = Object.fromEntries(ids.map((id) => [id, []]))
       variants.forEach((x) => {
         if (x.size_label && sizes[x.product_id] && !sizes[x.product_id].includes(x.size_label)) {
           sizes[x.product_id].push(x.size_label)
