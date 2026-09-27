@@ -818,9 +818,8 @@ function Packages({
       const names = Object.fromEntries(
         ((pr.data ?? []) as Array<{ id: string; name: string }>).map((x) => [x.id, x.name]),
       )
-      const variantsByProduct: Record<string, { id: string; label: string; disabled?: boolean }[]> = Object.fromEntries(
-        productIds.map((id) => [id, []]),
-      )
+      const variantsByProduct: Record<string, { id: string; label: string; disabled?: boolean }[]> =
+        Object.fromEntries(productIds.map((id) => [id, []]))
       ;(
         (pv.data ?? []) as Array<{
           id: string
