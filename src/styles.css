@@ -7571,6 +7571,7 @@ a {
 
 .workspace-image-picker {
   width: 100%;
+  position: relative;
 }
 
 .workspace-image-picker-box {
@@ -7607,6 +7608,7 @@ a {
 
 .workspace-image-picker-change {
   position: absolute;
+  z-index: 2;
   right: 8px;
   bottom: 8px;
   border: 0;
@@ -7619,9 +7621,10 @@ a {
 }
 
 .workspace-image-picker-panel {
-  position: absolute;
+  position: relative;
   z-index: 120;
-  width: min(620px, calc(100vw - 48px));
+  width: 100%;
+  box-sizing: border-box;
   margin-top: 8px;
   padding: 16px;
   border: 1px solid var(--line);
