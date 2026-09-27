@@ -1731,7 +1731,6 @@ function Orders({ students = [] }: { students?: any[] }) {
 }
 function Profile({
   studentId,
-  schoolId,
   branchId,
   students = [],
 }: {
