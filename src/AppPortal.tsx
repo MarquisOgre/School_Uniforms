@@ -1180,6 +1180,7 @@ function ProductCard({
   id,
   type,
   image,
+  variantOptions = [],
   saved = false,
   onToggleSaved,
 }: {
@@ -1192,6 +1193,7 @@ function ProductCard({
   id: string
   type: 'package' | 'product'
   image?: string
+  variantOptions?: { id: string; label: string; price?: number | null; disabled?: boolean }[]
   saved?: boolean
   onToggleSaved?: () => void
 }) {
@@ -1230,7 +1232,22 @@ function ProductCard({
         <p>{text || 'School-approved product'}</p>
         <h3>{title}</h3>
         <div className="price-row">
-          <strong>₹{price.toLocaleString('en-IN')}</strong>
+          <strong>
+            {(() => {
+              if (type !== 'product' || !variantOptions.length) {
+                return `₹${price.toLocaleString('en-IN')}`
+              }
+              const effectivePrices = variantOptions
+                .map((v) => (v.price == null ? Number(price) : Number(v.price)))
+                .filter((v) => Number.isFinite(v))
+              if (!effectivePrices.length) return `₹${price.toLocaleString('en-IN')}`
+              const low = Math.min(...effectivePrices)
+              const high = Math.max(...effectivePrices)
+              return low === high
+                ? `₹${low.toLocaleString('en-IN')}`
+                : `₹${low.toLocaleString('en-IN')} - ₹${high.toLocaleString('en-IN')}`
+            })()}
+          </strong>
           <span>School approved</span>
         </div>
         <div className="product-actions">
