@@ -153,7 +153,7 @@ function CustomerPortal({
 
       const { data: linkedStudents } = await client
         .from('students')
-        .select('id,student_code,full_name,class_name,section,school_id,branch_id,status')
+        .select('id,student_code,full_name,class_name,section,gender,date_of_birth,father_name,school_id,branch_id,status')
         .in('id', linkedIds)
         .eq('status', 'active')
         .order('full_name')
