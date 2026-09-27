@@ -19,7 +19,6 @@ import {
 import { supabase } from './lib/supabase'
 import { applySiteFavicon, DEFAULT_LOGO_URL, loadSiteBranding } from './lib/branding'
 
-export type SchoolOption = { id: string; name: string }
 export type BranchOption = { id: string; name: string }
 
 export const DEFAULT_HOME: any = {
@@ -928,8 +927,7 @@ export default function HomePage({
             <p className="eyebrow">SECURE SCHOOL PORTAL</p>
             <h1>Welcome back</h1>
             <p className="subtitle">
-              Select your school and branch, then sign in with the credentials provided by your
-              school.
+              Select your branch, then sign in with the credentials provided by your school.
             </p>
             <div className="login-fields-grid">
               <div className="login-field">
@@ -1008,7 +1006,7 @@ export default function HomePage({
               <div className="demo-credentials-grid">
                                 <div className="demo-credential-row">
                   <span>Branch</span>
-                  <strong>Narayana Schools — CBSE</strong>
+                  <strong>Narayana Schools — CBSE Branch</strong>
                 </div>
                 <div className="demo-credential-row">
                   <span>Student / Parent ID</span>
