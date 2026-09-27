@@ -116,7 +116,6 @@ export function CustomerPageFrame({
   onLogout,
   cartCount,
   onCart,
-  schoolName,
   branchName,
   userLabel,
   children,
