@@ -1006,7 +1006,7 @@ export default function HomePage({
               <div className="demo-credentials-grid">
                 <div className="demo-credential-row">
                   <span>Branch</span>
-                  <strong>Narayana Schools — CBSE Branch</strong>
+                  <strong>CBSE Branch</strong>
                 </div>
                 <div className="demo-credential-row">
                   <span>Student / Parent ID</span>
