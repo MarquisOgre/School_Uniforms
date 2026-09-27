@@ -337,6 +337,37 @@ function Products() {
     void load()
   }, [])
 
+  const variantSkuBase = (productName: string) =>
+    String(productName || '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'PRODUCT'
+
+  const nextVariantSku = (productName: string, rows: any[], currentId?: string) => {
+    const base = variantSkuBase(productName)
+    const used = new Set<number>()
+
+    rows.forEach((row) => {
+      if (row.id === currentId) return
+      const match = String(row.sku || '').match(/-(\d+)$/)
+      if (match) used.add(Number(match[1]))
+    })
+
+    if (currentId) {
+      const current = rows.find((row) => row.id === currentId)
+      const match = String(current?.sku || '').match(/-(\d+)$/)
+      const currentNumber = match ? Number(match[1]) : 0
+      if (currentNumber > 0 && !used.has(currentNumber)) {
+        return `${base}-${currentNumber}`
+      }
+    }
+
+    let next = 1
+    while (used.has(next)) next += 1
+    return `${base}-${next}`
+  }
+
   const save = async () => {
     if (!supabase || !editing) return
 
@@ -402,15 +433,16 @@ function Products() {
   const saveVariant = async () => {
     if (!supabase || !variantEditing) return
 
-    const sku = String(variantEditing.sku || '').trim()
-    if (!sku) {
-      setError('Variant SKU is required.')
-      return
-    }
     if (!variantEditing.product_id) {
       setError('Variant must be linked to a saved product.')
       return
     }
+
+    const sku = nextVariantSku(
+      String(editing?.name || ''),
+      variants,
+      variantEditing.id,
+    )
 
     const p = {
       product_id: variantEditing.product_id,
@@ -790,7 +822,7 @@ function Products() {
                     setError('')
                     setVariantEditing({
                       product_id: editing.id,
-                      sku: '',
+                      sku: nextVariantSku(String(editing.name || ''), variants),
                       size_label: '',
                       color: '',
                       variant_name: '',
@@ -881,9 +913,10 @@ function Products() {
         >
           <div className="workspace-form-row">
             <Field
-              label="SKU"
-              value={variantEditing.sku || ''}
-              onChange={(v) => setVariantEditing({ ...variantEditing, sku: v })}
+              label="SKU (Auto-generated)"
+              value={nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)}
+              onChange={() => undefined}
+              readOnly
             />
             <Field
               label="Size"
@@ -3032,6 +3065,7 @@ function Field({
   min?: string
   clearZeroOnFocus?: boolean
   placeholder?: string
+  readOnly?: boolean
 }) {
   const handleFocus = () => {
     if (clearZeroOnFocus && type === 'number' && String(value) === '0') onChange('')
@@ -3048,6 +3082,7 @@ function Field({
           min={min}
           value={value}
           placeholder={placeholder}
+          readOnly={readOnly}
           onFocus={handleFocus}
           onChange={(e) => onChange(e.target.value)}
         />
