@@ -236,7 +236,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
           </div>
           <p className="eyebrow">ADMINISTRATION</p>
           <h1>Administrator Sign In</h1>
-          <p>Manage schools, students, catalogs and orders from the secure admin portal.</p>
+          <p>Manage branches, students, catalogs and orders from the secure admin portal.</p>
           <label>Email</label>
           <input
             value={email}
