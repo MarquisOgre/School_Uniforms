@@ -21,13 +21,17 @@ export default function EmailConfigSettings() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+  }, [])
 
   async function load() {
     if (!supabase) return
     setLoading(true)
     setMessage('')
-    const { data, error } = await supabase.functions.invoke('email-admin-settings', { method: 'GET' })
+    const { data, error } = await supabase.functions.invoke('email-admin-settings', {
+      method: 'GET',
+    })
     if (error) setMessage(error.message)
     else {
       setFromName(data?.from_name || 'School Uniforms')
@@ -70,13 +74,16 @@ export default function EmailConfigSettings() {
 
   return (
     <section className="workspace-panel">
-      {loading ? <Loading /> : (
+      {loading ? (
+        <Loading />
+      ) : (
         <>
           <div className="panel-heading">
             <div>
               <h2>Email Settings</h2>
               <p className="workspace-muted">
-                Configure Resend for all system emails. The API key is stored securely in Supabase Vault.
+                Configure Resend for all system emails. The API key is stored securely in Supabase
+                Vault.
               </p>
             </div>
             <span
@@ -100,17 +107,31 @@ export default function EmailConfigSettings() {
             </label>
             <label className="workspace-field">
               <span>From Name</span>
-              <input value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="School Uniforms" />
+              <input
+                value={fromName}
+                onChange={(e) => setFromName(e.target.value)}
+                placeholder="School Uniforms"
+              />
             </label>
           </div>
           <div className="workspace-form-row">
             <label className="workspace-field">
               <span>From Email</span>
-              <input value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} placeholder="orders@yourdomain.com" type="email" />
+              <input
+                value={fromEmail}
+                onChange={(e) => setFromEmail(e.target.value)}
+                placeholder="orders@yourdomain.com"
+                type="email"
+              />
             </label>
             <label className="workspace-field">
               <span>Reply-To Email</span>
-              <input value={replyTo} onChange={(e) => setReplyTo(e.target.value)} placeholder="support@yourdomain.com" type="email" />
+              <input
+                value={replyTo}
+                onChange={(e) => setReplyTo(e.target.value)}
+                placeholder="support@yourdomain.com"
+                type="email"
+              />
             </label>
           </div>
           <label className="workspace-field">
@@ -123,16 +144,31 @@ export default function EmailConfigSettings() {
               autoComplete="new-password"
             />
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0', fontWeight: 700 }}>
-            <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              margin: '14px 0',
+              fontWeight: 700,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+            />
             Enable system emails
           </label>
           <div className="workspace-note">
-            <strong>Security:</strong> The Resend API key is never returned to the browser after saving.
-            Leaving it blank keeps the stored key unchanged.
+            <strong>Security:</strong> The Resend API key is never returned to the browser after
+            saving. Leaving it blank keeps the stored key unchanged.
           </div>
           {message && (
-            <div className={message.includes('successfully') ? 'workspace-note' : 'workspace-error'} style={{ marginTop: 12 }}>
+            <div
+              className={message.includes('successfully') ? 'workspace-note' : 'workspace-error'}
+              style={{ marginTop: 12 }}
+            >
               {message}
             </div>
           )}
