@@ -51,11 +51,9 @@ function parseDate(v: string) {
 }
 
 export default function StudentImport({
-  schoolId,
   branchId,
   onBack,
 }: {
-  schoolId: string
   branchId: string
   onBack: () => void
 }) {
@@ -97,7 +95,7 @@ export default function StudentImport({
     setError('')
     setResult(null)
     const { data, error: e } = await supabase.functions.invoke('bulk-import-students', {
-      body: { school_id: schoolId, branch_id: branchId, rows },
+      body: { branch_id: branchId, rows },
     })
     if (e || !data) setError(data?.error ?? e?.message ?? 'Import failed.')
     else setResult(data)
