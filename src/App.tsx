@@ -10,11 +10,9 @@ type PortalMode = 'home' | 'store' | 'admin'
 
 function App() {
   const [mode, setMode] = useState<PortalMode>('home')
-  const [school, setSchool] = useState(''),
-    [branch, setBranch] = useState(''),
+  const [branch, setBranch] = useState(''),
     [studentId, setStudentId] = useState('')
-  const [schoolName, setSchoolName] = useState('Your School'),
-    [branchName, setBranchName] = useState('Your Branch')
+  const [branchName, setBranchName] = useState('Your Branch')
   const [customerPage, setCustomerPage] = useState<CustomerPage>('dashboard'),
     [sessionRestoring, setSessionRestoring] = useState(true)
 
@@ -51,11 +49,9 @@ function App() {
         if (stored) {
           try {
             const ctx = JSON.parse(stored)
-            if (ctx?.mode === 'store' && ctx.school && ctx.branch) {
-              setSchool(ctx.school)
+            if (ctx?.mode === 'store' && ctx.branch) {
               setBranch(ctx.branch)
               setStudentId(ctx.studentId || '')
-              setSchoolName(ctx.schoolName || 'Your School')
               setBranchName(ctx.branchName || 'Your Branch')
               const page =
                 path === '/app/packages'
@@ -106,8 +102,6 @@ function App() {
       >
         <>
           <AppPortal
-            schoolId={school}
-            schoolName={schoolName}
             branchName={branchName}
             branchId={branch}
             studentId={studentId}
@@ -120,7 +114,7 @@ function App() {
               setMode('home')
             }}
           />
-          <ChatWidget schoolId={school} branchId={branch} />
+          <ChatWidget branchId={branch} />
         </>
       </Suspense>
     )
@@ -144,11 +138,9 @@ function App() {
   return (
     <>
       <HomePage
-        onLoginSuccess={(s, b, id, sn, bn) => {
-          setSchool(s)
+        onLoginSuccess={(b, id, bn) => {
           setBranch(b)
           setStudentId(id)
-          setSchoolName(sn)
           setBranchName(bn)
           setCustomerPage('dashboard')
           void import('./AppPortal')
