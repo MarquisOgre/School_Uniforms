@@ -59,6 +59,11 @@ type CartItem = CheckoutCartItem & {
 }
 type CheckoutStep = 'cart' | 'details' | 'payment' | 'success'
 
+const displayCatalogName = (name: string) =>
+  String(name || '')
+    .replace(/^NARAYANA\\s+CBSE\\s+/i, '')
+    .trim() || String(name || '')
+
 function CustomerPortal({
   branchName,
   branchId,
@@ -440,14 +445,14 @@ function CustomerPortal({
                   {cart.map((item) => (
                     <article className="school-cart-item" key={item.id}>
                       {item.image ? (
-                        <img src={item.image} alt={item.title} />
+                        <img src={item.image} alt={displayCatalogName(item.title)} />
                       ) : (
                         <div className="school-cart-item-placeholder">
                           <ShoppingBag size={20} />
                         </div>
                       )}
                       <div className="school-cart-item-body">
-                        <strong>{item.title}</strong>
+                        <strong>{displayCatalogName(item.title)}</strong>
                         {item.type === 'package' && item.selectedVariants?.length ? (
                           <div className="school-cart-variants">
                             {item.selectedVariants.map((v: any) => (
@@ -700,7 +705,7 @@ function ShopCard({
   return (
     <div className="shop-card">
       <div className="feature-icon">{icon}</div>
-      <h3>{title}</h3>
+      <h3>{displayCatalogName(title)}</h3>
       <p>{text}</p>
       <button onClick={onClick}>
         {action}
@@ -846,7 +851,7 @@ function Packages({
               .map((i) => ({
                 packageItemId: i.id,
                 productId: i.product_id,
-                title: names[i.product_id] || 'Product',
+                title: displayCatalogName(names[i.product_id] || 'Product'),
                 quantity: i.quantity,
                 requiresSize: i.requires_size,
                 required: i.is_required,
@@ -1327,7 +1332,7 @@ function ProductDetail({
           <div className="detail-image">
             <img
               src={mainImage}
-              alt={item.title}
+              alt={displayCatalogName(item.title)}
               onError={(e) => {
                 e.currentTarget.src = '/category-packages.jpg'
               }}
@@ -1358,7 +1363,7 @@ function ProductDetail({
           <p className="eyebrow">
             {item.type === 'package' ? 'UNIFORM PACKAGE' : 'INDIVIDUAL PRODUCT'}
           </p>
-          <h1>{item.title}</h1>
+          <h1>{displayCatalogName(item.title)}</h1>
           <p>
             {item.text ||
               'School-approved product for your selected school and branch. Final availability and pricing are controlled by the school catalog.'}
