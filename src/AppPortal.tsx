@@ -401,11 +401,7 @@ function CustomerPortal({
           ) : page === 'orders' ? (
             <Orders students={students} />
           ) : (
-            <Profile
-              studentId={studentId}
-                            branchId={branchId}
-              students={students}
-            />
+            <Profile studentId={studentId} branchId={branchId} students={students} />
           )}
         </main>
       </div>
@@ -1815,9 +1811,7 @@ function Profile({
         } else {
           const linkedStudents = (sr.data || []) as any[]
           selectedStudent =
-            linkedStudents.find((s) => s.branch_id === branchId) ||
-            linkedStudents[0] ||
-            null
+            linkedStudents.find((s) => s.branch_id === branchId) || linkedStudents[0] || null
         }
       }
 

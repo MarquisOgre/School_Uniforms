@@ -1004,7 +1004,7 @@ export default function HomePage({
             <div className="demo-credentials" aria-label="Demo user credentials">
               <div className="demo-credentials-title">DEMO USER</div>
               <div className="demo-credentials-grid">
-                                <div className="demo-credential-row">
+                <div className="demo-credential-row">
                   <span>Branch</span>
                   <strong>Narayana Schools — CBSE Branch</strong>
                 </div>

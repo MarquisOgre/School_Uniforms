@@ -203,7 +203,8 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
             <div className="chat-login-prompt">
               <MessageCircle size={34} />
               <p>
-                Your branch is not selected yet. Open your branch store to start chatting with support.
+                Your branch is not selected yet. Open your branch store to start chatting with
+                support.
               </p>
             </div>
           ) : (

@@ -256,8 +256,7 @@ export default function CheckoutFlow({
         setStudentId(resolvedStudents[0].id)
         const onlyStudent = resolvedStudents[0]
         setStudentLoadError(
-          onlyStudent.branch_id &&
-            onlyStudent.branch_id !== branchId
+          onlyStudent.branch_id && onlyStudent.branch_id !== branchId
             ? 'Your linked student is active, but the student is assigned to a different branch. Please contact the administrator to correct the student assignment.'
             : '',
         )
@@ -336,8 +335,7 @@ export default function CheckoutFlow({
   )
   const selectedStudentId = selectedStudent?.id || ''
   const selectedStudentMatchesContext = Boolean(
-    selectedStudent &&
-      selectedStudent.branch_id === branchId,
+    selectedStudent && selectedStudent.branch_id === branchId,
   )
   const fieldError = (key: string) => {
     const value = String((address as any)[key] || '').trim()

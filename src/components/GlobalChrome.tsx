@@ -174,9 +174,7 @@ export function CustomerPageFrame({
         <main className="portal-main">
           <div className="portal-header checkout-portal-header">
             <div>
-              <p className="eyebrow">
-                {branchName}
-              </p>
+              <p className="eyebrow">{branchName}</p>
               <h1>{title}</h1>
             </div>
             <div className="header-user">
