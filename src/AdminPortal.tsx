@@ -182,7 +182,7 @@ function MediaLibrary() {
   const visible = folder === 'all' ? items : items.filter((item) => item.folder === folder)
 
   return (
-    <div className="media-library-page">
+    <div className="workspace-body media-library-page">
       <div className="workspace-heading">
         <div>
           <h1>Media Library</h1>
