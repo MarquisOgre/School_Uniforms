@@ -14,6 +14,8 @@ import {
   Settings,
   Mail,
   Upload,
+  Images,
+  Trash2,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 const AdminWorkspace = lazy(() => import('./AdminWorkspace'))
@@ -34,6 +36,7 @@ type AdminTool =
   | 'support'
   | 'settings'
   | 'email-templates'
+  | 'media'
 
 const ADMIN_NAV: Array<{
   key: AdminTool
@@ -52,6 +55,7 @@ const ADMIN_NAV: Array<{
   { key: 'support', label: 'Support Chat', icon: MessageCircle },
   { key: 'settings', label: 'Settings', icon: Settings },
   { key: 'email-templates', label: 'Email Templates', icon: Mail },
+  { key: 'media', label: 'Media Library', icon: Images },
 ]
 
 function AdminSidebar({
@@ -112,6 +116,131 @@ function AdminLayout({
   )
 }
 
+function MediaLibrary() {
+  type MediaItem = { path: string; folder: 'products' | 'packages'; url: string }
+
+  const [folder, setFolder] = useState<'all' | 'products' | 'packages'>('all')
+  const [items, setItems] = useState<MediaItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState('')
+  const [error, setError] = useState('')
+
+  const loadMedia = async () => {
+    if (!supabase) return
+    setLoading(true)
+    setError('')
+    const storage = supabase.storage
+    const folders: Array<'products' | 'packages'> = ['products', 'packages']
+    const all: MediaItem[] = []
+
+    for (const currentFolder of folders) {
+      const result = await storage.from('package-images').list(currentFolder, {
+        limit: 1000,
+        sortBy: { column: 'created_at', order: 'desc' },
+      })
+      if (result.error) {
+        setError(result.error.message)
+        continue
+      }
+      for (const file of result.data ?? []) {
+        if (!file.name) continue
+        const path = `${currentFolder}/${file.name}`
+        all.push({
+          path,
+          folder: currentFolder,
+          url: storage.from('package-images').getPublicUrl(path).data.publicUrl,
+        })
+      }
+    }
+
+    setItems(all)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    void loadMedia()
+  }, [])
+
+  const deleteImage = async (item: MediaItem) => {
+    if (!supabase) return
+    const confirmed = window.confirm(
+      `Delete this image permanently?\\n\\n${item.path}\\n\\nIf this image is currently used by a product or package, that record will keep the old URL until you replace it.`,
+    )
+    if (!confirmed) return
+
+    setDeleting(item.path)
+    setError('')
+    const result = await supabase.storage.from('package-images').remove([item.path])
+    if (result.error) {
+      setError(result.error.message)
+    } else {
+      setItems((current) => current.filter((image) => image.path !== item.path))
+    }
+    setDeleting('')
+  }
+
+  const visible = folder === 'all' ? items : items.filter((item) => item.folder === folder)
+
+  return (
+    <div className="media-library-page">
+      <div className="workspace-heading">
+        <div>
+          <h1>Media Library</h1>
+          <p>Upload, review and permanently delete product and package images.</p>
+        </div>
+        <button className="secondary-button" onClick={() => void loadMedia()} disabled={loading}>
+          Refresh
+        </button>
+      </div>
+
+      <div className="media-library-toolbar">
+        {(['all', 'products', 'packages'] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            className={folder === value ? 'active' : ''}
+            onClick={() => setFolder(value)}
+          >
+            {value === 'all' ? 'All Images' : value === 'products' ? 'Products' : 'Packages'}
+          </button>
+        ))}
+        <span>{visible.length} image{visible.length === 1 ? '' : 's'}</span>
+      </div>
+
+      {error ? <div className="workspace-image-error">{error}</div> : null}
+
+      {loading ? (
+        <div className="workspace-empty">Loading media...</div>
+      ) : visible.length ? (
+        <div className="media-library-grid">
+          {visible.map((item) => (
+            <div className="media-library-card" key={item.path}>
+              <div className="media-library-preview">
+                <img src={item.url} alt="" />
+              </div>
+              <div className="media-library-card-info">
+                <span title={item.path}>{item.path}</span>
+                <button
+                  type="button"
+                  className="media-library-delete"
+                  onClick={() => void deleteImage(item)}
+                  disabled={deleting === item.path}
+                  aria-label={`Delete ${item.path}`}
+                >
+                  <Trash2 size={15} />
+                  {deleting === item.path ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="workspace-empty">No images found.</div>
+      )}
+    </div>
+  )
+}
+
 function AdminPortal({ onBack }: { onBack: () => void }) {
   const [email, setEmail] = useState(''),
     [password, setPassword] = useState(''),
@@ -133,6 +262,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       support: '/admin/support',
       settings: '/admin/settings',
       'email-templates': '/admin/email-templates',
+      media: '/admin/media',
     }
     return paths[value]
   }
@@ -149,6 +279,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/support') return 'support'
     if (path === '/admin/settings') return 'settings'
     if (path === '/admin/email-templates') return 'email-templates'
+    if (path === '/admin/media') return 'media'
     return 'packages'
   }
 
@@ -288,6 +419,13 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
         </Suspense>
       </AdminLayout>
     )
+  if (tool === 'media')
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <MediaLibrary />
+      </AdminLayout>
+    )
+
   if (tool === 'email-templates')
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
