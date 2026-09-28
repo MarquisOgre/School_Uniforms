@@ -486,11 +486,13 @@ function Products() {
       return
     }
 
-    const sku = nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)
+    const generatedSku = nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)
 
     const sizeLabel = String(variantEditing.size_label || '').trim()
     const productName = String(editing?.name || '').trim()
-    const variantName = sizeLabel ? `${productName} - Size ${sizeLabel}` : productName
+    const generatedVariantName = sizeLabel ? `${productName} - Size ${sizeLabel}` : productName
+    const sku = String(variantEditing.sku || '').trim() || generatedSku
+    const variantName = String(variantEditing.variant_name || '').trim() || generatedVariantName
 
     const p = {
       product_id: variantEditing.product_id,
@@ -962,10 +964,12 @@ function Products() {
         >
           <div className="workspace-form-row">
             <Field
-              label="SKU (Auto-generated)"
-              value={nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)}
-              onChange={() => undefined}
-              readOnly
+              label="SKU (Auto-generated, Editable)"
+              value={
+                variantEditing.sku ||
+                nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)
+              }
+              onChange={(v) => setVariantEditing({ ...variantEditing, sku: v })}
             />
             <Field
               label="Size"
@@ -980,14 +984,14 @@ function Products() {
               onChange={(v) => setVariantEditing({ ...variantEditing, color: v })}
             />
             <Field
-              label="Variant Name (Auto-generated)"
+              label="Variant Name (Auto-generated, Editable)"
               value={
-                String(variantEditing.size_label || '').trim()
+                variantEditing.variant_name ||
+                (String(variantEditing.size_label || '').trim()
                   ? `${String(editing?.name || '').trim()} - Size ${String(variantEditing.size_label).trim()}`
-                  : String(editing?.name || '').trim()
+                  : String(editing?.name || '').trim())
               }
-              onChange={() => undefined}
-              readOnly
+              onChange={(v) => setVariantEditing({ ...variantEditing, variant_name: v })}
             />
           </div>
           <div className="workspace-form-row">
