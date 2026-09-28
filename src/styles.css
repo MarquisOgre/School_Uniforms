@@ -688,6 +688,8 @@ a {
 .portal-main {
   margin-left: 260px;
   width: calc(100% - 260px);
+  min-height: 100vh;
+  overflow: visible;
 }
 .portal-header {
   background: var(--paper);
@@ -855,11 +857,11 @@ a {
 
 @media (min-width: 1000px) {
   .portal:has(.dashboard-content) {
-    overflow: hidden;
+    overflow: visible;
   }
 
   .portal:has(.dashboard-content) .portal-main {
-    overflow: hidden;
+    overflow: visible;
   }
 }
 
