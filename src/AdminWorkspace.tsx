@@ -426,33 +426,9 @@ function Products() {
       return
     }
 
-    if (editing.id && variants.length) {
-      const base = variantSkuBase(name)
-      const normalizedSkus = variants.map((variant, index) => ({
-        id: variant.id,
-        sku: `${base}-${index + 1}`,
-      }))
-
-      for (const variant of normalizedSkus) {
-        const temp = await dbFrom('product_variants')
-          .update({ sku: `__TMP__-${variant.id}` })
-          .eq('id', variant.id)
-        if (temp.error) {
-          setError(temp.error.message)
-          return
-        }
-      }
-
-      for (const variant of normalizedSkus) {
-        const updated = await dbFrom('product_variants')
-          .update({ sku: variant.sku })
-          .eq('id', variant.id)
-        if (updated.error) {
-          setError(updated.error.message)
-          return
-        }
-      }
-    }
+    // Variant SKUs/names are managed by the Variant editor.
+    // Do not regenerate them when saving the parent product; this preserves
+    // administrator edits and prevents deleted variants from being recreated.
 
     setEditing(null)
     setVariants([])
@@ -474,6 +450,7 @@ function Products() {
     }
 
     setVariantEditing(null)
+    setVariants((current) => current.filter((variant) => variant.id !== variantEditing.id))
     setError('')
     await loadVariants(productId)
   }
