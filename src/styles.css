@@ -7219,18 +7219,28 @@ a {
    and Actions to the far right. The variant table can scroll horizontally
    when a long SKU needs more room. */
 .workspace-row.variant-row {
-  grid-template-columns: minmax(max-content, 1fr) max-content max-content max-content 82px;
-  min-width: max-content;
+  grid-template-columns: minmax(0, 1fr) 90px 110px 100px 82px;
+  min-width: 0;
+}
+
+.workspace-row.variant-row > strong,
+.workspace-row.variant-row > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
 }
 
 .workspace-row.variant-row > strong {
   overflow: visible;
   text-overflow: clip;
-  white-space: nowrap;
 }
 
-.workspace-row.variant-row > span {
-  white-space: nowrap;
+.workspace-row.variant-row > span:nth-child(2),
+.workspace-row.variant-row > span:nth-child(3),
+.workspace-row.variant-row > span:nth-child(4) {
+  text-align: left;
 }
 
 .workspace-row.variant-row button {
