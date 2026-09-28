@@ -204,7 +204,9 @@ function MediaLibrary() {
             {value === 'all' ? 'All Images' : value === 'products' ? 'Products' : 'Packages'}
           </button>
         ))}
-        <span>{visible.length} image{visible.length === 1 ? '' : 's'}</span>
+        <span>
+          {visible.length} image{visible.length === 1 ? '' : 's'}
+        </span>
       </div>
 
       {error ? <div className="workspace-image-error">{error}</div> : null}
