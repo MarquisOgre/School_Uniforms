@@ -747,23 +747,32 @@ function Packages({
           .eq('item_type', 'package')
         if (!cancelled) setSavedIds(new Set((saved ?? []).map((x: any) => x.item_id)))
       }
-      const [p, pi] = await Promise.all([
-        client
-          .from('uniform_packages')
-          .select('id,name,description,gender,image_url,base_price,offer_price,discount_percentage')
-          .eq('branch_id', branchId)
-          .eq('status', 'active')
-          .order('name'),
-        client
-          .from('package_items')
-          .select(
-            'id,package_id,product_id,quantity,is_required,requires_size,selection_group,sort_order',
-          )
-          .in('package_id', ids)
-          .order('sort_order'),
-      ])
-      if (p.error || pi.error) {
-        setError(p.error?.message || pi.error?.message || 'Unable to load packages')
+      const p = await client
+        .from('uniform_packages')
+        .select('id,name,description,gender,image_url,base_price,offer_price,discount_percentage')
+        .eq('branch_id', branchId)
+        .eq('status', 'active')
+        .order('name')
+      if (p.error) {
+        setError(p.error.message)
+        setLoading(false)
+        return
+      }
+      const packageIds = (p.data ?? []).map((x: any) => x.id)
+      if (!packageIds.length) {
+        setItems([])
+        setLoading(false)
+        return
+      }
+      const pi = await client
+        .from('package_items')
+        .select(
+          'id,package_id,product_id,quantity,is_required,requires_size,selection_group,sort_order',
+        )
+        .in('package_id', packageIds)
+        .order('sort_order')
+      if (pi.error) {
+        setError(pi.error.message)
         setLoading(false)
         return
       }
