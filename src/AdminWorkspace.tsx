@@ -495,7 +495,13 @@ function Products() {
 
   useEffect(() => {
     if (editing?.id) {
-      window.scrollTo(0, 0)
+      requestAnimationFrame(() => {
+        const workspaceBody = document.querySelector<HTMLElement>('.admin-workspace .workspace-body')
+        if (workspaceBody) {
+          workspaceBody.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+        }
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      })
     }
   }, [editing?.id])
 
