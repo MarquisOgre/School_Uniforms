@@ -747,10 +747,27 @@ function Packages({
           .eq('item_type', 'package')
         if (!cancelled) setSavedIds(new Set((saved ?? []).map((x: any) => x.item_id)))
       }
+      const bp = await client
+        .from('branch_packages')
+        .select('package_id,is_visible')
+        .eq('branch_id', branchId)
+        .eq('is_visible', true)
+      if (bp.error) {
+        setError(bp.error.message)
+        setLoading(false)
+        return
+      }
+      const packageIds = (bp.data ?? []).map((x: any) => x.package_id)
+      if (!packageIds.length) {
+        setItems([])
+        setLoading(false)
+        return
+      }
       const p = await client
         .from('uniform_packages')
         .select('id,name,description,gender,image_url,base_price,offer_price,discount_percentage')
         .eq('branch_id', branchId)
+        .in('id', packageIds)
         .eq('status', 'active')
         .order('name')
       if (p.error) {
@@ -758,7 +775,6 @@ function Packages({
         setLoading(false)
         return
       }
-      const packageIds = (p.data ?? []).map((x: any) => x.id)
       if (!packageIds.length) {
         setItems([])
         setLoading(false)
@@ -954,10 +970,27 @@ function Products({
           .eq('item_type', 'product')
         if (!cancelled) setSavedIds(new Set((saved ?? []).map((x: any) => x.item_id)))
       }
+      const bp = await client
+        .from('branch_products')
+        .select('product_id,is_visible')
+        .eq('branch_id', branchId)
+        .eq('is_visible', true)
+      if (bp.error) {
+        setError(bp.error.message)
+        setLoading(false)
+        return
+      }
+      const ids = (bp.data ?? []).map((x: any) => x.product_id)
+      if (!ids.length) {
+        setItems([])
+        setLoading(false)
+        return
+      }
       const p = await client
         .from('products')
         .select('*')
         .eq('branch_id', branchId)
+        .in('id', ids)
         .eq('status', 'active')
         .order('name')
       if (p.error) {
