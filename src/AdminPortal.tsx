@@ -252,7 +252,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     [loading, setLoading] = useState(false),
     [error, setError] = useState('')
   const [tool, setTool] = useState<AdminTool>('home')
-  const [productId, setProductId] = useState<string | null>(null)
+  const [productSlug, setProductSlug] = useState<string | null>(null)
   const adminPathForTool = (value: AdminTool) => {
     const paths: Record<AdminTool, string> = {
       home: '/admin/homepage',
@@ -296,11 +296,11 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       }
       const nextTool = adminToolFromPath(window.location.pathname)
       const productMatch = window.location.pathname.match(/^\/admin\/products\/edit\/([^/]+)$/)
-      setProductId(productMatch ? decodeURIComponent(productMatch[1]) : null)
+      setProductSlug(productMatch ? decodeURIComponent(productMatch[1]) : null)
       setTool(nextTool)
       const canonicalPath = productMatch ? window.location.pathname : adminPathForTool(nextTool)
       window.history.replaceState(
-        { schoolUniformApp: 'admin', tool: nextTool, productId: productMatch?.[1] || null },
+        { schoolUniformApp: 'admin', tool: nextTool, productSlug: productMatch?.[1] || null },
         '',
         canonicalPath,
       )
@@ -313,21 +313,21 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     if (!window.location.pathname.startsWith('/admin')) return
-    if (tool === 'products' && productId) {
-      const productPath = `/admin/products/edit/${productId}`
+    if (tool === 'products' && productSlug) {
+      const productPath = `/admin/products/edit/${productSlug}`
       if (window.location.pathname === productPath) return
-      window.history.pushState({ schoolUniformApp: 'admin', tool, productId }, '', productPath)
+      window.history.pushState({ schoolUniformApp: 'admin', tool, productSlug }, '', productPath)
       return
     }
     const canonicalPath = adminPathForTool(tool)
     if (window.location.pathname === '/admin' && tool === 'packages') return
     if (window.location.pathname === canonicalPath) return
     window.history.pushState(
-      { schoolUniformApp: 'admin', tool, productId: null },
+      { schoolUniformApp: 'admin', tool, productSlug: null },
       '',
       canonicalPath,
     )
-  }, [tool, productId])
+  }, [tool, productSlug])
   async function login() {
     const client = supabase
     if (!client || !email.trim() || !password) return
@@ -470,9 +470,9 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
         <Suspense fallback={<div className="workspace-empty">Loading admin module...</div>}>
           <AdminWorkspace
             module={tool}
-            productId={tool === 'products' ? productId : null}
+            productSlug={tool === 'products' ? productSlug : null}
             onBack={() => {
-              setProductId(null)
+              setProductSlug(null)
               setTool('products')
             }}
           />
