@@ -594,7 +594,12 @@ function Products({ productId }: { productId?: string | null }) {
                     </span>
                     <button
                       onClick={() => {
-                        window.location.assign(`/admin/products/edit/${product.id}`)
+                        window.history.pushState(
+                          { schoolUniformApp: 'admin', tool: 'products', productId: product.id },
+                          '',
+                          `/admin/products/edit/${product.id}`,
+                        )
+                        window.dispatchEvent(new PopStateEvent('popstate'))
                       }}
                     >
                       Edit
@@ -705,7 +710,12 @@ function Products({ productId }: { productId?: string | null }) {
           variantsLoading={variantsLoading}
           onBack={() => {
             if (productId) {
-              window.location.assign('/admin/products')
+              window.history.pushState(
+                { schoolUniformApp: 'admin', tool: 'products', productId: null },
+                '',
+                '/admin/products',
+              )
+              window.dispatchEvent(new PopStateEvent('popstate'))
               return
             }
             setEditing(null)
