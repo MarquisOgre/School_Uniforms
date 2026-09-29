@@ -371,6 +371,21 @@ function Products({ productSlug }: { productSlug?: string | null }) {
 
       let product = slugResult.data
 
+      if (!product && !slugResult.error && /^[0-9a-f-]{36}$/i.test(productSlug)) {
+        const idResult = await dbFrom('products').select('*').eq('id', productSlug).maybeSingle()
+
+        if (cancelled) return
+
+        if (idResult.error) {
+          setError(idResult.error.message)
+          setEditing(null)
+          setLoading(false)
+          return
+        }
+
+        product = idResult.data
+      }
+
       if (!product && !slugResult.error) {
         const nameFromSlug = decodeURIComponent(productSlug)
           .replace(/-/g, ' ')
