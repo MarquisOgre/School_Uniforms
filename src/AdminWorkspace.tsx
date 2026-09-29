@@ -67,11 +67,11 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
 export default function AdminWorkspace({
   module,
   onBack,
-  productId,
+  productSlug,
 }: {
   module: ModuleKey
   onBack: () => void
-  productId?: string | null
+  productSlug?: string | null
 }) {
   const m = META[module]
   const [ordersSearch, setOrdersSearch] = useState('')
@@ -127,7 +127,7 @@ export default function AdminWorkspace({
             ) : null}
           </div>
         )}
-        <ModuleBody module={module} ordersSearch={ordersSearch} productId={productId} />
+        <ModuleBody module={module} ordersSearch={ordersSearch} productSlug={productSlug} />
       </main>
     </div>
   )
@@ -136,17 +136,17 @@ export default function AdminWorkspace({
 function ModuleBody({
   module,
   ordersSearch,
-  productId,
+  productSlug,
 }: {
   module: ModuleKey
   ordersSearch?: string
-  productId?: string | null
+  productSlug?: string | null
 }) {
   switch (module) {
     case 'branches':
       return <Branches />
     case 'products':
-      return <Products productId={productId} />
+      return <Products productSlug={productSlug} />
     case 'packages':
       return <Packages />
     case 'orders':
@@ -308,7 +308,7 @@ function Branches() {
   )
 }
 
-function Products({ productId }: { productId?: string | null }) {
+function Products({ productSlug }: { productSlug?: string | null }) {
   const [rows, setRows] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [editing, setEditing] = useState<any>(null)
@@ -357,7 +357,7 @@ function Products({ productId }: { productId?: string | null }) {
   }, [])
 
   useEffect(() => {
-    if (!productId || !supabase) return
+    if (!productSlug || !supabase) return
 
     let cancelled = false
 
@@ -365,7 +365,7 @@ function Products({ productId }: { productId?: string | null }) {
       setLoading(true)
       setError('')
 
-      const result = await dbFrom('products').select('*').eq('id', productId).maybeSingle()
+      const result = await dbFrom('products').select('*').eq('slug', productSlug).maybeSingle()
 
       if (cancelled) return
 
@@ -397,7 +397,7 @@ function Products({ productId }: { productId?: string | null }) {
     return () => {
       cancelled = true
     }
-  }, [productId])
+  }, [productSlug])
 
   const save = async (closeAfter = true): Promise<boolean> => {
     if (!supabase || !editing) return false
@@ -545,7 +545,7 @@ function Products({ productId }: { productId?: string | null }) {
     })
 
   const isEditingProduct = Boolean(editing?.id)
-  const isProductPage = Boolean(productId)
+  const isProductPage = Boolean(productSlug)
 
   useEffect(() => {
     if (!editing?.id) return
@@ -622,10 +622,17 @@ function Products({ productId }: { productId?: string | null }) {
                     </span>
                     <button
                       onClick={() => {
+                        const slug =
+                          product.slug ||
+                          String(product.name || 'product')
+                            .toLowerCase()
+                            .trim()
+                            .replace(/[^a-z0-9]+/g, '-')
+                            .replace(/^-|-$/g, '')
                         window.history.pushState(
-                          { schoolUniformApp: 'admin', tool: 'products', productId: product.id },
+                          { schoolUniformApp: 'admin', tool: 'products', productSlug: slug },
                           '',
-                          `/admin/products/edit/${product.id}`,
+                          `/admin/products/edit/${encodeURIComponent(slug)}`,
                         )
                         window.dispatchEvent(new PopStateEvent('popstate'))
                       }}
