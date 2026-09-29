@@ -493,6 +493,13 @@ function Products() {
 
   const isEditingProduct = Boolean(editing?.id)
 
+  useEffect(() => {
+    if (editing?.id) {
+      window.scrollTo(0, 0)
+    }
+  }, [editing?.id])
+
+
   return (
     <>
       {!isEditingProduct && (
