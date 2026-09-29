@@ -343,7 +343,7 @@ function ProductEditorScreen({
   setEditing: (value: any) => void
   categories: any[]
   variants: any[]
-  setVariants: React.Dispatch<React.SetStateAction<any[]>>
+  setVariants: (value: any[] | ((current: any[]) => any[])) => void
   variantsLoading: boolean
   onBack: () => void
   onSaveProduct: () => Promise<boolean>
