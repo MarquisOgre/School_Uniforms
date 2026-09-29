@@ -607,19 +607,19 @@ function Dashboard({
 
   return (
     <div className="portal-content dashboard-content">
-      <div className="welcome-banner">
+      {/* <div className="welcome-banner">
         <div>
-          {/* <p className="eyebrow">YOUR SCHOOL STORE</p> */}
+          {<p className="eyebrow">YOUR SCHOOL STORE</p>}
           <h2>Uniform shopping, organized for you.</h2>
           <p>Choose a complete package for the term or replace individual items as needed.</p>
-          {/* <button className="hero-primary" onClick={() => setPage('packages')}>
+          { <button className="hero-primary" onClick={() => setPage('packages')}>
             Explore Uniform Packages <ArrowRight size={17} />
-          </button> */}
+          </button> }
         </div>
         <div className="banner-icon">
           <ShoppingBag size={58} />
         </div>
-      </div>
+      </div> */}
       <div className="portal-grid">
         <Stat
           title="Active orders"
