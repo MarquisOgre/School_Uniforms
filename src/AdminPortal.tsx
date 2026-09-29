@@ -277,10 +277,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/homepage') return 'home'
     if (path === '/admin/branches' || path === '/admin/schools') return 'branches'
     if (path === '/admin/products' || path.startsWith('/admin/products/edit/')) return 'products'
-    if (
-      path === '/admin/uniform-packages' ||
-      path.startsWith('/admin/uniform-packages/edit/')
-    )
+    if (path === '/admin/uniform-packages' || path.startsWith('/admin/uniform-packages/edit/'))
       return 'packages'
     if (path === '/admin/orders' || path === '/admin/payments') return 'orders'
     if (path === '/admin/inventory') return 'inventory'

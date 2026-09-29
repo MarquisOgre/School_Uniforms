@@ -817,7 +817,6 @@ function Products({ productSlug }: { productSlug?: string | null }) {
   )
 }
 
-
 function PackageEditorScreen({
   editing,
   setEditing,
@@ -848,8 +847,7 @@ function PackageEditorScreen({
 
   const offerPrice = Math.max(
     0,
-    basePrice *
-      (1 - Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) / 100),
+    basePrice * (1 - Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) / 100),
   )
 
   const save = async () => {
@@ -906,7 +904,9 @@ function PackageEditorScreen({
                 onChange={() => undefined}
                 type="number"
               />
-              <p className="product-editor-help">Calculated from the included products and quantities.</p>
+              <p className="product-editor-help">
+                Calculated from the included products and quantities.
+              </p>
             </div>
             <label className="product-editor-status">
               <span>Status</span>
@@ -993,16 +993,18 @@ function PackageEditorScreen({
               <tbody>
                 {items.map((item, index) => {
                   const product = products.find((p) => p.id === item.product_id)
-                  const variantCount = Array.isArray(item.variant_ids)
-                    ? item.variant_ids.length
-                    : 0
+                  const variantCount = Array.isArray(item.variant_ids) ? item.variant_ids.length : 0
                   return (
                     <tr key={item.id || `item-${index}`}>
                       <td>{index + 1}</td>
-                      <td><strong>{product?.name || item.product_id}</strong></td>
+                      <td>
+                        <strong>{product?.name || item.product_id}</strong>
+                      </td>
                       <td>{item.quantity || 1}</td>
                       <td>{item.requires_size ? 'Required' : 'Not required'}</td>
-                      <td>{variantCount ? variantCount + ' configured' : 'No variants configured'}</td>
+                      <td>
+                        {variantCount ? variantCount + ' configured' : 'No variants configured'}
+                      </td>
                       <td>
                         <button
                           type="button"
@@ -1977,8 +1979,7 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
         base_price: basePrice,
         discount_percentage: pkg.discount_percentage ?? 0,
         offer_price:
-          pkg.offer_price ??
-          calculateOfferPrice(basePrice, Number(pkg.discount_percentage || 0)),
+          pkg.offer_price ?? calculateOfferPrice(basePrice, Number(pkg.discount_percentage || 0)),
       })
 
       if (!cancelled) setLoading(false)
@@ -2091,63 +2092,61 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
           )}
         </>
       ) : null}
-
       {!isPackagePage && (
-        <> 
-      <ErrorBox text={error} />
-      {loading ? (
-        <Loading />
-      ) : (
-        <Panel>
-          <div className="workspace-table">
-            <div className="workspace-row package-row admin-table-header">
-              <strong>Package</strong>
-              <span>Gender</span>
-              <span>Base Price</span>
-              <span>Items</span>
-              <span>Actions</span>
-            </div>
-            {rows.map((x) => (
-              <div className="workspace-row package-row" key={x.id}>
-                <strong>{x.name}</strong>
-                <span>{x.gender}</span>
-                <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
-                <span>
-                  {x.item_names?.length ? (
-                    <span className="package-list-items">
-                      {x.item_names.map((name: string, index: number) => (
-                        <span key={`${x.id}-item-${index}`}>{name}</span>
-                      ))}
+        <>
+          <ErrorBox text={error} />
+          {loading ? (
+            <Loading />
+          ) : (
+            <Panel>
+              <div className="workspace-table">
+                <div className="workspace-row package-row admin-table-header">
+                  <strong>Package</strong>
+                  <span>Gender</span>
+                  <span>Base Price</span>
+                  <span>Items</span>
+                  <span>Actions</span>
+                </div>
+                {rows.map((x) => (
+                  <div className="workspace-row package-row" key={x.id}>
+                    <strong>{x.name}</strong>
+                    <span>{x.gender}</span>
+                    <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
+                    <span>
+                      {x.item_names?.length ? (
+                        <span className="package-list-items">
+                          {x.item_names.map((name: string, index: number) => (
+                            <span key={`${x.id}-item-${index}`}>{name}</span>
+                          ))}
+                        </span>
+                      ) : (
+                        'No items configured'
+                      )}
                     </span>
-                  ) : (
-                    'No items configured'
-                  )}
-                </span>
-                <button
-                  onClick={() => {
-                    const slug = String(x.name || 'package')
-                      .toLowerCase()
-                      .trim()
-                      .replace(/[^a-z0-9]+/g, '-')
-                      .replace(/^-|-$/g, '')
-                    window.history.pushState(
-                      { schoolUniformApp: 'admin', tool: 'packages', packageSlug: slug },
-                      '',
-                      `/admin/uniform-packages/edit/${encodeURIComponent(slug)}`,
-                    )
-                    window.dispatchEvent(new PopStateEvent('popstate'))
-                  }}
-                >
-                  Edit
-                </button>
+                    <button
+                      onClick={() => {
+                        const slug = String(x.name || 'package')
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/^-|-$/g, '')
+                        window.history.pushState(
+                          { schoolUniformApp: 'admin', tool: 'packages', packageSlug: slug },
+                          '',
+                          `/admin/uniform-packages/edit/${encodeURIComponent(slug)}`,
+                        )
+                        window.dispatchEvent(new PopStateEvent('popstate'))
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </Panel>
-      )}
+            </Panel>
+          )}
         </>
       )}
-
       {editing && !isPackagePage && (
         <EditModal
           title={editing.id ? 'Edit Package' : 'Add Package'}
@@ -2286,7 +2285,6 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
           )}
         </EditModal>
       )}
-
       {isPackagePage && editing?.id && (
         <PackageEditorScreen
           editing={editing}
@@ -2328,7 +2326,8 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
           }}
           error={error}
         />
-      )}      {itemEditing && (
+      )}{' '}
+      {itemEditing && (
         <EditModal
           title={itemEditing.id ? 'Edit Package Item' : 'Add Package Item'}
           onClose={() => setItemEditing(null)}
