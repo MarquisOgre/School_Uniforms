@@ -2130,11 +2130,25 @@ function Packages({
       return
     }
 
-    const slug = name
+    const baseSlug = name
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
+    let slug = baseSlug
+    const slugConflict = await dbFrom('uniform_packages')
+      .select('id')
+      .eq('branch_id', branchId)
+      .eq('slug', baseSlug)
+      .neq('id', currentEditing.id || '00000000-0000-0000-0000-000000000000')
+      .maybeSingle()
+    if (slugConflict.error) {
+      setError(slugConflict.error.message)
+      return
+    }
+    if (slugConflict.data) {
+      slug = `${baseSlug}-${String(currentEditing.id || 'new').slice(0, 6)}`
+    }
     const p = {
       name,
       slug,
