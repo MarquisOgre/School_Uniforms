@@ -3302,7 +3302,9 @@ function ParentStudents() {
         }
         parentId = data.parent_id
         if (data.student_id) {
-          await dbFrom('students').update({ father_name: first.parent_name }).eq('id', data.student_id)
+          await dbFrom('students')
+            .update({ father_name: first.parent_name })
+            .eq('id', data.student_id)
         }
         success += 1
       } else {
