@@ -443,7 +443,7 @@ function Products({ productSlug }: { productSlug?: string | null }) {
       return false
     }
 
-    const slug = (editing.slug || name)
+    const slug = name
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
@@ -657,13 +657,11 @@ function Products({ productSlug }: { productSlug?: string | null }) {
                     </span>
                     <button
                       onClick={() => {
-                        const slug =
-                          product.slug ||
-                          String(product.name || 'product')
-                            .toLowerCase()
-                            .trim()
-                            .replace(/[^a-z0-9]+/g, '-')
-                            .replace(/^-|-$/g, '')
+                        const slug = String(product.name || 'product')
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/^-|-$/g, '')
                         window.history.pushState(
                           { schoolUniformApp: 'admin', tool: 'products', productSlug: slug },
                           '',
