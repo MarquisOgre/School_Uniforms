@@ -364,6 +364,9 @@ function Products({
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [categorySaving, setCategorySaving] = useState(false)
 
   const load = async () => {
     if (!supabase) return
@@ -381,6 +384,37 @@ function Products({
     setCategories(c.data ?? [])
     setError(p.error?.message || c.error?.message || '')
     setLoading(false)
+  }
+
+  const addCategory = async () => {
+    const name = newCategoryName.trim()
+    if (!supabase || !name || categorySaving) return
+    setCategorySaving(true)
+    setError('')
+    const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    const result = await dbFrom('product_categories')
+      .insert({ name, slug, status: 'active' })
+      .select('*')
+      .single()
+    if (result.error) {
+      setError(result.error.message)
+    } else {
+      setCategories((current) => [...current, result.data].sort((a, b) => a.name.localeCompare(b.name)))
+      setNewCategoryName('')
+    }
+    setCategorySaving(false)
+  }
+
+  const deactivateCategory = async (categoryId: string) => {
+    if (!supabase) return
+    const used = rows.some((product) => product.category_id === categoryId)
+    if (used) {
+      setError('This category is assigned to one or more products. Reassign those products before deactivating it.')
+      return
+    }
+    const result = await dbFrom('product_categories').update({ status: 'inactive' }).eq('id', categoryId)
+    if (result.error) setError(result.error.message)
+    else setCategories((current) => current.filter((x) => x.id !== categoryId))
   }
 
   const loadVariants = async (productId: string) => {
@@ -505,6 +539,10 @@ function Products({
     const name = String(editing.name || '').trim()
     if (!name) {
       setError('Product Name is required.')
+      return false
+    }
+    if (!editing.category_id) {
+      setError('Product Category is required.')
       return false
     }
 
@@ -660,7 +698,7 @@ function Products({
       image_url: '',
       image_gallery: [],
       status: 'active',
-      category_id: categories[0]?.id || '',
+      category_id: '',
     })
 
   const isEditingProduct = Boolean(editing?.id)
@@ -702,12 +740,56 @@ function Products({
                 placeholder="Search products"
               />
             </div>
+            <button className="secondary-button" onClick={() => setCategoryManagerOpen(true)}>
+              <Plus size={15} /> Categories
+            </button>
             <button className="primary-button" onClick={newProduct}>
               <Plus size={15} /> Add Product
             </button>
           </Toolbar>
 
           <ErrorBox text={error} />
+
+          {categoryManagerOpen && (
+            <EditModal
+              title="Product Categories"
+              onClose={() => setCategoryManagerOpen(false)}
+              onSave={() => setCategoryManagerOpen(false)}
+            >
+              <div className="workspace-form-row">
+                <Field
+                  label="New Category"
+                  value={newCategoryName}
+                  onChange={setNewCategoryName}
+                  placeholder="e.g. Shirts"
+                />
+                <div style={{ display: 'flex', alignItems: 'end' }}>
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={() => void addCategory()}
+                    disabled={!newCategoryName.trim() || categorySaving}
+                  >
+                    {categorySaving ? 'Adding...' : 'Add Category'}
+                  </button>
+                </div>
+              </div>
+              <div className="workspace-category-list">
+                {categories.map((category) => (
+                  <div className="workspace-category-item" key={category.id}>
+                    <span>{category.name}</span>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => void deactivateCategory(category.id)}
+                    >
+                      Deactivate
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </EditModal>
+          )}
 
           {loading ? (
             <Loading />
