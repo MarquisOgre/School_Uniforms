@@ -3433,9 +3433,7 @@ function ParentStudents() {
         .select('id,full_name,login_id,phone,branch_id,status')
         .eq('id', link.parent_user_id)
         .maybeSingle(),
-      dbFrom('parent_student_links')
-        .select('student_id')
-        .eq('parent_user_id', link.parent_user_id),
+      dbFrom('parent_student_links').select('student_id').eq('parent_user_id', link.parent_user_id),
     ])
 
     if (!parent) {
@@ -3472,12 +3470,16 @@ function ParentStudents() {
       phone: parent.phone || '',
       password: '',
       confirm_password: '',
-      children: children.length ? children : [{
-        ...emptyChild(parent.branch_id || ''),
-        ...student,
-        student_id: student.id,
-        father_name: student.father_name || parent.full_name || '',
-      }],
+      children: children.length
+        ? children
+        : [
+            {
+              ...emptyChild(parent.branch_id || ''),
+              ...student,
+              student_id: student.id,
+              father_name: student.father_name || parent.full_name || '',
+            },
+          ],
     })
   }
 
@@ -3508,7 +3510,11 @@ function ParentStudents() {
     setError('')
 
     if (parentEditing.editMode) {
-      if (!parentEditing.branch_id || !parentEditing.full_name?.trim() || !parentEditing.login_id?.trim()) {
+      if (
+        !parentEditing.branch_id ||
+        !parentEditing.full_name?.trim() ||
+        !parentEditing.login_id?.trim()
+      ) {
         setError('Branch, Parent Name and Parent ID are required.')
         return
       }
@@ -3516,9 +3522,14 @@ function ParentStudents() {
         setError('Password and Confirm Password do not match.')
         return
       }
-      const validChildren = parentEditing.children?.filter((child: any) =>
-        child.student_id || child.student_code?.trim() || child.full_name?.trim() || child.date_of_birth,
-      ) || []
+      const validChildren =
+        parentEditing.children?.filter(
+          (child: any) =>
+            child.student_id ||
+            child.student_code?.trim() ||
+            child.full_name?.trim() ||
+            child.date_of_birth,
+        ) || []
       if (!validChildren.length) {
         setError('Add at least one child to this Parent.')
         return
@@ -3562,18 +3573,21 @@ function ParentStudents() {
       const keepIds: string[] = []
       for (const child of validChildren) {
         const { data: savedStudent, error: studentError } = await dbFrom('students')
-          .upsert({
-            id: child.student_id || undefined,
-            branch_id: parentEditing.branch_id,
-            student_code: child.student_code.trim(),
-            full_name: child.full_name.trim(),
-            father_name: parentEditing.full_name.trim(),
-            class_name: child.class_name?.trim() || null,
-            section: child.section?.trim() || null,
-            gender: child.gender || null,
-            date_of_birth: child.date_of_birth,
-            status: child.status || 'active',
-          }, { onConflict: 'branch_id,student_code' })
+          .upsert(
+            {
+              id: child.student_id || undefined,
+              branch_id: parentEditing.branch_id,
+              student_code: child.student_code.trim(),
+              full_name: child.full_name.trim(),
+              father_name: parentEditing.full_name.trim(),
+              class_name: child.class_name?.trim() || null,
+              section: child.section?.trim() || null,
+              gender: child.gender || null,
+              date_of_birth: child.date_of_birth,
+              status: child.status || 'active',
+            },
+            { onConflict: 'branch_id,student_code' },
+          )
           .select('id')
           .single()
         if (studentError || !savedStudent?.id) {
@@ -3582,12 +3596,15 @@ function ParentStudents() {
           return
         }
         keepIds.push(savedStudent.id)
-        const { error: linkError } = await dbFrom('parent_student_links').upsert({
-          parent_user_id: parentEditing.id,
-          student_id: savedStudent.id,
-          relationship: 'parent',
-          is_primary: keepIds.length === 1,
-        }, { onConflict: 'parent_user_id,student_id' })
+        const { error: linkError } = await dbFrom('parent_student_links').upsert(
+          {
+            parent_user_id: parentEditing.id,
+            student_id: savedStudent.id,
+            relationship: 'parent',
+            is_primary: keepIds.length === 1,
+          },
+          { onConflict: 'parent_user_id,student_id' },
+        )
         if (linkError) {
           setError(linkError.message)
           setSavingParent(false)
@@ -3890,7 +3907,11 @@ function ParentStudents() {
       )}
 
       {parentEditing && (
-        <EditModal title={parentEditing.editMode ? 'Edit Parent & Children' : 'Add Parent'} onClose={() => setParentEditing(null)} onSave={saveParent}>
+        <EditModal
+          title={parentEditing.editMode ? 'Edit Parent & Children' : 'Add Parent'}
+          onClose={() => setParentEditing(null)}
+          onSave={saveParent}
+        >
           <div className="workspace-form-row">
             <Select
               label="Branch"
@@ -3925,14 +3946,20 @@ function ParentStudents() {
               type="password"
               value={parentEditing.password || ''}
               onChange={(v) => setParentEditing({ ...parentEditing, password: v })}
-              placeholder={parentEditing.editMode ? 'Leave blank to keep current password' : 'Set parent password'}
+              placeholder={
+                parentEditing.editMode
+                  ? 'Leave blank to keep current password'
+                  : 'Set parent password'
+              }
             />
             <Field
               label="Confirm Password"
               type="password"
               value={parentEditing.confirm_password || ''}
               onChange={(v) => setParentEditing({ ...parentEditing, confirm_password: v })}
-              placeholder={parentEditing.editMode ? 'Confirm new password' : 'Confirm parent password'}
+              placeholder={
+                parentEditing.editMode ? 'Confirm new password' : 'Confirm parent password'
+              }
             />
           </div>
 
