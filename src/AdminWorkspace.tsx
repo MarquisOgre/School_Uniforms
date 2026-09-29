@@ -318,32 +318,43 @@ function Branches() {
       const workbook = XLSX.read(buffer, { type: 'array', cellDates: true })
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
       const raw = XLSX.utils.sheet_to_json<any>(sheet, { defval: '' })
-      const normalized = raw.map((row: any, index: number) => {
-        const out: any = { __row: index + 2 }
-        Object.entries(row).forEach(([key, value]) => {
-          const k = String(key).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
-          out[k] = value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? '').trim()
+      const normalized = raw
+        .map((row: any, index: number) => {
+          const out: any = { __row: index + 2 }
+          Object.entries(row).forEach(([key, value]) => {
+            const k = String(key)
+              .trim()
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '_')
+              .replace(/^_|_$/g, '')
+            out[k] =
+              value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? '').trim()
+          })
+          out.branch = out.branch || ''
+          out.parent_name = out.parent_name || ''
+          out.parent_id = out.parent_id || ''
+          out.password = out.password || ''
+          out.email = out.email || ''
+          out.phone = out.phone || ''
+          out.student_code = out.student_code || ''
+          out.student_name = out.student_name || ''
+          out.class = out.class || out.class_name || ''
+          out.section = out.section || ''
+          out.gender = out.gender || ''
+          out.dob = out.dob || out.date_of_birth || ''
+          return out
         })
-        out.branch = out.branch || ''
-        out.parent_name = out.parent_name || ''
-        out.parent_id = out.parent_id || ''
-        out.password = out.password || ''
-        out.email = out.email || ''
-        out.phone = out.phone || ''
-        out.student_code = out.student_code || ''
-        out.student_name = out.student_name || ''
-        out.class = out.class || out.class_name || ''
-        out.section = out.section || ''
-        out.gender = out.gender || ''
-        out.dob = out.dob || out.date_of_birth || ''
-        return out
-      }).filter((row: any) => Object.values(row).some((v: any) => String(v).trim() && v !== row.__row))
+        .filter((row: any) =>
+          Object.values(row).some((v: any) => String(v).trim() && v !== row.__row),
+        )
       if (!normalized.length) {
         setBulkError('The Excel file contains no data rows.')
         return
       }
       const required = ['branch', 'parent_name', 'parent_id', 'student_code', 'student_name', 'dob']
-      const missing = required.filter((key) => !Object.prototype.hasOwnProperty.call(normalized[0], key))
+      const missing = required.filter(
+        (key) => !Object.prototype.hasOwnProperty.call(normalized[0], key),
+      )
       if (missing.length) {
         setBulkError('Missing required columns: ' + missing.join(', '))
         return
@@ -364,7 +375,11 @@ function Branches() {
 
     const grouped = new Map<string, any[]>()
     for (const row of bulkRows) {
-      const branch = branches.find((b) => b.name.toLowerCase() === String(row.branch).trim().toLowerCase() || b.id === String(row.branch).trim())
+      const branch = branches.find(
+        (b) =>
+          b.name.toLowerCase() === String(row.branch).trim().toLowerCase() ||
+          b.id === String(row.branch).trim(),
+      )
       if (!branch) {
         failed += 1
         errors.push(`Row ${row.__row}: invalid Branch "${row.branch}".`)
@@ -377,29 +392,36 @@ function Branches() {
     for (const [, rows] of grouped) {
       const first = rows[0]
       let parentId = parents.find(
-        (p) => p.branch_id === first.branch_id && String(p.login_id).toUpperCase() === String(first.parent_id).toUpperCase(),
+        (p) =>
+          p.branch_id === first.branch_id &&
+          String(p.login_id).toUpperCase() === String(first.parent_id).toUpperCase(),
       )?.id
 
       if (!parentId) {
-        const { data, error: invokeError } = await supabase.functions.invoke('create-parent-login-v2', {
-          body: {
-            branch_id: first.branch_id,
-            parent_name: first.parent_name,
-            login_id: first.parent_id,
-            password: first.password,
-            parent_email: first.email || '',
-            parent_phone: first.phone || '',
-            student_code: first.student_code,
-            student_name: first.student_name,
-            dob: first.dob,
-            class_name: first.class,
-            section: first.section,
-            gender: first.gender,
+        const { data, error: invokeError } = await supabase.functions.invoke(
+          'create-parent-login-v2',
+          {
+            body: {
+              branch_id: first.branch_id,
+              parent_name: first.parent_name,
+              login_id: first.parent_id,
+              password: first.password,
+              parent_email: first.email || '',
+              parent_phone: first.phone || '',
+              student_code: first.student_code,
+              student_name: first.student_name,
+              dob: first.dob,
+              class_name: first.class,
+              section: first.section,
+              gender: first.gender,
+            },
           },
-        })
+        )
         if (invokeError || !data?.success) {
           failed += rows.length
-          errors.push(`Parent ${first.parent_id}: ${data?.error || invokeError?.message || 'unable to create Parent'}`)
+          errors.push(
+            `Parent ${first.parent_id}: ${data?.error || invokeError?.message || 'unable to create Parent'}`,
+          )
           continue
         }
         parentId = data.parent_id
@@ -408,29 +430,51 @@ function Branches() {
         success += 1
       }
 
-      for (let i = parentId && rows.length ? (parentId && !parents.some((p) => p.id === parentId) ? 1 : 0) : 0; i < rows.length; i += 1) {
+      for (
+        let i =
+          parentId && rows.length
+            ? parentId && !parents.some((p) => p.id === parentId)
+              ? 1
+              : 0
+            : 0;
+        i < rows.length;
+        i += 1
+      ) {
         const row = rows[i]
-        const studentResult = await dbFrom('students').upsert({
-          branch_id: row.branch_id,
-          student_code: row.student_code,
-          full_name: row.student_name,
-          class_name: row.class || null,
-          section: row.section || null,
-          gender: ['boys', 'girls', 'unisex'].includes(String(row.gender).toLowerCase()) ? String(row.gender).toLowerCase() : null,
-          date_of_birth: row.dob || null,
-          status: 'active',
-        }, { onConflict: 'branch_id,student_code' }).select('id').single()
+        const studentResult = await dbFrom('students')
+          .upsert(
+            {
+              branch_id: row.branch_id,
+              student_code: row.student_code,
+              full_name: row.student_name,
+              class_name: row.class || null,
+              section: row.section || null,
+              gender: ['boys', 'girls', 'unisex'].includes(String(row.gender).toLowerCase())
+                ? String(row.gender).toLowerCase()
+                : null,
+              date_of_birth: row.dob || null,
+              status: 'active',
+            },
+            { onConflict: 'branch_id,student_code' },
+          )
+          .select('id')
+          .single()
         if (studentResult.error || !studentResult.data?.id) {
           failed += 1
-          errors.push(`Row ${row.__row}: ${studentResult.error?.message || 'student creation failed'}`)
+          errors.push(
+            `Row ${row.__row}: ${studentResult.error?.message || 'student creation failed'}`,
+          )
           continue
         }
-        const linkResult = await dbFrom('parent_student_links').upsert({
-          parent_user_id: parentId,
-          student_id: studentResult.data.id,
-          relationship: 'parent',
-          is_primary: false,
-        }, { onConflict: 'parent_user_id,student_id' })
+        const linkResult = await dbFrom('parent_student_links').upsert(
+          {
+            parent_user_id: parentId,
+            student_id: studentResult.data.id,
+            relationship: 'parent',
+            is_primary: false,
+          },
+          { onConflict: 'parent_user_id,student_id' },
+        )
         if (linkResult.error) {
           failed += 1
           errors.push(`Row ${row.__row}: ${linkResult.error.message}`)
@@ -3304,7 +3348,11 @@ function ParentStudents() {
   const [bulkOpen, setBulkOpen] = useState(false)
   const [bulkRows, setBulkRows] = useState<any[]>([])
   const [bulkError, setBulkError] = useState('')
-  const [bulkResult, setBulkResult] = useState<{ processed: number; success: number; failed: number } | null>(null)
+  const [bulkResult, setBulkResult] = useState<{
+    processed: number
+    success: number
+    failed: number
+  } | null>(null)
   const [bulkImporting, setBulkImporting] = useState(false)
 
   const load = async () => {
@@ -3863,10 +3911,16 @@ function ParentStudents() {
       )}
 
       {bulkOpen && (
-        <EditModal title="Bulk Import Parents & Students" onClose={() => !bulkImporting && setBulkOpen(false)} onSave={runBulkImport}>
+        <EditModal
+          title="Bulk Import Parents & Students"
+          onClose={() => !bulkImporting && setBulkOpen(false)}
+          onSave={runBulkImport}
+        >
           <div className="workspace-note">
-            <strong>1. Download the Excel template</strong><br />
-            One row represents one child. Repeat the same Parent ID for multiple children. A Parent account is created only once.
+            <strong>1. Download the Excel template</strong>
+            <br />
+            One row represents one child. Repeat the same Parent ID for multiple children. A Parent
+            account is created only once.
             <div style={{ marginTop: 10 }}>
               <button type="button" className="secondary-button" onClick={downloadBulkTemplate}>
                 <Download size={15} /> Download Template
@@ -3874,8 +3928,10 @@ function ParentStudents() {
             </div>
           </div>
           <div className="workspace-note">
-            <strong>2. Upload your completed Excel file</strong><br />
-            Required columns: Branch, Parent Name, Parent ID, Password, Student Code, Student Name, DOB.
+            <strong>2. Upload your completed Excel file</strong>
+            <br />
+            Required columns: Branch, Parent Name, Parent ID, Password, Student Code, Student Name,
+            DOB.
             <div style={{ marginTop: 10 }}>
               <input
                 type="file"
@@ -3889,26 +3945,52 @@ function ParentStudents() {
           </div>
           {bulkRows.length > 0 && (
             <div className="workspace-note">
-              <strong>Preview</strong><br />
-              {bulkRows.length} rows loaded · {new Set(bulkRows.map((r) => String(r.parent_id).toUpperCase())).size} Parent IDs
+              <strong>Preview</strong>
+              <br />
+              {bulkRows.length} rows loaded ·{' '}
+              {new Set(bulkRows.map((r) => String(r.parent_id).toUpperCase())).size} Parent IDs
               <div style={{ maxHeight: 220, overflow: 'auto', marginTop: 10 }}>
                 <table>
-                  <thead><tr><th>Branch</th><th>Parent ID</th><th>Student Code</th><th>Student Name</th><th>Class</th></tr></thead>
-                  <tbody>{bulkRows.slice(0, 20).map((r) => (
-                    <tr key={r.__row}><td>{r.branch}</td><td>{r.parent_id}</td><td>{r.student_code}</td><td>{r.student_name}</td><td>{r.class}</td></tr>
-                  ))}</tbody>
+                  <thead>
+                    <tr>
+                      <th>Branch</th>
+                      <th>Parent ID</th>
+                      <th>Student Code</th>
+                      <th>Student Name</th>
+                      <th>Class</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bulkRows.slice(0, 20).map((r) => (
+                      <tr key={r.__row}>
+                        <td>{r.branch}</td>
+                        <td>{r.parent_id}</td>
+                        <td>{r.student_code}</td>
+                        <td>{r.student_name}</td>
+                        <td>{r.class}</td>
+                      </tr>
+                    ))}
+                  </tbody>
                 </table>
               </div>
-              {bulkRows.length > 20 ? <div style={{ marginTop: 8 }}>Showing first 20 rows.</div> : null}
+              {bulkRows.length > 20 ? (
+                <div style={{ marginTop: 8 }}>Showing first 20 rows.</div>
+              ) : null}
             </div>
           )}
           {bulkResult && (
             <div className="workspace-note">
-              <strong>Import Complete</strong><br />
-              Processed: {bulkResult.processed} · Successful: {bulkResult.success} · Failed: {bulkResult.failed}
+              <strong>Import Complete</strong>
+              <br />
+              Processed: {bulkResult.processed} · Successful: {bulkResult.success} · Failed:{' '}
+              {bulkResult.failed}
             </div>
           )}
-          {bulkError ? <div className="workspace-note" style={{ whiteSpace: 'pre-wrap' }}>{bulkError}</div> : null}
+          {bulkError ? (
+            <div className="workspace-note" style={{ whiteSpace: 'pre-wrap' }}>
+              {bulkError}
+            </div>
+          ) : null}
           <div className="workspace-note">
             {bulkImporting ? 'Importing… Please keep this window open.' : 'Save starts the import.'}
           </div>
