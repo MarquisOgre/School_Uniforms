@@ -569,11 +569,28 @@ function Products({
 
     const result = editing.id
       ? await dbFrom('products').update(payload).eq('id', editing.id).eq('branch_id', branchId)
-      : await dbFrom('products').insert(payload)
+      : await dbFrom('products').insert(payload).select('id').single()
 
     if (result.error) {
       setError(result.error.message)
       return false
+    }
+
+    const productId = editing.id || result.data?.id
+    if (productId) {
+      const catalogResult = await dbFrom('branch_products').upsert(
+        {
+          branch_id: branchId,
+          product_id: productId,
+          branch_price: Number(editing.offer_price ?? editing.base_price ?? 0),
+          is_visible: editing.status === 'active',
+        },
+        { onConflict: 'branch_id,product_id' },
+      )
+      if (catalogResult.error) {
+        setError(catalogResult.error.message)
+        return false
+      }
     }
 
     if (closeAfter) {
@@ -2133,9 +2150,25 @@ function Packages({
           .update(p)
           .eq('id', currentEditing.id)
           .eq('branch_id', branchId)
-      : await dbFrom('uniform_packages').insert(p)
+      : await dbFrom('uniform_packages').insert(p).select('id').single()
     if (r.error) setError(r.error.message)
     else {
+      const packageId = currentEditing.id || r.data?.id
+      if (packageId) {
+        const catalogResult = await dbFrom('branch_packages').upsert(
+          {
+            branch_id: branchId,
+            package_id: packageId,
+            branch_price: Number(currentEditing.offer_price ?? currentEditing.base_price ?? 0),
+            is_visible: currentEditing.status === 'active',
+          },
+          { onConflict: 'branch_id,package_id' },
+        )
+        if (catalogResult.error) {
+          setError(catalogResult.error.message)
+          return
+        }
+      }
       if (closeAfter) {
         setEditing(null)
         setItems([])
