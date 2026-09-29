@@ -834,7 +834,7 @@ export default function HomePage({
     [branches, setBranches] = useState<BranchOption[]>([])
   const [branch, setBranch] = useState(''),
     [studentId, setStudentId] = useState(''),
-    [password, setPassword] = useState('')
+    [password, setPassword] = useState('Qwerty@123')
   const [showPassword, setShowPassword] = useState(false),
     [loadingBranches, setLoadingBranches] = useState(false),
     [loggingIn, setLoggingIn] = useState(false),
@@ -884,7 +884,7 @@ export default function HomePage({
       body: { branch_id: branch, login_id: studentId.trim(), password },
     })
     if (error || !data?.session) {
-      setError(data?.error ?? 'Invalid branch, ID, or password.')
+      setError(data?.error ?? 'Invalid branch, Student ID, or password.')
       setLoggingIn(false)
       return
     }
@@ -956,13 +956,13 @@ export default function HomePage({
                 </div>
               </div>
               <div className="login-field">
-                <label>Student / Parent ID</label>
+                <label>Student ID</label>
                 <div className="input-wrap">
                   <input
                     value={studentId}
                     disabled={!branch}
                     onChange={(e) => setStudentId(e.target.value)}
-                    placeholder="Enter your ID"
+                    placeholder="Enter your Student ID"
                     autoComplete="username"
                   />
                 </div>
@@ -1009,12 +1009,12 @@ export default function HomePage({
                   <strong>CBSE Branch</strong>
                 </div>
                 <div className="demo-credential-row">
-                  <span>Student / Parent ID</span>
-                  <strong>BHUPESHKUMAR</strong>
+                  <span>Student ID</span>
+                  <strong>NARAYANA-CBSE-001</strong>
                 </div>
                 <div className="demo-credential-row">
                   <span>Password</span>
-                  <strong>01031984</strong>
+                  <strong>Qwerty@123</strong>
                 </div>
               </div>
             </div>
