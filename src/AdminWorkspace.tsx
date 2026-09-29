@@ -4378,10 +4378,29 @@ function SimpleTable({
 
 function Reports() {
   const today = new Date()
-  const iso = (d: Date) => d.toISOString().slice(0, 10)
-  const [from, setFrom] = useState(iso(new Date(today.getFullYear(), today.getMonth(), 1)))
-  const [to, setTo] = useState(iso(today))
+  const [reportMonth, setReportMonth] = useState(String(today.getMonth() + 1))
+  const [reportYear, setReportYear] = useState(String(today.getFullYear()))
   const [statusFilter, setStatusFilter] = useState('all')
+
+  const monthOptions = [
+    { value: 'all', label: 'All Months' },
+    ...Array.from({ length: 12 }, (_, index) => ({
+      value: String(index + 1),
+      label: new Date(2000, index, 1).toLocaleString('en-US', { month: 'long' }),
+    })),
+  ]
+  const yearOptions = Array.from({ length: 5 }, (_, index) => String(today.getFullYear() - index))
+  const getReportRange = () => {
+    const year = Number(reportYear)
+    if (reportMonth === 'all') return { from: `${year}-01-01`, to: `${year}-12-31` }
+    const month = Number(reportMonth) - 1
+    const pad = (value: number) => String(value).padStart(2, '0')
+    const lastDay = new Date(year, month + 1, 0).getDate()
+    return { from: `${year}-${pad(month + 1)}-01`, to: `${year}-${pad(month + 1)}-${pad(lastDay)}` }
+  }
+  const reportRange = getReportRange()
+  const from = reportRange.from
+  const to = reportRange.to
   const [data, setData] = useState<any>({
     orders: [],
     items: [],
@@ -4537,10 +4556,24 @@ function Reports() {
         </div>
         <div className="reports-date-controls">
           <label>
-            From <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            Month
+            <select value={reportMonth} onChange={(e) => setReportMonth(e.target.value)}>
+              {monthOptions.map((month) => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
-            To <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            Year
+            <select value={reportYear} onChange={(e) => setReportYear(e.target.value)}>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             Status
