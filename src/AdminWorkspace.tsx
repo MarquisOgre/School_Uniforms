@@ -250,33 +250,301 @@ function Branches() {
           </div>
         </Panel>
       )}
-      {editing && editing.id && (
-        <ProductEditorScreen
-          editing={editing}
-          setEditing={setEditing}
-          categories={categories}
-          variants={variants}
-          setVariants={setVariants}
-          variantsLoading={variantsLoading}
-          onBack={() => {
-            setEditing(null)
-            setVariants([])
-            setVariantEditing(null)
-          }}
-          onSaveProduct={async () => {
-            const ok = await save(false)
-            if (!ok) return false
-            const saved = await saveAllVariants()
-            if (saved) {
-              setError('')
-              await load()
-            }
-            return saved
-          }}
-          onRefreshVariants={() => editing?.id && void loadVariants(editing.id)}
-          error={error}
-          setError={setError}
-        />
+      {editing && (
+        <EditModal
+          title={editing.id ? 'Edit Branch' : 'Add Branch'}
+          onClose={() => setEditing(null)}
+          onSave={saveBranch}
+        >
+          <Field
+            label="Branch Name"
+            value={editing.name}
+            onChange={(v) => setEditing({ ...editing, name: v })}
+          />
+          <Field
+            label="Code"
+            value={editing.code}
+            onChange={(v) => setEditing({ ...editing, code: v })}
+          />
+          <Field
+            label="City"
+            value={editing.city || ''}
+            onChange={(v) => setEditing({ ...editing, city: v })}
+          />
+          <Field
+            label="State"
+            value={editing.state || ''}
+            onChange={(v) => setEditing({ ...editing, state: v })}
+          />
+          <Field
+            label="Phone"
+            value={editing.phone || ''}
+            onChange={(v) => setEditing({ ...editing, phone: v })}
+          />
+          <Field
+            label="Email"
+            value={editing.email || ''}
+            onChange={(v) => setEditing({ ...editing, email: v })}
+          />
+          <Select
+            label="Status"
+            value={editing.status}
+            options={['active', 'inactive', 'suspended']}
+            onChange={(v) => setEditing({ ...editing, status: v })}
+          />
+        </EditModal>
+      )}
+    </>
+  )
+}
+
+function Products() {
+  const [rows, setRows] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [editing, setEditing] = useState<any>(null)
+  const [variants, setVariants] = useState<any[]>([])
+  const [variantsLoading, setVariantsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+
+  const load = async () => {
+    if (!supabase) return
+    setLoading(true)
+    const [p, c] = await Promise.all([
+      dbFrom('products').select('*').order('name'),
+      dbFrom('product_categories').select('*').eq('status', 'active').order('name'),
+    ])
+    setRows(p.data ?? [])
+    setCategories(c.data ?? [])
+    setError(p.error?.message || c.error?.message || '')
+    setLoading(false)
+  }
+
+  const loadVariants = async (productId: string) => {
+    if (!supabase || !productId) {
+      setVariants([])
+      return
+    }
+    setVariantsLoading(true)
+    setVariants([])
+    const result = await dbFrom('product_variants')
+      .select('id,product_id,sku,size_label,color,variant_name,price,status')
+      .eq('product_id', productId)
+      .order('size_label')
+    if (result.error) {
+      setError(result.error.message || 'Unable to load product variants.')
+      setVariants([])
+    } else {
+      setVariants(result.data ?? [])
+      setError('')
+    }
+    setVariantsLoading(false)
+  }
+
+  useEffect(() => {
+    void load()
+  }, [])
+
+  const save = async (closeAfter = true): Promise<boolean> => {
+    if (!supabase || !editing) return false
+
+    const name = String(editing.name || '').trim()
+    if (!name) {
+      setError('Product Name is required.')
+      return false
+    }
+
+    const slug = (editing.slug || name)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+
+    const payload = {
+      category_id: editing.category_id || null,
+      name,
+      slug,
+      description: editing.description || null,
+      product_type: editing.product_type || null,
+      occasion_type: editing.occasion_type || null,
+      gender: editing.gender || 'unisex',
+      material: editing.material || null,
+      brand: editing.brand || null,
+      quality: editing.quality || null,
+      fabric: editing.fabric || null,
+      care: editing.care || null,
+      delivery_returns: editing.delivery_returns || null,
+      cod_available: editing.cod_available !== false,
+      custom_order_cod: editing.custom_order_cod === true,
+      easy_returns: editing.easy_returns !== false,
+      express_shipping: editing.express_shipping !== false,
+      show_cod_returns_shipping: editing.show_cod_returns_shipping !== false,
+      show_details: editing.show_details !== false,
+      show_description: editing.show_description !== false,
+      show_quality_care: editing.show_quality_care !== false,
+      show_delivery_returns: editing.show_delivery_returns !== false,
+      image_url: editing.image_url || null,
+      image_gallery: Array.isArray(editing.image_gallery) ? editing.image_gallery : [],
+      base_price: Number(editing.base_price || 0),
+      offer_price:
+        editing.offer_price === '' || editing.offer_price == null
+          ? null
+          : Number(editing.offer_price),
+      discount_percentage: Number(editing.discount_percentage || 0),
+      status: editing.status || 'active',
+    }
+
+    const result = editing.id
+      ? await dbFrom('products').update(payload).eq('id', editing.id)
+      : await dbFrom('products').insert(payload)
+
+    if (result.error) {
+      setError(result.error.message)
+      return false
+    }
+
+    if (closeAfter) {
+      setEditing(null)
+      setVariants([])
+    } else {
+      await load()
+    }
+    return true
+  }
+
+  const saveAllVariants = async (): Promise<boolean> => {
+    if (!supabase || !editing?.id) {
+      setError('Save the product before saving sizes.')
+      return false
+    }
+
+    for (const variant of variants) {
+      const sizeLabel = String(variant.size_label || '').trim()
+      const productName = String(editing.name || '').trim()
+      const sku = String(variant.sku || '').trim() ||
+        `${productName.toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '')}-${String(variants.indexOf(variant) + 1).padStart(3, '0')}`
+      const payload = {
+        product_id: editing.id,
+        sku,
+        size_label: sizeLabel || null,
+        color: String(variant.color || '').trim() || null,
+        variant_name: String(variant.variant_name || '').trim() || (sizeLabel ? `${productName} - Size ${sizeLabel}` : productName),
+        price:
+          variant.price === '' || variant.price == null
+            ? null
+            : Number(variant.price),
+        status: variant.status || 'active',
+      }
+
+      const result = variant.id
+        ? await dbFrom('product_variants').update(payload).eq('id', variant.id)
+        : await dbFrom('product_variants').insert(payload)
+
+      if (result.error) {
+        setError(result.error.message)
+        return false
+      }
+    }
+
+    await loadVariants(editing.id)
+    return true
+  }
+
+  const visible = rows.filter((product) =>
+    String(product.name || '').toLowerCase().includes(search.toLowerCase()),
+  )
+
+  const newProduct = () =>
+    setEditing({
+      name: '',
+      description: '',
+      product_type: '',
+      occasion_type: '',
+      gender: 'unisex',
+      material: '',
+      brand: '',
+      quality: '',
+      fabric: '',
+      care: '',
+      delivery_returns: '',
+      cod_available: true,
+      custom_order_cod: false,
+      easy_returns: true,
+      express_shipping: true,
+      show_cod_returns_shipping: true,
+      show_details: true,
+      show_description: true,
+      show_quality_care: true,
+      show_delivery_returns: true,
+      base_price: '',
+      discount_percentage: '',
+      offer_price: '',
+      image_url: '',
+      image_gallery: [],
+      status: 'active',
+      category_id: categories[0]?.id || '',
+    })
+
+  return (
+    <>
+      <Toolbar onRefresh={load}>
+        <div className="toolbar-search">
+          <Search size={15} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products"
+          />
+        </div>
+        <button className="primary-button" onClick={newProduct}>
+          <Plus size={15} /> Add Product
+        </button>
+      </Toolbar>
+
+      <ErrorBox text={error} />
+
+      {loading ? (
+        <Loading />
+      ) : (
+        <Panel>
+          <div className="workspace-table">
+            <div className="workspace-row product-row product-table-header" role="row">
+              <strong>Product</strong>
+              <span>Category</span>
+              <span>Gender</span>
+              <span>Base Price</span>
+              <span>Discount</span>
+              <span>Offer Price</span>
+              <span>Actions</span>
+            </div>
+            {visible.map((product) => (
+              <div className="workspace-row product-row" key={product.id}>
+                <strong>{product.name}</strong>
+                <span>{categories.find((c) => c.id === product.category_id)?.name || 'Uncategorized'}</span>
+                <span>{product.gender}</span>
+                <span>₹{Number(product.base_price || 0).toLocaleString('en-IN')}</span>
+                <span>{Number(product.discount_percentage || 0)}%</span>
+                <span>₹{Number(product.offer_price ?? product.base_price ?? 0).toLocaleString('en-IN')}</span>
+                <button
+                  onClick={() => {
+                    setError('')
+                    setVariants([])
+                    setEditing({
+                      ...product,
+                      base_price: product.base_price ?? '',
+                      discount_percentage: product.discount_percentage ?? '',
+                      offer_price: product.offer_price ?? product.base_price ?? '',
+                    })
+                    void loadVariants(product.id)
+                  }}
+                >
+                  Edit
+                </button>
+              </div>
+            ))}
+          </div>
+        </Panel>
       )}
 
       {editing && !editing.id && (
@@ -321,10 +589,36 @@ function Branches() {
         </EditModal>
       )}
 
+      {editing?.id && (
+        <ProductEditorScreen
+          editing={editing}
+          setEditing={setEditing}
+          categories={categories}
+          variants={variants}
+          setVariants={setVariants}
+          variantsLoading={variantsLoading}
+          onBack={() => {
+            setEditing(null)
+            setVariants([])
+          }}
+          onSaveProduct={async () => {
+            const productSaved = await save(false)
+            if (!productSaved) return false
+            const variantsSaved = await saveAllVariants()
+            if (variantsSaved) {
+              setError('')
+              await load()
+            }
+            return variantsSaved
+          }}
+          onRefreshVariants={() => editing?.id && void loadVariants(editing.id)}
+          error={error}
+          setError={setError}
+        />
+      )}
     </>
   )
 }
-
 
 function ProductEditorScreen({
   editing,
@@ -535,7 +829,7 @@ function ProductEditorScreen({
             <table className="product-variants-edit-table">
               <thead>
                 <tr>
-                  <th><input type="checkbox" checked={variants.length > 0 && selected.length === variants.length} onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id) : [])} /></th>
+                  <th><input type="checkbox" checked={variants.length > 0 && selected.length === variants.length} onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id).filter(Boolean) : [])} /></th>
                   <th>Size</th>
                   <th>SKU</th>
                   <th>Price (₹)</th>
@@ -545,7 +839,7 @@ function ProductEditorScreen({
               </thead>
               <tbody>
                 {variants.map((variant, index) => (
-                  <tr key={variant.id || \`new-\${index}\`}>
+                  <tr key={variant.id || `new-${index}`}>
                     <td>
                       <input
                         type="checkbox"
@@ -2350,7 +2644,7 @@ function Reports() {
         .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
         .join(','),
     )
-    const blob = new Blob([[header.join(','), ...lines].join('\\n')], {
+    const blob = new Blob([[header.join(','), ...lines].join('\n')], {
       type: 'text/csv;charset=utf-8;',
     })
     const url = URL.createObjectURL(blob)
