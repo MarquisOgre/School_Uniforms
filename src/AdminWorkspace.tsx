@@ -3171,8 +3171,12 @@ function ParentStudents() {
     }
 
     const result = editing.id
-      ? await dbFrom('students').update(payload).eq('id', editing.id).select('id').maybeSingle()
-      : await dbFrom('students').insert(payload).select('id').single()
+      ? await dbFrom('students')
+          .update(payload)
+          .eq('id', editing.id)
+          .select('id,gender')
+          .maybeSingle()
+      : await dbFrom('students').insert(payload).select('id,gender').single()
 
     if (result.error) {
       setError(result.error.message)
@@ -3180,8 +3184,8 @@ function ParentStudents() {
     }
 
     const studentId = editing.id || result.data?.id
-    if (!studentId) {
-      setError('Student was not saved.')
+    if (!studentId || result.data?.gender !== payload.gender) {
+      setError('Student was not saved correctly. Please try again.')
       return
     }
 
