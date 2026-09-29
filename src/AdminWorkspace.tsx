@@ -3390,8 +3390,6 @@ function ParentStudents() {
     }
   }
 
-
-
   const openNewParent = () => {
     const branchId = branches[0]?.id || ''
     setError('')
