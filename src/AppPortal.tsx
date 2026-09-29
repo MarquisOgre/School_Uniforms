@@ -775,11 +775,6 @@ function Packages({
         setLoading(false)
         return
       }
-      if (!packageIds.length) {
-        setItems([])
-        setLoading(false)
-        return
-      }
       const pi = await client
         .from('package_items')
         .select(
