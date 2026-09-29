@@ -77,10 +77,41 @@ export default function AdminWorkspace({
 }) {
   const m = META[module]
   const [ordersSearch, setOrdersSearch] = useState('')
+  const [branches, setBranches] = useState<any[]>([])
+  const [branchId, setBranchId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!supabase || (module !== 'products' && module !== 'packages')) return
+    let cancelled = false
+    const loadBranches = async () => {
+      const result = await dbFrom('branches')
+        .select('id,name,code,status')
+        .eq('status', 'active')
+        .order('name')
+      if (cancelled) return
+      const next = result.data ?? []
+      setBranches(next)
+      const stored = window.localStorage.getItem('admin:selectedBranchId')
+      const nextId = next.some((x: any) => x.id === stored) ? stored : next[0]?.id || null
+      setBranchId(nextId)
+      if (nextId) window.localStorage.setItem('admin:selectedBranchId', nextId)
+    }
+    void loadBranches()
+    return () => {
+      cancelled = true
+    }
+  }, [module])
+
+  const handleBranchChange = (nextId: string) => {
+    setBranchId(nextId)
+    window.localStorage.setItem('admin:selectedBranchId', nextId)
+    if (productSlug || packageSlug) onBack()
+  }
   return (
     <div className="admin-workspace">
       <main className={`workspace-body workspace-${module}`}>
         {module !== 'reports' && (
+          <>
           <div
             className="workspace-heading"
             style={{
@@ -128,12 +159,32 @@ export default function AdminWorkspace({
               </div>
             ) : null}
           </div>
+          {(module === 'products' || module === 'packages') && (
+            <div className="admin-branch-context">
+              <label htmlFor="admin-active-branch">Active Branch</label>
+              <select
+                id="admin-active-branch"
+                value={branchId || ''}
+                onChange={(e) => handleBranchChange(e.target.value)}
+                disabled={!branches.length}
+              >
+                {!branches.length ? <option value="">No active branches</option> : null}
+                {branches.map((branch: any) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}{branch.code ? ` (${branch.code})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          </>
         )}
         <ModuleBody
           module={module}
           ordersSearch={ordersSearch}
           productSlug={productSlug}
           packageSlug={packageSlug}
+          branchId={branchId}
         />
       </main>
     </div>
@@ -145,19 +196,21 @@ function ModuleBody({
   ordersSearch,
   productSlug,
   packageSlug,
+  branchId,
 }: {
   module: ModuleKey
   ordersSearch?: string
   productSlug?: string | null
   packageSlug?: string | null
+  branchId?: string | null
 }) {
   switch (module) {
     case 'branches':
       return <Branches />
     case 'products':
-      return <Products productSlug={productSlug} />
+      return <Products productSlug={productSlug} branchId={branchId} />
     case 'packages':
-      return <Packages packageSlug={packageSlug} />
+      return <Packages packageSlug={packageSlug} branchId={branchId} />
     case 'orders':
       return <OrdersAdmin search={ordersSearch || ''} />
     case 'inventory':
@@ -226,7 +279,7 @@ function Branches() {
       email: editing.email || null,
       status: currentEditing.status,
     }
-    const r = currentEditing.id
+    const r = editing.id
       ? await dbFrom('branches').update(payload).eq('id', editing.id)
       : await dbFrom('branches').insert(payload)
     if (r.error) setError(r.error.message)
@@ -317,7 +370,7 @@ function Branches() {
   )
 }
 
-function Products({ productSlug }: { productSlug?: string | null }) {
+function Products({ productSlug, branchId }: { productSlug?: string | null; branchId?: string | null }) {
   const [rows, setRows] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [editing, setEditing] = useState<any>(null)
@@ -330,8 +383,13 @@ function Products({ productSlug }: { productSlug?: string | null }) {
   const load = async () => {
     if (!supabase) return
     setLoading(true)
+    if (!branchId) {
+      setRows([])
+      setLoading(false)
+      return
+    }
     const [p, c] = await Promise.all([
-      dbFrom('products').select('*').order('name'),
+      dbFrom('products').select('*').eq('branch_id', branchId).order('name'),
       dbFrom('product_categories').select('*').eq('status', 'active').order('name'),
     ])
     setRows(p.data ?? [])
@@ -363,10 +421,10 @@ function Products({ productSlug }: { productSlug?: string | null }) {
 
   useEffect(() => {
     void load()
-  }, [])
+  }, [branchId])
 
   useEffect(() => {
-    if (!productSlug || !supabase) return
+    if (!productSlug || !branchId || !supabase) return
 
     let cancelled = false
 
@@ -374,14 +432,14 @@ function Products({ productSlug }: { productSlug?: string | null }) {
       setLoading(true)
       setError('')
 
-      const slugResult = await dbFrom('products').select('*').eq('slug', productSlug).maybeSingle()
+      const slugResult = await dbFrom('products').select('*') .eq('slug', productSlug).eq('branch_id', branchId).maybeSingle()
 
       if (cancelled) return
 
       let product = slugResult.data
 
       if (!product && !slugResult.error && /^[0-9a-f-]{36}$/i.test(productSlug)) {
-        const idResult = await dbFrom('products').select('*').eq('id', productSlug).maybeSingle()
+        const idResult = await dbFrom('products').select('*') .eq('id', productSlug).eq('branch_id', branchId).maybeSingle()
 
         if (cancelled) return
 
@@ -400,6 +458,8 @@ function Products({ productSlug }: { productSlug?: string | null }) {
 
         const nameResult = await dbFrom('products')
           .select('*')
+           .eq('branch_id', branchId)
+           .eq('branch_id', branchId)
           .ilike('name', nameFromSlug)
           .maybeSingle()
 
@@ -490,10 +550,11 @@ function Products({ productSlug }: { productSlug?: string | null }) {
           : Number(editing.offer_price),
       discount_percentage: Number(currentEditing.discount_percentage || 0),
       status: editing.status || 'active',
+      branch_id: branchId,
     }
 
     const result = editing.id
-      ? await dbFrom('products').update(payload).eq('id', editing.id)
+      ? await dbFrom('products').update(payload).eq('id', editing.id).eq('branch_id', branchId)
       : await dbFrom('products').insert(payload)
 
     if (result.error) {
@@ -559,6 +620,7 @@ function Products({ productSlug }: { productSlug?: string | null }) {
 
   const newProduct = () =>
     setEditing({
+      branch_id: branchId,
       name: '',
       description: '',
       product_type: '',
@@ -1787,7 +1849,7 @@ function ImagePicker({
   )
 }
 
-function Packages({ packageSlug }: { packageSlug?: string | null }) {
+function Packages({ packageSlug, branchId }: { packageSlug?: string | null; branchId?: string | null }) {
   const [rows, setRows] = useState<any[]>([]),
     [products, setProducts] = useState<any[]>([]),
     [items, setItems] = useState<any[]>([]),
@@ -1799,9 +1861,15 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
   const load = async () => {
     if (!supabase) return
     setLoading(true)
+    if (!branchId) {
+      setRows([])
+      setProducts([])
+      setLoading(false)
+      return
+    }
     const [p, x, pi] = await Promise.all([
-      dbFrom('uniform_packages').select('*').order('name'),
-      dbFrom('products').select('id,name,gender,base_price').eq('status', 'active').order('name'),
+      dbFrom('uniform_packages').select('*').eq('branch_id', branchId).order('name'),
+      dbFrom('products').select('id,name,gender,base_price').eq('branch_id', branchId).eq('status', 'active').order('name'),
       dbFrom('package_items')
         .select('package_id,product_id,quantity,sort_order')
         .order('sort_order'),
@@ -1874,6 +1942,7 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
     void load()
     const addHandler = () =>
       setEditing({
+        branch_id: branchId,
         name: '',
         gender: 'unisex',
         base_price: 0,
@@ -1888,9 +1957,9 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
       window.removeEventListener('packages:add', addHandler)
       window.removeEventListener('packages:refresh', refreshHandler)
     }
-  }, [])
+  }, [branchId])
   useEffect(() => {
-    if (!packageSlug || !supabase) return
+    if (!packageSlug || !branchId || !supabase) return
 
     let cancelled = false
 
@@ -1900,7 +1969,8 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
 
       const slugResult = await dbFrom('uniform_packages')
         .select('*')
-        .eq('slug', packageSlug)
+         .eq('slug', packageSlug)
+        .eq('branch_id', branchId)
         .maybeSingle()
 
       if (cancelled) return
@@ -2018,11 +2088,11 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
     const p = {
       name,
       slug,
-      description: editing.description || null,
+      description: currentEditing.description || null,
       gender: currentEditing.gender,
-      image_url: editing.image_url || null,
-      base_price: Number(editing.base_price || 0),
-      discount_percentage: Number(editing.discount_percentage || 0),
+      image_url: currentEditing.image_url || null,
+      base_price: Number(currentEditing.base_price || 0),
+      discount_percentage: Number(currentEditing.discount_percentage || 0),
       offer_price: Number(
         currentEditing.offer_price ??
           calculateOfferPrice(
