@@ -747,32 +747,11 @@ function Packages({
           .eq('item_type', 'package')
         if (!cancelled) setSavedIds(new Set((saved ?? []).map((x: any) => x.item_id)))
       }
-      const bp = await client
-        .from('branch_packages')
-        .select('package_id,branch_price,is_visible')
-        .eq('branch_id', branchId)
-        .eq('is_visible', true)
-      if (bp.error) {
-        setError(bp.error.message)
-        setLoading(false)
-        return
-      }
-      const branchPackages = (bp.data ?? []) as Array<{
-          package_id: string
-          branch_price: number | null
-          is_visible: boolean
-        }>,
-        ids = branchPackages.map((x) => x.package_id)
-      if (!ids.length) {
-        setItems([])
-        setLoading(false)
-        return
-      }
       const [p, pi] = await Promise.all([
         client
           .from('uniform_packages')
           .select('id,name,description,gender,image_url,base_price,offer_price,discount_percentage')
-          .in('id', ids)
+          .eq('branch_id', branchId)
           .eq('status', 'active')
           .order('name'),
         client
@@ -837,7 +816,6 @@ function Packages({
         if (x.size_label && variantsByProduct[x.product_id])
           variantsByProduct[x.product_id].push({ id: x.id, label: x.size_label, disabled: false })
       })
-      const priceMap = Object.fromEntries(branchPackages.map((x) => [x.package_id, x.branch_price]))
       Object.values(variantsByProduct).forEach((options) =>
         options.sort((a, b) =>
           a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }),
@@ -861,7 +839,7 @@ function Packages({
               id: x.id,
               title: x.name,
               type: 'package' as const,
-              price: Number(priceMap[x.id] ?? x.base_price ?? 0),
+              price: Number(x.offer_price ?? x.base_price ?? 0),
               quantity: 1,
               text: x.description || 'Complete school-approved package',
               sourceId: x.id,
@@ -965,31 +943,10 @@ function Products({
           .eq('item_type', 'product')
         if (!cancelled) setSavedIds(new Set((saved ?? []).map((x: any) => x.item_id)))
       }
-      const bp = await client
-        .from('branch_products')
-        .select('product_id,branch_price,is_visible')
-        .eq('branch_id', branchId)
-        .eq('is_visible', true)
-      if (bp.error) {
-        setError(bp.error.message)
-        setLoading(false)
-        return
-      }
-      const branchProducts = (bp.data ?? []) as Array<{
-        product_id: string
-        branch_price: number | null
-        is_visible: boolean
-      }>
-      const ids = branchProducts.map((x) => x.product_id)
-      if (!ids.length) {
-        setItems([])
-        setLoading(false)
-        return
-      }
       const p = await client
         .from('products')
         .select('*')
-        .in('id', ids)
+        .eq('branch_id', branchId)
         .eq('status', 'active')
         .order('name')
       if (p.error) {
@@ -1023,8 +980,7 @@ function Products({
         show_quality_care: boolean | null
         show_delivery_returns: boolean | null
       }>
-      const priceMap = Object.fromEntries(branchProducts.map((x) => [x.product_id, x.branch_price]))
-      const pv = await client
+            const pv = await client
         .from('product_variants')
         .select('id,product_id,size_label,variant_name,price,status')
         .in('product_id', ids)
@@ -1073,7 +1029,7 @@ function Products({
             id: x.id,
             title: x.name,
             type: 'product' as const,
-            price: Number(priceMap[x.id] ?? x.base_price ?? 0),
+            price: Number(x.offer_price ?? x.base_price ?? 0),
             quantity: 1,
             text: x.description || 'School-approved individual product',
             productType: x.product_type || '',
