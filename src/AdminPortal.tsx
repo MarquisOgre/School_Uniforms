@@ -4,6 +4,8 @@ import {
   Building2,
   FileSpreadsheet,
   Home,
+  ChevronLeft,
+  ChevronRight,
   Package,
   ShoppingBag,
   Sparkles,
@@ -569,6 +571,7 @@ function HeroImageUpload({ value, onChange }: { value: string; onChange: (url: s
 
 function HomepageEditor({ onBack }: { onBack: () => void }) {
   const [content, setContent] = useState<any>(DEFAULT_HOME),
+    [activeSlide, setActiveSlide] = useState(0),
     [saving, setSaving] = useState(false),
     [saved, setSaved] = useState(false),
     [error, setError] = useState('')
@@ -618,6 +621,12 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
       fn(n)
       return n
     })
+
+  useEffect(() => {
+    const count = content.hero?.slides?.length || 0
+    setActiveSlide((current) => Math.min(current, Math.max(0, count - 1)))
+  }, [content.hero?.slides?.length])
+
   return (
     <div className="admin-shell">
       <div className="admin-content homepage-cms-content">
@@ -638,7 +647,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
         {saved && <p className="form-success">Homepage saved successfully.</p>}
         {error && <p className="login-error">{error}</p>}
 
-        <section className="home-edit-section ">
+        <section className="home-edit-section homepage-slider-settings">
           <CmsSectionHeading
             title="Hero Slider"
             enabled={content.sections?.hero !== false}
@@ -649,82 +658,211 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
               })
             }
           />
-          {content.hero.slides.map((x: any, i: number) => (
-            <div className="home-edit-card" key={i}>
-              <div className="cms-item-heading">
-                <h3>Slide {i + 1}</h3>
-                <CmsToggle
-                  enabled={x.enabled}
-                  onChange={(v) => edit((c) => (c.hero.slides[i].enabled = v))}
-                  label={x.enabled === false ? 'Disabled' : 'Enabled'}
-                />
-              </div>
-              <div className="cms-field-grid cms-field-grid-2">
-                <label>
-                  Eyebrow
-                  <input
-                    value={x.eyebrow || ''}
-                    onChange={(e) => edit((c) => (c.hero.slides[i].eyebrow = e.target.value))}
-                  />
-                </label>
-                <label>
-                  Tag Line 1
-                  <input
-                    value={x.title?.[0] || ''}
-                    onChange={(e) => edit((c) => (c.hero.slides[i].title[0] = e.target.value))}
-                  />
-                </label>
-              </div>
-              <div className="cms-field-grid cms-field-grid-2">
-                <label>
-                  Tag Line 2
-                  <input
-                    value={x.title?.[1] || ''}
-                    onChange={(e) => edit((c) => (c.hero.slides[i].title[1] = e.target.value))}
-                  />
-                </label>
-                <label>
-                  Tag Line 3
-                  <input
-                    value={x.title?.[2] || ''}
-                    onChange={(e) => edit((c) => (c.hero.slides[i].title[2] = e.target.value))}
-                  />
-                </label>
-              </div>
-              <div className="cms-hero-media-grid">
-                <label className="cms-hero-description">
-                  Description
-                  <textarea
-                    value={x.text || ''}
-                    onChange={(e) => edit((c) => (c.hero.slides[i].text = e.target.value))}
-                  />
-                </label>
-                <div className="cms-hero-image-field">
-                  <span className="cms-field-label">Hero Image</span>
-                  <HeroImageUpload
-                    value={x.image || ''}
-                    onChange={(url) => edit((c) => (c.hero.slides[i].image = url))}
-                  />
-                </div>
-              </div>
-              <div className="cms-field-grid cms-field-grid-2">
-                <label>
-                  Primary Button
-                  <input
-                    value={x.button || ''}
-                    onChange={(e) => edit((c) => (c.hero.slides[i].button = e.target.value))}
-                  />
-                </label>
-                <label>
-                  Secondary Button
-                  <input
-                    value={x.secondary || ''}
-                    onChange={(e) => edit((c) => (c.hero.slides[i].secondary = e.target.value))}
-                  />
-                </label>
-              </div>
+
+          <div className="homepage-slider-tabs">
+            <button
+              type="button"
+              className="homepage-slider-arrow"
+              disabled={!content.hero?.slides?.length || activeSlide <= 0}
+              onClick={() => setActiveSlide((current) => Math.max(0, current - 1))}
+              aria-label="Previous slider"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            <div className="homepage-slider-tab-list">
+              {(content.hero?.slides || []).map((x: any, i: number) => (
+                <button
+                  type="button"
+                  key={i}
+                  className={activeSlide === i ? 'active' : ''}
+                  onClick={() => setActiveSlide(i)}
+                >
+                  <span>Slider {i + 1}</span>
+                  <small>{x.enabled === false ? 'Disabled' : 'Enabled'}</small>
+                </button>
+              ))}
+
+              <button
+                type="button"
+                className="homepage-slider-add"
+                onClick={() => {
+                  const slides = content.hero?.slides || []
+                  edit((c) => {
+                    c.hero = c.hero || {}
+                    c.hero.slides = c.hero.slides || []
+                    c.hero.slides.push({
+                      eyebrow: 'NEW SCHOOL UNIFORMS',
+                      title: ['New Slider', 'Headline', 'Goes Here.'],
+                      text: 'Add your slider description here.',
+                      image: '/hero-slide-1.jpg',
+                      button: 'Shop Uniforms',
+                      secondary: 'View Packages',
+                      enabled: true,
+                    })
+                  })
+                  setActiveSlide(slides.length)
+                }}
+              >
+                <span>+ Add New Slider</span>
+              </button>
             </div>
-          ))}
+
+            <button
+              type="button"
+              className="homepage-slider-arrow"
+              disabled={
+                !content.hero?.slides?.length ||
+                activeSlide >= (content.hero?.slides?.length || 1) - 1
+              }
+              onClick={() =>
+                setActiveSlide((current) =>
+                  Math.min((content.hero?.slides?.length || 1) - 1, current + 1),
+                )
+              }
+              aria-label="Next slider"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          {content.hero?.slides?.length ? (
+            <div className="homepage-slider-editor">
+              {(() => {
+                const slide = content.hero.slides[activeSlide] || content.hero.slides[0]
+                const index = content.hero.slides[activeSlide]
+                  ? activeSlide
+                  : 0
+
+                return (
+                  <div className="home-edit-card homepage-slider-card" key={index}>
+                    <div className="cms-item-heading">
+                      <div>
+                        <h3>Slider {index + 1}</h3>
+                        <span className="homepage-slider-status">
+                          {slide.enabled === false ? 'Disabled' : 'Enabled'}
+                        </span>
+                      </div>
+                      <div className="homepage-slider-card-actions">
+                        <CmsToggle
+                          enabled={slide.enabled}
+                          onChange={(v) => edit((c) => (c.hero.slides[index].enabled = v))}
+                          label={slide.enabled === false ? 'Disabled' : 'Enabled'}
+                        />
+                        {content.hero.slides.length > 1 && (
+                          <button
+                            type="button"
+                            className="homepage-slider-delete"
+                            onClick={() => {
+                              const confirmed = window.confirm(
+                                `Delete Slider ${index + 1}? This cannot be undone.`,
+                              )
+                              if (!confirmed) return
+                              edit((c) => {
+                                c.hero.slides.splice(index, 1)
+                              })
+                              setActiveSlide((current) =>
+                                Math.min(current, Math.max(0, content.hero.slides.length - 2)),
+                              )
+                            }}
+                          >
+                            <Trash2 size={15} />
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="cms-field-grid cms-field-grid-2">
+                      <label>
+                        Eyebrow
+                        <input
+                          value={slide.eyebrow || ''}
+                          onChange={(e) =>
+                            edit((c) => (c.hero.slides[index].eyebrow = e.target.value))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Tag Line 1
+                        <input
+                          value={slide.title?.[0] || ''}
+                          onChange={(e) =>
+                            edit((c) => (c.hero.slides[index].title[0] = e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <div className="cms-field-grid cms-field-grid-2">
+                      <label>
+                        Tag Line 2
+                        <input
+                          value={slide.title?.[1] || ''}
+                          onChange={(e) =>
+                            edit((c) => (c.hero.slides[index].title[1] = e.target.value))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Tag Line 3
+                        <input
+                          value={slide.title?.[2] || ''}
+                          onChange={(e) =>
+                            edit((c) => (c.hero.slides[index].title[2] = e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <div className="cms-hero-media-grid">
+                      <label className="cms-hero-description">
+                        Description
+                        <textarea
+                          value={slide.text || ''}
+                          onChange={(e) =>
+                            edit((c) => (c.hero.slides[index].text = e.target.value))
+                          }
+                        />
+                      </label>
+                      <div className="cms-hero-image-field">
+                        <span className="cms-field-label">Hero Image</span>
+                        <HeroImageUpload
+                          value={slide.image || ''}
+                          onChange={(url) => edit((c) => (c.hero.slides[index].image = url))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="cms-field-grid cms-field-grid-2">
+                      <label>
+                        Primary Button
+                        <input
+                          value={slide.button || ''}
+                          onChange={(e) =>
+                            edit((c) => (c.hero.slides[index].button = e.target.value))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Secondary Button
+                        <input
+                          value={slide.secondary || ''}
+                          onChange={(e) =>
+                            edit((c) => (c.hero.slides[index].secondary = e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          ) : (
+            <div className="workspace-empty">
+              No sliders configured. Click <strong>+ Add New Slider</strong> to create one.
+            </div>
+          )}
         </section>
 
         <section className="home-edit-section">
