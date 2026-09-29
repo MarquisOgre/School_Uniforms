@@ -3927,19 +3927,19 @@ function ParentStudents() {
               }}
             />
             <Field
-              label="Parent Name"
-              value={parentEditing.full_name || ''}
-              onChange={(v) => setParentEditing({ ...parentEditing, full_name: v })}
-              placeholder="Parent full name"
+              label="Parent ID"
+              value={parentEditing.login_id || ''}
+              onChange={(v) => setParentEditing({ ...parentEditing, login_id: v.toUpperCase() })}
+              placeholder="Login ID"
             />
           </div>
 
           <div className="workspace-form-row-pricing">
             <Field
-              label="Parent ID"
-              value={parentEditing.login_id || ''}
-              onChange={(v) => setParentEditing({ ...parentEditing, login_id: v.toUpperCase() })}
-              placeholder="Login ID"
+              label="Parent Name"
+              value={parentEditing.full_name || ''}
+              onChange={(v) => setParentEditing({ ...parentEditing, full_name: v })}
+              placeholder="Parent full name"
             />
             <Field
               label="Password"
