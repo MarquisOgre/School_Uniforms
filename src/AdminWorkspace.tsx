@@ -502,7 +502,6 @@ function Products() {
         if (workspaceBody) {
           workspaceBody.scrollTo({ top: 0, left: 0, behavior: 'auto' })
         }
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
       })
     }
   }, [editing?.id])
