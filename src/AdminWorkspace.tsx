@@ -3411,11 +3411,73 @@ function ParentStudents() {
     })
   }
 
-  const openEditStudent = (student: any) => {
-    setStudentEditing({
-      ...student,
-      father_name: student.father_name || '',
-      date_of_birth: student.date_of_birth || '',
+  const openEditStudent = async (student: any) => {
+    if (!supabase) return
+    setError('')
+    const { data: link } = await dbFrom('parent_student_links')
+      .select('parent_user_id')
+      .eq('student_id', student.id)
+      .maybeSingle()
+
+    if (!link?.parent_user_id) {
+      setStudentEditing({
+        ...student,
+        father_name: student.father_name || '',
+        date_of_birth: student.date_of_birth || '',
+      })
+      return
+    }
+
+    const [{ data: parent }, { data: links }] = await Promise.all([
+      dbFrom('profiles')
+        .select('id,full_name,login_id,phone,branch_id,status')
+        .eq('id', link.parent_user_id)
+        .maybeSingle(),
+      dbFrom('parent_student_links')
+        .select('student_id')
+        .eq('parent_user_id', link.parent_user_id),
+    ])
+
+    if (!parent) {
+      setStudentEditing({
+        ...student,
+        father_name: student.father_name || '',
+        date_of_birth: student.date_of_birth || '',
+      })
+      return
+    }
+
+    const childIds = (links || []).map((x: any) => x.student_id)
+    const children = students
+      .filter((s: any) => childIds.includes(s.id))
+      .map((s: any) => ({
+        ...s,
+        student_id: s.id,
+        branch_id: s.branch_id || parent.branch_id,
+        student_code: s.student_code || '',
+        full_name: s.full_name || '',
+        father_name: s.father_name || parent.full_name || '',
+        class_name: s.class_name || '',
+        section: s.section || '',
+        gender: s.gender || '',
+        date_of_birth: s.date_of_birth || '',
+      }))
+
+    setParentEditing({
+      editMode: true,
+      id: parent.id,
+      branch_id: parent.branch_id || '',
+      full_name: parent.full_name || '',
+      login_id: parent.login_id || '',
+      phone: parent.phone || '',
+      password: '',
+      confirm_password: '',
+      children: children.length ? children : [{
+        ...emptyChild(parent.branch_id || ''),
+        ...student,
+        student_id: student.id,
+        father_name: student.father_name || parent.full_name || '',
+      }],
     })
   }
 
@@ -3444,6 +3506,113 @@ function ParentStudents() {
   const saveParent = async () => {
     if (!supabase || !parentEditing || savingParent) return
     setError('')
+
+    if (parentEditing.editMode) {
+      if (!parentEditing.branch_id || !parentEditing.full_name?.trim() || !parentEditing.login_id?.trim()) {
+        setError('Branch, Parent Name and Parent ID are required.')
+        return
+      }
+      if (parentEditing.password && parentEditing.password !== parentEditing.confirm_password) {
+        setError('Password and Confirm Password do not match.')
+        return
+      }
+      const validChildren = parentEditing.children?.filter((child: any) =>
+        child.student_id || child.student_code?.trim() || child.full_name?.trim() || child.date_of_birth,
+      ) || []
+      if (!validChildren.length) {
+        setError('Add at least one child to this Parent.')
+        return
+      }
+      for (let i = 0; i < validChildren.length; i += 1) {
+        const child = validChildren[i]
+        if (!child.student_code?.trim() || !child.full_name?.trim() || !child.date_of_birth) {
+          setError(`Child ${i + 1}: Student Code, Student Name and Date of Birth are required.`)
+          return
+        }
+      }
+
+      setSavingParent(true)
+      const { error: profileError } = await dbFrom('profiles')
+        .update({
+          full_name: parentEditing.full_name.trim(),
+          login_id: parentEditing.login_id.trim().toUpperCase(),
+          branch_id: parentEditing.branch_id,
+          phone: parentEditing.phone?.trim() || null,
+        })
+        .eq('id', parentEditing.id)
+
+      if (profileError) {
+        setError(profileError.message)
+        setSavingParent(false)
+        return
+      }
+
+      if (parentEditing.password) {
+        const { data: resetData, error: resetError } = await supabase.functions.invoke(
+          'admin-reset-parent-password',
+          { body: { parent_user_id: parentEditing.id, password: parentEditing.password } },
+        )
+        if (resetError || !resetData?.success) {
+          setError(resetData?.error || resetError?.message || 'Unable to update parent password.')
+          setSavingParent(false)
+          return
+        }
+      }
+
+      const keepIds: string[] = []
+      for (const child of validChildren) {
+        const { data: savedStudent, error: studentError } = await dbFrom('students')
+          .upsert({
+            id: child.student_id || undefined,
+            branch_id: parentEditing.branch_id,
+            student_code: child.student_code.trim(),
+            full_name: child.full_name.trim(),
+            father_name: parentEditing.full_name.trim(),
+            class_name: child.class_name?.trim() || null,
+            section: child.section?.trim() || null,
+            gender: child.gender || null,
+            date_of_birth: child.date_of_birth,
+            status: child.status || 'active',
+          }, { onConflict: 'branch_id,student_code' })
+          .select('id')
+          .single()
+        if (studentError || !savedStudent?.id) {
+          setError(studentError?.message || 'Unable to save student.')
+          setSavingParent(false)
+          return
+        }
+        keepIds.push(savedStudent.id)
+        const { error: linkError } = await dbFrom('parent_student_links').upsert({
+          parent_user_id: parentEditing.id,
+          student_id: savedStudent.id,
+          relationship: 'parent',
+          is_primary: keepIds.length === 1,
+        }, { onConflict: 'parent_user_id,student_id' })
+        if (linkError) {
+          setError(linkError.message)
+          setSavingParent(false)
+          return
+        }
+      }
+
+      const existingLinks = await dbFrom('parent_student_links')
+        .select('student_id')
+        .eq('parent_user_id', parentEditing.id)
+      const removeIds = (existingLinks.data || [])
+        .map((x: any) => x.student_id)
+        .filter((id: string) => !keepIds.includes(id))
+      if (removeIds.length) {
+        await dbFrom('parent_student_links')
+          .delete()
+          .eq('parent_user_id', parentEditing.id)
+          .in('student_id', removeIds)
+      }
+
+      setParentEditing(null)
+      setSavingParent(false)
+      await load()
+      return
+    }
     if (
       !parentEditing.branch_id ||
       !parentEditing.full_name?.trim() ||
@@ -3721,7 +3890,7 @@ function ParentStudents() {
       )}
 
       {parentEditing && (
-        <EditModal title="Add Parent" onClose={() => setParentEditing(null)} onSave={saveParent}>
+        <EditModal title={parentEditing.editMode ? 'Edit Parent & Children' : 'Add Parent'} onClose={() => setParentEditing(null)} onSave={saveParent}>
           <div className="workspace-form-row">
             <Select
               label="Branch"
@@ -3756,14 +3925,14 @@ function ParentStudents() {
               type="password"
               value={parentEditing.password || ''}
               onChange={(v) => setParentEditing({ ...parentEditing, password: v })}
-              placeholder="Set parent password"
+              placeholder={parentEditing.editMode ? 'Leave blank to keep current password' : 'Set parent password'}
             />
             <Field
               label="Confirm Password"
               type="password"
               value={parentEditing.confirm_password || ''}
               onChange={(v) => setParentEditing({ ...parentEditing, confirm_password: v })}
-              placeholder="Confirm parent password"
+              placeholder={parentEditing.editMode ? 'Confirm new password' : 'Confirm parent password'}
             />
           </div>
 
