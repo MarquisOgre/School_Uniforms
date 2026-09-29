@@ -365,18 +365,40 @@ function Products({ productSlug }: { productSlug?: string | null }) {
       setLoading(true)
       setError('')
 
-      const result = await dbFrom('products').select('*').eq('slug', productSlug).maybeSingle()
+      const slugResult = await dbFrom('products').select('*').eq('slug', productSlug).maybeSingle()
 
       if (cancelled) return
 
-      if (result.error || !result.data) {
-        setError(result.error?.message || 'Product not found.')
+      let product = slugResult.data
+
+      if (!product && !slugResult.error) {
+        const nameFromSlug = decodeURIComponent(productSlug)
+          .replace(/-/g, ' ')
+          .trim()
+
+        const nameResult = await dbFrom('products')
+          .select('*')
+          .ilike('name', nameFromSlug)
+          .maybeSingle()
+
+        if (cancelled) return
+
+        if (nameResult.error) {
+          setError(nameResult.error.message)
+          setEditing(null)
+          setLoading(false)
+          return
+        }
+
+        product = nameResult.data
+      }
+
+      if (slugResult.error || !product) {
+        setError(slugResult.error?.message || 'Product not found.')
         setEditing(null)
         setLoading(false)
         return
       }
-
-      const product = result.data
 
       setEditing({
         ...product,
