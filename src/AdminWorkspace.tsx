@@ -730,17 +730,19 @@ function ProductEditorScreen({
 
   const toggleAdditionalDetails = () => {
     const workspaceBody = document.querySelector<HTMLElement>('.admin-workspace .workspace-body')
-    const currentScrollTop = workspaceBody?.scrollTop ?? window.scrollY
+    const nextOpen = !additionalDetailsOpen
 
-    setAdditionalDetailsOpen((open) => !open)
+    setAdditionalDetailsOpen(nextOpen)
 
-    requestAnimationFrame(() => {
+    if (nextOpen) {
       requestAnimationFrame(() => {
-        if (workspaceBody) {
-          workspaceBody.scrollTop = currentScrollTop
-        }
+        requestAnimationFrame(() => {
+          if (workspaceBody) {
+            workspaceBody.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+          }
+        })
       })
-    })
+    }
   }
 
   useEffect(() => {
