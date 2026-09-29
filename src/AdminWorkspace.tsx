@@ -382,7 +382,7 @@ function ProductEditorScreen({
         id: null,
         _tempId: `new-${Date.now()}-${index}`,
         product_id: editing.id,
-        sku: \`\${base || 'PRODUCT'}-\${String(index).padStart(3, '0')}\`,
+        sku: `${base || 'PRODUCT'}-${String(index).padStart(3, '0')}`,
         size_label: '',
         color: '',
         variant_name: '',
@@ -396,7 +396,7 @@ function ProductEditorScreen({
   const deleteSelected = async () => {
     if (!selected.length) return
     const confirmed = window.confirm(
-      \`Delete \${selected.length} selected size\${selected.length === 1 ? '' : 's'}? This cannot be undone.\`,
+      `Delete ${selected.length} selected size${selected.length === 1 ? '' : 's'}? This cannot be undone.`,
     )
     if (!confirmed) return
 
