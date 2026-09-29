@@ -4912,6 +4912,37 @@ a {
   color: #17272d;
   cursor: pointer;
 }
+.admin-branch-context {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.admin-branch-context label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-branch-context select {
+  min-width: 190px;
+  height: 38px;
+  padding: 0 34px 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+}
+
 .workspace-heading {
   margin-top: 18px;
 }
