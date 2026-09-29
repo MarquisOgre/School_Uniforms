@@ -68,10 +68,12 @@ export default function AdminWorkspace({
   module,
   onBack,
   productSlug,
+  packageSlug,
 }: {
   module: ModuleKey
   onBack: () => void
   productSlug?: string | null
+  packageSlug?: string | null
 }) {
   const m = META[module]
   const [ordersSearch, setOrdersSearch] = useState('')
@@ -127,7 +129,12 @@ export default function AdminWorkspace({
             ) : null}
           </div>
         )}
-        <ModuleBody module={module} ordersSearch={ordersSearch} productSlug={productSlug} />
+        <ModuleBody
+          module={module}
+          ordersSearch={ordersSearch}
+          productSlug={productSlug}
+          packageSlug={packageSlug}
+        />
       </main>
     </div>
   )
@@ -137,10 +144,12 @@ function ModuleBody({
   module,
   ordersSearch,
   productSlug,
+  packageSlug,
 }: {
   module: ModuleKey
   ordersSearch?: string
   productSlug?: string | null
+  packageSlug?: string | null
 }) {
   switch (module) {
     case 'branches':
@@ -148,7 +157,7 @@ function ModuleBody({
     case 'products':
       return <Products productSlug={productSlug} />
     case 'packages':
-      return <Packages />
+      return <Packages packageSlug={packageSlug} />
     case 'orders':
       return <OrdersAdmin search={ordersSearch || ''} />
     case 'inventory':
@@ -805,6 +814,228 @@ function Products({ productSlug }: { productSlug?: string | null }) {
         />
       )}
     </>
+  )
+}
+
+
+function PackageEditorScreen({
+  editing,
+  setEditing,
+  products,
+  items,
+  onBack,
+  onSave,
+  onAddItem,
+  onEditItem,
+  error,
+}: {
+  editing: any
+  setEditing: (value: any) => void
+  products: any[]
+  items: any[]
+  onBack: () => void
+  onSave: () => Promise<void>
+  onAddItem: () => void
+  onEditItem: (item: any) => void
+  error: string
+}) {
+  const [saving, setSaving] = useState(false)
+
+  const basePrice = items.reduce((total, item) => {
+    const product = products.find((p) => p.id === item.product_id)
+    return total + Number(product?.base_price || 0) * Number(item.quantity || 1)
+  }, 0)
+
+  const offerPrice = Math.max(
+    0,
+    basePrice *
+      (1 - Math.min(100, Math.max(0, Number(editing.discount_percentage || 0))) / 100),
+  )
+
+  const save = async () => {
+    setSaving(true)
+    setEditing({ ...editing, base_price: basePrice, offer_price: offerPrice })
+    await onSave()
+    setSaving(false)
+  }
+
+  return (
+    <div className="product-editor-page">
+      <div className="product-editor-breadcrumb">
+        <span>Uniform Packages</span>
+        <strong>›</strong>
+        <span>Edit Package</span>
+        <button type="button" className="product-editor-back" onClick={onBack}>
+          <ArrowLeft size={16} /> Back to Packages
+        </button>
+      </div>
+
+      <div className="product-editor-heading">
+        <div>
+          <h1>Edit Package</h1>
+          <p>Update package details, image, pricing and included products.</p>
+        </div>
+      </div>
+
+      {error ? <div className="workspace-error">{error}</div> : null}
+
+      <section className="product-editor-card product-details-card">
+        <div className="product-details-main">
+          <div className="product-editor-section-title">Package Details</div>
+
+          <div className="product-editor-grid product-editor-grid-2">
+            <Field
+              label="Package Name *"
+              value={editing.name || ''}
+              onChange={(v) => setEditing({ ...editing, name: v })}
+            />
+            <Select
+              label="Gender"
+              value={editing.gender || 'unisex'}
+              options={['boys', 'girls', 'unisex']}
+              onChange={(v) => setEditing({ ...editing, gender: v })}
+            />
+          </div>
+
+          <div className="product-editor-grid product-editor-grid-2">
+            <div>
+              <Field
+                label="Base Price (₹)"
+                value={String(basePrice)}
+                onChange={() => undefined}
+                type="number"
+              />
+              <p className="product-editor-help">Calculated from the included products and quantities.</p>
+            </div>
+            <label className="product-editor-status">
+              <span>Status</span>
+              <button
+                type="button"
+                className={
+                  editing.status === 'active'
+                    ? 'product-status-toggle active'
+                    : 'product-status-toggle'
+                }
+                onClick={() =>
+                  setEditing({
+                    ...editing,
+                    status: editing.status === 'active' ? 'inactive' : 'active',
+                  })
+                }
+              >
+                <span />
+              </button>
+              <strong>{editing.status === 'active' ? 'Active' : 'Inactive'}</strong>
+            </label>
+          </div>
+
+          <div className="product-editor-grid product-editor-grid-2">
+            <Field
+              label="Discount (%)"
+              value={String(editing.discount_percentage ?? 0)}
+              onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
+              type="number"
+              min="0"
+            />
+            <Field
+              label="Offer Price (₹)"
+              value={String(offerPrice)}
+              onChange={() => undefined}
+              type="number"
+            />
+          </div>
+
+          <Field
+            label="Package Description"
+            value={editing.description || ''}
+            onChange={(v) => setEditing({ ...editing, description: v })}
+            area
+          />
+        </div>
+
+        <div className="product-editor-images">
+          <div className="product-editor-section-title">Package Image</div>
+          <div className="product-main-image">
+            <ImagePicker
+              value={editing.image_url || ''}
+              folder="packages"
+              alt="Selected package"
+              onChange={(v) => setEditing({ ...editing, image_url: v })}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="product-editor-card product-variants-card">
+        <div className="product-variants-heading">
+          <div className="product-editor-section-title">Package Items</div>
+          <div className="product-variant-actions">
+            <button type="button" className="secondary-button" onClick={onAddItem}>
+              <Plus size={15} /> Add Item
+            </button>
+          </div>
+        </div>
+
+        <div className="product-variants-table-wrap">
+          {items.length ? (
+            <table className="product-variants-edit-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Size Selection</th>
+                  <th>Variants</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, index) => {
+                  const product = products.find((p) => p.id === item.product_id)
+                  const variantCount = Array.isArray(item.variant_ids)
+                    ? item.variant_ids.length
+                    : 0
+                  return (
+                    <tr key={item.id || `item-${index}`}>
+                      <td>{index + 1}</td>
+                      <td><strong>{product?.name || item.product_id}</strong></td>
+                      <td>{item.quantity || 1}</td>
+                      <td>{item.requires_size ? 'Required' : 'Not required'}</td>
+                      <td>{variantCount ? variantCount + ' configured' : 'No variants configured'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => onEditItem(item)}
+                        >
+                          <Pencil size={14} /> Edit
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div className="workspace-empty">No products added to this package yet.</div>
+          )}
+        </div>
+      </section>
+
+      <div className="product-variants-footer">
+        <button type="button" className="secondary-button" onClick={onBack}>
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="primary-button product-save-all"
+          disabled={saving}
+          onClick={() => void save()}
+        >
+          <Save size={15} /> {saving ? 'Saving...' : 'Save All Changes'}
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -1553,7 +1784,7 @@ function ImagePicker({
   )
 }
 
-function Packages() {
+function Packages({ packageSlug }: { packageSlug?: string | null }) {
   const [rows, setRows] = useState<any[]>([]),
     [products, setProducts] = useState<any[]>([]),
     [items, setItems] = useState<any[]>([]),
@@ -1655,6 +1886,110 @@ function Packages() {
       window.removeEventListener('packages:refresh', refreshHandler)
     }
   }, [])
+  useEffect(() => {
+    if (!packageSlug || !supabase) return
+
+    let cancelled = false
+
+    const loadPackagePage = async () => {
+      setLoading(true)
+      setError('')
+
+      const slugResult = await dbFrom('uniform_packages')
+        .select('*')
+        .eq('slug', packageSlug)
+        .maybeSingle()
+
+      if (cancelled) return
+
+      let pkg = slugResult.data
+
+      if (!pkg && !slugResult.error) {
+        const nameFromSlug = decodeURIComponent(packageSlug).replace(/-/g, ' ').trim()
+        const nameResult = await dbFrom('uniform_packages')
+          .select('*')
+          .ilike('name', nameFromSlug)
+          .maybeSingle()
+
+        if (cancelled) return
+
+        if (nameResult.error) {
+          setError(nameResult.error.message)
+          setEditing(null)
+          setLoading(false)
+          return
+        }
+
+        pkg = nameResult.data
+      }
+
+      if (slugResult.error || !pkg) {
+        setError(slugResult.error?.message || 'Package not found.')
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+
+      const itemsResult = await dbFrom('package_items')
+        .select('*')
+        .eq('package_id', pkg.id)
+        .order('sort_order')
+
+      if (cancelled) return
+
+      if (itemsResult.error) {
+        setError(itemsResult.error.message)
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+
+      const packageItems = itemsResult.data ?? []
+      const productIds = packageItems.map((item: any) => item.product_id).filter(Boolean)
+      let packageProducts = products
+
+      if (productIds.length) {
+        const productsResult = await dbFrom('products')
+          .select('id,name,gender,base_price')
+          .in('id', productIds)
+
+        if (cancelled) return
+
+        if (productsResult.error) {
+          setError(productsResult.error.message)
+          setEditing(null)
+          setLoading(false)
+          return
+        }
+
+        packageProducts = productsResult.data ?? []
+      }
+
+      const basePrice = packageItems.reduce((total: number, item: any) => {
+        const product = packageProducts.find((p: any) => p.id === item.product_id)
+        return total + Number(product?.base_price || 0) * Number(item.quantity || 1)
+      }, 0)
+
+      setItems(packageItems)
+      setEditing({
+        ...pkg,
+        base_price: basePrice,
+        discount_percentage: pkg.discount_percentage ?? 0,
+        offer_price:
+          pkg.offer_price ??
+          calculateOfferPrice(basePrice, Number(pkg.discount_percentage || 0)),
+      })
+
+      if (!cancelled) setLoading(false)
+    }
+
+    void loadPackagePage()
+
+    return () => {
+      cancelled = true
+    }
+  }, [packageSlug])
+
   const calculatePackageBasePrice = () =>
     items.reduce((total, item) => {
       const product = products.find((p) => p.id === item.product_id)
@@ -1666,18 +2001,32 @@ function Packages() {
 
   const save = async () => {
     if (!supabase || !editing) return
-    const slug = (editing.slug || editing.name || '')
+    const name = String(editing.name || '').trim()
+    if (!name) {
+      setError('Package Name is required.')
+      return
+    }
+
+    const slug = name
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
     const p = {
-      name: editing.name,
+      name,
       slug,
       description: editing.description || null,
       gender: editing.gender,
       image_url: editing.image_url || null,
       base_price: Number(editing.base_price || 0),
+      discount_percentage: Number(editing.discount_percentage || 0),
+      offer_price: Number(
+        editing.offer_price ??
+          calculateOfferPrice(
+            Number(editing.base_price || 0),
+            Number(editing.discount_percentage || 0),
+          ),
+      ),
       status: editing.status,
     }
     const r = editing.id
@@ -1710,8 +2059,33 @@ function Packages() {
       await loadItems(itemEditing.package_id)
     }
   }
+  const isPackagePage = Boolean(packageSlug)
+
+  useEffect(() => {
+    if (!editing?.id || !isPackagePage) return
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    })
+  }, [editing?.id, isPackagePage])
+
   return (
     <>
+      {isPackagePage && !editing?.id ? (
+        <>
+          <ErrorBox text={error} />
+          {loading ? (
+            <Panel>
+              <Loading />
+            </Panel>
+          ) : (
+            <Panel>
+              <div className="workspace-empty">{error || 'Unable to load this package.'}</div>
+            </Panel>
+          )}
+        </>
+      ) : null}
+
+      {!isPackagePage && (
       <ErrorBox text={error} />
       {loading ? (
         <Loading />
@@ -1754,7 +2128,9 @@ function Packages() {
           </div>
         </Panel>
       )}
-      {editing && (
+      )}
+
+      {editing && !isPackagePage && (
         <EditModal
           title={editing.id ? 'Edit Package' : 'Add Package'}
           onClose={() => {
@@ -1892,7 +2268,49 @@ function Packages() {
           )}
         </EditModal>
       )}
-      {itemEditing && (
+
+      {isPackagePage && editing?.id && (
+        <PackageEditorScreen
+          editing={editing}
+          setEditing={setEditing}
+          products={products}
+          items={items}
+          onBack={() => {
+            window.history.pushState(
+              { schoolUniformApp: 'admin', tool: 'packages', packageSlug: null },
+              '',
+              '/admin/uniform-packages',
+            )
+            window.dispatchEvent(new PopStateEvent('popstate'))
+          }}
+          onSave={async () => {
+            await save()
+          }}
+          onAddItem={() => {
+            setItemEditing({
+              package_id: editing.id,
+              product_id: products[0]?.id || '',
+              quantity: 1,
+              is_required: true,
+              requires_size: true,
+              selection_group: '',
+              sort_order: items.length,
+              variant_ids: [],
+            })
+            setItemVariants([])
+            if (products[0]?.id) void loadItemVariants(products[0].id)
+          }}
+          onEditItem={(item) => {
+            setError('')
+            setItemEditing({
+              ...item,
+              variant_ids: Array.isArray(item.variant_ids) ? item.variant_ids : [],
+            })
+            void loadItemVariants(item.product_id)
+          }}
+          error={error}
+        />
+      )}      {itemEditing && (
         <EditModal
           title={itemEditing.id ? 'Edit Package Item' : 'Add Package Item'}
           onClose={() => setItemEditing(null)}
