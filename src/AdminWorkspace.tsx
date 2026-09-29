@@ -3726,39 +3726,113 @@ function ParentStudents() {
           </div>
 
           <div className="workspace-form-row-pricing">
-            <Field label="Parent ID" value={parentEditing.login_id || ''} onChange={(v) => setParentEditing({ ...parentEditing, login_id: v.toUpperCase() })} placeholder="Login ID" />
-            <Field label="Password" type="password" value={parentEditing.password || ''} onChange={(v) => setParentEditing({ ...parentEditing, password: v })} placeholder="Set parent password" />
-            <Field label="Confirm Password" type="password" value={parentEditing.confirm_password || ''} onChange={(v) => setParentEditing({ ...parentEditing, confirm_password: v })} placeholder="Confirm parent password" />
+            <Field
+              label="Parent ID"
+              value={parentEditing.login_id || ''}
+              onChange={(v) => setParentEditing({ ...parentEditing, login_id: v.toUpperCase() })}
+              placeholder="Login ID"
+            />
+            <Field
+              label="Password"
+              type="password"
+              value={parentEditing.password || ''}
+              onChange={(v) => setParentEditing({ ...parentEditing, password: v })}
+              placeholder="Set parent password"
+            />
+            <Field
+              label="Confirm Password"
+              type="password"
+              value={parentEditing.confirm_password || ''}
+              onChange={(v) => setParentEditing({ ...parentEditing, confirm_password: v })}
+              placeholder="Confirm parent password"
+            />
           </div>
 
           <div className="workspace-form-row">
-            <Field label="Email (Optional)" type="email" value={parentEditing.email || ''} onChange={(v) => setParentEditing({ ...parentEditing, email: v })} placeholder="Parent email" />
-            <Field label="Phone (Optional)" value={parentEditing.phone || ''} onChange={(v) => setParentEditing({ ...parentEditing, phone: v })} placeholder="Phone number" />
+            <Field
+              label="Email (Optional)"
+              type="email"
+              value={parentEditing.email || ''}
+              onChange={(v) => setParentEditing({ ...parentEditing, email: v })}
+              placeholder="Parent email"
+            />
+            <Field
+              label="Phone (Optional)"
+              value={parentEditing.phone || ''}
+              onChange={(v) => setParentEditing({ ...parentEditing, phone: v })}
+              placeholder="Phone number"
+            />
           </div>
 
           {parentEditing.children.map((child: any, index: number) => (
             <div key={index} className="workspace-note" style={{ marginTop: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 8,
+                }}
+              >
                 <strong>Child {index + 1}</strong>
-                {parentEditing.children.length > 1 && <button type="button" className="text-button" onClick={() => removeChild(index)}>Remove</button>}
+                {parentEditing.children.length > 1 && (
+                  <button type="button" className="text-button" onClick={() => removeChild(index)}>
+                    Remove
+                  </button>
+                )}
               </div>
 
               <div className="workspace-form-row">
-                <Field label="Student Code" value={child.student_code || ''} onChange={(v) => updateChild(index, { student_code: v })} placeholder="Student code" />
-                <Field label="Student Name" value={child.full_name || ''} onChange={(v) => updateChild(index, { full_name: v })} placeholder="Student full name" />
+                <Field
+                  label="Student Code"
+                  value={child.student_code || ''}
+                  onChange={(v) => updateChild(index, { student_code: v })}
+                  placeholder="Student code"
+                />
+                <Field
+                  label="Student Name"
+                  value={child.full_name || ''}
+                  onChange={(v) => updateChild(index, { full_name: v })}
+                  placeholder="Student full name"
+                />
               </div>
 
               <div className="workspace-form-row-4">
-                <Field label="Class" value={child.class_name || ''} onChange={(v) => updateChild(index, { class_name: v })} placeholder="Class" />
-                <Field label="Section" value={child.section || ''} onChange={(v) => updateChild(index, { section: v })} placeholder="Section" />
-                <Select label="Gender" value={child.gender || ''} options={['boys', 'girls', 'unisex']} onChange={(v) => updateChild(index, { gender: v })} />
-                <Field label="Date of Birth" type="date" value={child.date_of_birth || ''} onChange={(v) => updateChild(index, { date_of_birth: v })} />
+                <Field
+                  label="Class"
+                  value={child.class_name || ''}
+                  onChange={(v) => updateChild(index, { class_name: v })}
+                  placeholder="Class"
+                />
+                <Field
+                  label="Section"
+                  value={child.section || ''}
+                  onChange={(v) => updateChild(index, { section: v })}
+                  placeholder="Section"
+                />
+                <Select
+                  label="Gender"
+                  value={child.gender || ''}
+                  options={['boys', 'girls', 'unisex']}
+                  onChange={(v) => updateChild(index, { gender: v })}
+                />
+                <Field
+                  label="Date of Birth"
+                  type="date"
+                  value={child.date_of_birth || ''}
+                  onChange={(v) => updateChild(index, { date_of_birth: v })}
+                />
               </div>
             </div>
           ))}
 
-          <button type="button" className="secondary-button" onClick={addChild}><Plus size={15} /> Add Another Child</button>
-          <div className="workspace-note">The password is stored securely in Supabase Auth. No Student ID or Student Password is used for parent login.</div>
+          <button type="button" className="secondary-button" onClick={addChild}>
+            <Plus size={15} /> Add Another Child
+          </button>
+          <div className="workspace-note">
+            The password is stored securely in Supabase Auth. No Student ID or Student Password is
+            used for parent login.
+          </div>
         </EditModal>
       )}
 
