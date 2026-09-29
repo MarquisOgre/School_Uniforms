@@ -1057,7 +1057,7 @@ function ProductEditorScreen({
               <input
                 type="checkbox"
                 checked={variants.length > 0 && selected.length === variants.length}
-                onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id) : [])}
+                onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id).filter(Boolean) : [])}
               />
               <span>Select All</span>
             </label>
