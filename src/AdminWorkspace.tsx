@@ -822,7 +822,7 @@ function Products({
                       {categories.find((c) => c.id === product.category_id)?.name ||
                         'Uncategorized'}
                     </span>
-                    <span>{product.gender}</span>
+                    <span>{formatGender(product.gender)}</span>
                     <span>₹{Number(product.base_price || 0).toLocaleString('en-IN')}</span>
                     <span>{Number(product.discount_percentage || 0)}%</span>
                     <span>
@@ -895,8 +895,9 @@ function Products({
                 />
                 <Select
                   label="Gender"
-                  value={editing.gender}
+                  value={editing.gender || 'unisex'}
                   options={['boys', 'girls', 'unisex']}
+                  labels={{ boys: 'Boys', girls: 'Girls', unisex: 'Unisex' }}
                   onChange={(v) => setEditing({ ...editing, gender: v })}
                 />
               </div>
@@ -1059,6 +1060,7 @@ function PackageEditorScreen({
               label="Gender"
               value={editing.gender || 'unisex'}
               options={['boys', 'girls', 'unisex']}
+              labels={{ boys: 'Boys', girls: 'Girls', unisex: 'Unisex' }}
               onChange={(v) => setEditing({ ...editing, gender: v })}
             />
           </div>
@@ -2334,7 +2336,7 @@ function Packages({
                 {rows.map((x) => (
                   <div className="workspace-row package-row" key={x.id}>
                     <strong>{x.name}</strong>
-                    <span>{x.gender}</span>
+                    <span>{formatGender(x.gender)}</span>
                     <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
                     <span>
                       {x.item_names?.length ? (
@@ -2401,8 +2403,9 @@ function Packages({
             />
             <Select
               label="Gender"
-              value={editing.gender}
+              value={editing.gender || 'unisex'}
               options={['boys', 'girls', 'unisex']}
+              labels={{ boys: 'Boys', girls: 'Girls', unisex: 'Unisex' }}
               onChange={(v) => setEditing({ ...editing, gender: v })}
             />
           </div>
@@ -4121,6 +4124,7 @@ function ParentStudents() {
                   label="Gender"
                   value={child.gender || ''}
                   options={['boys', 'girls', 'unisex']}
+                  labels={{ boys: 'Boys', girls: 'Girls', unisex: 'Unisex' }}
                   onChange={(v) => updateChild(index, { gender: v })}
                 />
                 <Field
@@ -4272,6 +4276,7 @@ function ParentStudents() {
             label="Gender"
             value={studentEditing.gender || ''}
             options={['boys', 'girls', 'unisex']}
+            labels={{ boys: 'Boys', girls: 'Girls', unisex: 'Unisex' }}
             onChange={(v) => setStudentEditing({ ...studentEditing, gender: v })}
           />
           <Field
@@ -5002,6 +5007,14 @@ function Field({
     </label>
   )
 }
+function formatGender(value: unknown) {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'boys') return 'Boys'
+  if (normalized === 'girls') return 'Girls'
+  if (normalized === 'unisex') return 'Unisex'
+  return String(value || '—')
+}
+
 function Select({
   label,
   value,
