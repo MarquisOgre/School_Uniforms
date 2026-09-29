@@ -7295,17 +7295,14 @@ a {
 .admin-shell,
 .admin-workspace,
 .admin-import-page {
-  height: 100vh;
   min-height: 100vh;
-  overflow: hidden;
-}
-.admin-shell .admin-content,
-.admin-workspace .workspace-body,
-.admin-import-page .import-card {
-  overflow: auto;
 }
 .admin-shell .admin-content {
   min-height: 0;
+}
+.admin-workspace .workspace-body,
+.admin-import-page .import-card {
+  overflow: visible;
 }
 .admin-workspace .workspace-body {
   min-height: 0;
