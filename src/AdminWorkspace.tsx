@@ -224,9 +224,9 @@ function Branches() {
       postal_code: editing.postal_code || null,
       phone: editing.phone || null,
       email: editing.email || null,
-      status: editing.status,
+      status: currentEditing.status,
     }
-    const r = editing.id
+    const r = currentEditing.id
       ? await dbFrom('branches').update(payload).eq('id', editing.id)
       : await dbFrom('branches').insert(payload)
     if (r.error) setError(r.error.message)
@@ -462,7 +462,7 @@ function Products({ productSlug }: { productSlug?: string | null }) {
       category_id: editing.category_id || null,
       name,
       slug,
-      description: editing.description || null,
+      description: currentEditing.description || null,
       product_type: editing.product_type || null,
       occasion_type: editing.occasion_type || null,
       gender: editing.gender || 'unisex',
@@ -481,14 +481,14 @@ function Products({ productSlug }: { productSlug?: string | null }) {
       show_description: editing.show_description !== false,
       show_quality_care: editing.show_quality_care !== false,
       show_delivery_returns: editing.show_delivery_returns !== false,
-      image_url: editing.image_url || null,
+      image_url: currentEditing.image_url || null,
       image_gallery: Array.isArray(editing.image_gallery) ? editing.image_gallery : [],
-      base_price: Number(editing.base_price || 0),
+      base_price: Number(currentEditing.base_price || 0),
       offer_price:
         editing.offer_price === '' || editing.offer_price == null
           ? null
           : Number(editing.offer_price),
-      discount_percentage: Number(editing.discount_percentage || 0),
+      discount_percentage: Number(currentEditing.discount_percentage || 0),
       status: editing.status || 'active',
     }
 
@@ -834,7 +834,7 @@ function PackageEditorScreen({
   products: any[]
   items: any[]
   onBack: () => void
-  onSave: () => Promise<void>
+  onSave: (value: any) => Promise<void>
   onAddItem: () => void
   onEditItem: (item: any) => void
   error: string
@@ -854,8 +854,9 @@ function PackageEditorScreen({
 
   const save = async () => {
     setSaving(true)
-    setEditing({ ...editing, base_price: basePrice, offer_price: offerPrice })
-    await onSave()
+    const nextEditing = { ...editing, base_price: basePrice, offer_price: offerPrice }
+    setEditing(nextEditing)
+    await onSave(nextEditing)
     setSaving(false)
   }
 
@@ -1999,9 +2000,10 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
   const calculateOfferPrice = (basePrice: number, discount: number) =>
     Math.max(0, basePrice * (1 - Math.min(100, Math.max(0, discount)) / 100))
 
-  const save = async () => {
-    if (!supabase || !editing) return
-    const name = String(editing.name || '').trim()
+  const save = async (editingOverride?: any) => {
+    const currentEditing = editingOverride || editing
+    if (!supabase || !currentEditing) return
+    const name = String(currentEditing.name || '').trim()
     if (!name) {
       setError('Package Name is required.')
       return
@@ -2016,21 +2018,21 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
       name,
       slug,
       description: editing.description || null,
-      gender: editing.gender,
+      gender: currentEditing.gender,
       image_url: editing.image_url || null,
       base_price: Number(editing.base_price || 0),
       discount_percentage: Number(editing.discount_percentage || 0),
       offer_price: Number(
-        editing.offer_price ??
+        currentEditing.offer_price ??
           calculateOfferPrice(
-            Number(editing.base_price || 0),
-            Number(editing.discount_percentage || 0),
+            Number(currentEditing.base_price || 0),
+            Number(currentEditing.discount_percentage || 0),
           ),
       ),
       status: editing.status,
     }
     const r = editing.id
-      ? await dbFrom('uniform_packages').update(p).eq('id', editing.id)
+      ? await dbFrom('uniform_packages').update(p).eq('id', currentEditing.id)
       : await dbFrom('uniform_packages').insert(p)
     if (r.error) setError(r.error.message)
     else {
@@ -2086,6 +2088,7 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
       ) : null}
 
       {!isPackagePage && (
+        <> 
       <ErrorBox text={error} />
       {loading ? (
         <Loading />
@@ -2117,8 +2120,17 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
                 </span>
                 <button
                   onClick={() => {
-                    setEditing({ ...x })
-                    void loadItems(x.id)
+                    const slug = String(x.name || 'package')
+                      .toLowerCase()
+                      .trim()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-|-$/g, '')
+                    window.history.pushState(
+                      { schoolUniformApp: 'admin', tool: 'packages', packageSlug: slug },
+                      '',
+                      `/admin/uniform-packages/edit/${encodeURIComponent(slug)}`,
+                    )
+                    window.dispatchEvent(new PopStateEvent('popstate'))
                   }}
                 >
                   Edit
@@ -2128,6 +2140,7 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
           </div>
         </Panel>
       )}
+        </>
       )}
 
       {editing && !isPackagePage && (
