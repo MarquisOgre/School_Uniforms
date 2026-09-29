@@ -112,71 +112,72 @@ export default function AdminWorkspace({
       <main className={`workspace-body workspace-${module}`}>
         {module !== 'reports' && (
           <>
-          <div
-            className="workspace-heading"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '20px',
-            }}
-          >
-            <div>
-              <h1>{m.title}</h1>
-              <p>{m.description}</p>
-            </div>
-            {module === 'packages' ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                <button
-                  className="primary-button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('packages:add'))}
-                >
-                  <Plus size={15} /> Add Package
-                </button>
-                <button
-                  className="secondary-button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('packages:refresh'))}
-                >
-                  <RefreshCw size={15} /> Refresh
-                </button>
+            <div
+              className="workspace-heading"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '20px',
+              }}
+            >
+              <div>
+                <h1>{m.title}</h1>
+                <p>{m.description}</p>
               </div>
-            ) : module === 'orders' ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                <div className="toolbar-search">
-                  <Search size={15} />
-                  <input
-                    value={ordersSearch}
-                    onChange={(e) => setOrdersSearch(e.target.value)}
-                    placeholder="Search orders or payments"
-                  />
+              {module === 'packages' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                  <button
+                    className="primary-button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('packages:add'))}
+                  >
+                    <Plus size={15} /> Add Package
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('packages:refresh'))}
+                  >
+                    <RefreshCw size={15} /> Refresh
+                  </button>
                 </div>
-                <button
-                  className="secondary-button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('orders:refresh'))}
-                >
-                  <RefreshCw size={15} /> Refresh
-                </button>
-              </div>
-            ) : null}
-          </div>
-          {(module === 'products' || module === 'packages') && (
-            <div className="admin-branch-context">
-              <label htmlFor="admin-active-branch">Active Branch</label>
-              <select
-                id="admin-active-branch"
-                value={branchId || ''}
-                onChange={(e) => handleBranchChange(e.target.value)}
-                disabled={!branches.length}
-              >
-                {!branches.length ? <option value="">No active branches</option> : null}
-                {branches.map((branch: any) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}{branch.code ? ` (${branch.code})` : ''}
-                  </option>
-                ))}
-              </select>
+              ) : module === 'orders' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                  <div className="toolbar-search">
+                    <Search size={15} />
+                    <input
+                      value={ordersSearch}
+                      onChange={(e) => setOrdersSearch(e.target.value)}
+                      placeholder="Search orders or payments"
+                    />
+                  </div>
+                  <button
+                    className="secondary-button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('orders:refresh'))}
+                  >
+                    <RefreshCw size={15} /> Refresh
+                  </button>
+                </div>
+              ) : null}
             </div>
-          )}
+            {(module === 'products' || module === 'packages') && (
+              <div className="admin-branch-context">
+                <label htmlFor="admin-active-branch">Active Branch</label>
+                <select
+                  id="admin-active-branch"
+                  value={branchId || ''}
+                  onChange={(e) => handleBranchChange(e.target.value)}
+                  disabled={!branches.length}
+                >
+                  {!branches.length ? <option value="">No active branches</option> : null}
+                  {branches.map((branch: any) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                      {branch.code ? ` (${branch.code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </>
         )}
         <ModuleBody
@@ -370,7 +371,13 @@ function Branches() {
   )
 }
 
-function Products({ productSlug, branchId }: { productSlug?: string | null; branchId?: string | null }) {
+function Products({
+  productSlug,
+  branchId,
+}: {
+  productSlug?: string | null
+  branchId?: string | null
+}) {
   const [rows, setRows] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [editing, setEditing] = useState<any>(null)
@@ -432,14 +439,22 @@ function Products({ productSlug, branchId }: { productSlug?: string | null; bran
       setLoading(true)
       setError('')
 
-      const slugResult = await dbFrom('products').select('*') .eq('slug', productSlug).eq('branch_id', branchId).maybeSingle()
+      const slugResult = await dbFrom('products')
+        .select('*')
+        .eq('slug', productSlug)
+        .eq('branch_id', branchId)
+        .maybeSingle()
 
       if (cancelled) return
 
       let product = slugResult.data
 
       if (!product && !slugResult.error && /^[0-9a-f-]{36}$/i.test(productSlug)) {
-        const idResult = await dbFrom('products').select('*') .eq('id', productSlug).eq('branch_id', branchId).maybeSingle()
+        const idResult = await dbFrom('products')
+          .select('*')
+          .eq('id', productSlug)
+          .eq('branch_id', branchId)
+          .maybeSingle()
 
         if (cancelled) return
 
@@ -458,8 +473,8 @@ function Products({ productSlug, branchId }: { productSlug?: string | null; bran
 
         const nameResult = await dbFrom('products')
           .select('*')
-           .eq('branch_id', branchId)
-           .eq('branch_id', branchId)
+          .eq('branch_id', branchId)
+          .eq('branch_id', branchId)
           .ilike('name', nameFromSlug)
           .maybeSingle()
 
@@ -1849,7 +1864,13 @@ function ImagePicker({
   )
 }
 
-function Packages({ packageSlug, branchId }: { packageSlug?: string | null; branchId?: string | null }) {
+function Packages({
+  packageSlug,
+  branchId,
+}: {
+  packageSlug?: string | null
+  branchId?: string | null
+}) {
   const [rows, setRows] = useState<any[]>([]),
     [products, setProducts] = useState<any[]>([]),
     [items, setItems] = useState<any[]>([]),
@@ -1869,7 +1890,11 @@ function Packages({ packageSlug, branchId }: { packageSlug?: string | null; bran
     }
     const [p, x, pi] = await Promise.all([
       dbFrom('uniform_packages').select('*').eq('branch_id', branchId).order('name'),
-      dbFrom('products').select('id,name,gender,base_price').eq('branch_id', branchId).eq('status', 'active').order('name'),
+      dbFrom('products')
+        .select('id,name,gender,base_price')
+        .eq('branch_id', branchId)
+        .eq('status', 'active')
+        .order('name'),
       dbFrom('package_items')
         .select('package_id,product_id,quantity,sort_order')
         .order('sort_order'),
@@ -1969,7 +1994,7 @@ function Packages({ packageSlug, branchId }: { packageSlug?: string | null; bran
 
       const slugResult = await dbFrom('uniform_packages')
         .select('*')
-         .eq('slug', packageSlug)
+        .eq('slug', packageSlug)
         .eq('branch_id', branchId)
         .maybeSingle()
 
