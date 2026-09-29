@@ -47,6 +47,7 @@ type StudentRow = {
 }
 type ProductRow = {
   id: string
+  branch_id: string
   category_id: string | null
   name: string
   slug: string
@@ -54,6 +55,8 @@ type ProductRow = {
   gender: 'boys' | 'girls' | 'unisex'
   image_url: string | null
   base_price: number
+  offer_price: number | null
+  discount_percentage: number | null
   status: 'active' | 'inactive' | 'suspended'
   created_at: string
   updated_at: string
@@ -72,12 +75,15 @@ type ProductVariantRow = {
 }
 type UniformPackageRow = {
   id: string
+  branch_id: string
   name: string
   slug: string
   description: string | null
   gender: 'boys' | 'girls' | 'unisex'
   image_url: string | null
   base_price: number
+  offer_price: number | null
+  discount_percentage: number | null
   status: 'active' | 'inactive' | 'suspended'
   created_at: string
   updated_at: string
