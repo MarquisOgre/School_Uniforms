@@ -980,7 +980,7 @@ function Products({
         show_quality_care: boolean | null
         show_delivery_returns: boolean | null
       }>
-            const pv = await client
+      const pv = await client
         .from('product_variants')
         .select('id,product_id,size_label,variant_name,price,status')
         .in('product_id', ids)
