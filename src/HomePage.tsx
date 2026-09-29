@@ -217,7 +217,7 @@ function Landing({ onLogin }: { onLogin: () => void }) {
           </nav>
           <div className="exact-header-icons">
             <button className="header-login-button" onClick={onLogin}>
-              Student Login <ArrowRight size={15} />
+              Parent Login <ArrowRight size={15} />
             </button>
           </div>
           <button className="mobile-menu" onClick={() => setMenu((v) => !v)}>
@@ -414,7 +414,7 @@ function Landing({ onLogin }: { onLogin: () => void }) {
             </div>
             <div>
               <strong>Support</strong>
-              <a onClick={onLogin}>Student Login</a>
+              <a onClick={onLogin}>Parent Login</a>
               <a onClick={() => go('help')}>Help Center</a>
               <a onClick={() => go('contact')}>Contact Us</a>
             </div>
@@ -518,7 +518,7 @@ function PublicPage({
           </nav>
           <div className="exact-header-icons">
             <button className="header-login-button" onClick={onLogin}>
-              Student Login <ArrowRight size={15} />
+              Parent Login <ArrowRight size={15} />
             </button>
           </div>
         </div>
@@ -576,7 +576,7 @@ function PublicPage({
               : 'Secure school-specific shopping'}
           </p>
           <button onClick={onLogin}>
-            Student Login <ArrowRight />
+            Parent Login <ArrowRight />
           </button>
         </div>
       )}
@@ -596,7 +596,7 @@ function PublicPage({
           </div>
           <div>
             <strong>Support</strong>
-            <a onClick={onLogin}>Student Login</a>
+            <a onClick={onLogin}>Parent Login</a>
             <a onClick={() => onNavigate('help')}>Help Center</a>
           </div>
           <div>
@@ -678,7 +678,7 @@ function HelpContent({ onNavigate }: { onNavigate: (p: string) => void }) {
         {[
           [
             'How do I shop for my school?',
-            'Select Student Login and sign in with the Student ID and password provided by your school.',
+            'Select Parent Login and sign in with the Parent ID and password provided by your school.',
           ],
           [
             'Why can’t I see another school’s products?',
@@ -827,13 +827,13 @@ export default function HomePage({
   onLoginSuccess,
   onAdmin,
 }: {
-  onLoginSuccess: (branch: string, studentId: string, branchName: string) => void
+  onLoginSuccess: (branch: string, parentId: string, branchName: string) => void
   onAdmin: () => void
 }) {
   const [showLogin, setShowLogin] = useState(false),
     [branches, setBranches] = useState<BranchOption[]>([])
   const [branch, setBranch] = useState(''),
-    [studentId, setStudentId] = useState(''),
+    [parentId, setParentId] = useState(''),
     [password, setPassword] = useState('Qwerty@123')
   const [showPassword, setShowPassword] = useState(false),
     [loadingBranches, setLoadingBranches] = useState(false),
@@ -877,14 +877,14 @@ export default function HomePage({
   }, [showLogin, branches.length])
   async function login() {
     const client = supabase
-    if (!client || !branch || !studentId.trim() || !password || loggingIn) return
+    if (!client || !branch || !parentId.trim() || !password || loggingIn) return
     setLoggingIn(true)
     setError('')
     const { data, error } = await client.functions.invoke('student-parent-login', {
-      body: { branch_id: branch, login_id: studentId.trim(), password },
+      body: { branch_id: branch, parent_id: parentId.trim(), password },
     })
     if (error || !data?.session) {
-      setError(data?.error ?? 'Invalid branch, Student ID, or password.')
+      setError(data?.error ?? 'Invalid branch, Parent ID, or password.')
       setLoggingIn(false)
       return
     }
@@ -903,14 +903,14 @@ export default function HomePage({
       JSON.stringify({
         mode: 'store',
         branch,
-        studentId: studentId.trim(),
+        parentId: parentId.trim(),
         branchName,
         customerPage: 'dashboard',
       }),
     )
     setShowLogin(false)
     setLoggingIn(false)
-    onLoginSuccess(branch, studentId.trim(), branchName)
+    onLoginSuccess(branch, parentId.trim(), branchName)
   }
   return (
     <>
@@ -956,13 +956,13 @@ export default function HomePage({
                 </div>
               </div>
               <div className="login-field">
-                <label>Student ID</label>
+                <label>Parent ID</label>
                 <div className="input-wrap">
                   <input
-                    value={studentId}
+                    value={parentId}
                     disabled={!branch}
-                    onChange={(e) => setStudentId(e.target.value)}
-                    placeholder="Enter your Student ID"
+                    onChange={(e) => setParentId(e.target.value)}
+                    placeholder="Enter your Parent ID"
                     autoComplete="username"
                   />
                 </div>
@@ -995,7 +995,7 @@ export default function HomePage({
             {error && <p className="login-error">{error}</p>}
             <button
               className="primary-button"
-              disabled={!branch || !studentId.trim() || !password || loggingIn}
+              disabled={!branch || !parentId.trim() || !password || loggingIn}
               onClick={() => void login()}
             >
               {loggingIn ? 'SIGNING IN...' : 'SIGN IN TO PORTAL'}
@@ -1009,8 +1009,8 @@ export default function HomePage({
                   <strong>CBSE Branch</strong>
                 </div>
                 <div className="demo-credential-row">
-                  <span>Student ID</span>
-                  <strong>NARAYANA-CBSE-001</strong>
+                  <span>Parent ID</span>
+                  <strong>BHUPESHKUMAR</strong>
                 </div>
                 <div className="demo-credential-row">
                   <span>Password</span>
