@@ -774,6 +774,8 @@ function Packages({
           gender: string | null
           image_url: string | null
           base_price: number | null
+          offer_price: number | null
+          discount_percentage: number | null
         }>,
         packageItems = (pi.data ?? []) as Array<{
           id: string
@@ -974,6 +976,8 @@ function Products({
         image_url: string | null
         image_gallery: string[] | null
         base_price: number | null
+        offer_price: number | null
+        discount_percentage: number | null
         show_cod_returns_shipping: boolean | null
         show_details: boolean | null
         show_description: boolean | null
