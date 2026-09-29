@@ -491,153 +491,160 @@ function Products() {
       category_id: categories[0]?.id || '',
     })
 
+  const isEditingProduct = Boolean(editing?.id)
+
   return (
     <>
-      <Toolbar onRefresh={load}>
-        <div className="toolbar-search">
-          <Search size={15} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products"
-          />
-        </div>
-        <button className="primary-button" onClick={newProduct}>
-          <Plus size={15} /> Add Product
-        </button>
-      </Toolbar>
-
-      <ErrorBox text={error} />
-
-      {loading ? (
-        <Loading />
-      ) : (
-        <Panel>
-          <div className="workspace-table">
-            <div className="workspace-row product-row product-table-header" role="row">
-              <strong>Product</strong>
-              <span>Category</span>
-              <span>Gender</span>
-              <span>Base Price</span>
-              <span>Discount</span>
-              <span>Offer Price</span>
-              <span>Actions</span>
-            </div>
-            {visible.map((product) => (
-              <div className="workspace-row product-row" key={product.id}>
-                <strong>{product.name}</strong>
-                <span>
-                  {categories.find((c) => c.id === product.category_id)?.name || 'Uncategorized'}
-                </span>
-                <span>{product.gender}</span>
-                <span>₹{Number(product.base_price || 0).toLocaleString('en-IN')}</span>
-                <span>{Number(product.discount_percentage || 0)}%</span>
-                <span>
-                  ₹{Number(product.offer_price ?? product.base_price ?? 0).toLocaleString('en-IN')}
-                </span>
-                <button
-                  onClick={() => {
-                    setError('')
-                    setVariants([])
-                    setEditing({
-                      ...product,
-                      base_price: product.base_price ?? '',
-                      discount_percentage: product.discount_percentage ?? '',
-                      offer_price: product.offer_price ?? product.base_price ?? '',
-                    })
-                    void loadVariants(product.id)
-                  }}
-                >
-                  Edit
-                </button>
-              </div>
-            ))}
-          </div>
-        </Panel>
-      )}
-
-      {editing && !editing.id && (
-        <EditModal title="Add Product" onClose={() => setEditing(null)} onSave={() => void save()}>
-          <div className="workspace-form-row">
-            <Field
-              label="Name"
-              value={editing.name}
-              onChange={(v) => setEditing({ ...editing, name: v })}
-            />
-            <Select
-              label="Category"
-              value={editing.category_id || ''}
-              options={categories.map((x) => x.id)}
-              labels={Object.fromEntries(categories.map((x) => [x.id, x.name]))}
-              onChange={(v) => setEditing({ ...editing, category_id: v })}
-            />
-          </div>
-          <div className="workspace-form-row">
-            <Field
-              label="Product Type"
-              value={editing.product_type || ''}
-              onChange={(v) => setEditing({ ...editing, product_type: v })}
-            />
-            <Field
-              label="Occasion Type"
-              value={editing.occasion_type || ''}
-              onChange={(v) => setEditing({ ...editing, occasion_type: v })}
-            />
-          </div>
-          <div className="workspace-form-row workspace-form-row-description-gender">
-            <Field
-              label="Description"
-              value={editing.description || ''}
-              onChange={(v) => setEditing({ ...editing, description: v })}
-              area
-            />
-            <Select
-              label="Gender"
-              value={editing.gender}
-              options={['boys', 'girls', 'unisex']}
-              onChange={(v) => setEditing({ ...editing, gender: v })}
-            />
-          </div>
-          <div className="workspace-form-row workspace-form-row-pricing">
-            <Field
-              label="Base Price"
-              value={String(editing.base_price ?? '')}
-              onChange={(v) => setEditing({ ...editing, base_price: v })}
-              type="number"
-            />
-            <Field
-              label="Discount (%)"
-              value={String(editing.discount_percentage ?? '')}
-              onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
-              type="number"
-            />
-            <Field
-              label="Offer Price"
-              value={String(editing.offer_price ?? '')}
-              onChange={(v) => setEditing({ ...editing, offer_price: v })}
-              type="number"
-            />
-          </div>
-          <div className="workspace-form-row workspace-form-row-image-status">
-            <div className="workspace-field">
-              <span>Product Main Image</span>
-              <ImagePicker
-                value={editing.image_url || ''}
-                folder="products"
-                alt="Selected product"
-                onChange={(v) => setEditing({ ...editing, image_url: v })}
-              />
-            </div>
-            <div className="workspace-field">
-              <span>Product Image Gallery</span>
-              <GalleryPicker
-                value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []}
-                folder="products"
-                onChange={(v) => setEditing({ ...editing, image_gallery: v })}
-              />
-            </div>
-          </div>
-        </EditModal>
+      {!isEditingProduct && (
+        <>
+                <Toolbar onRefresh={load}>
+                  <div className="toolbar-search">
+                    <Search size={15} />
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search products"
+                    />
+                  </div>
+                  <button className="primary-button" onClick={newProduct}>
+                    <Plus size={15} /> Add Product
+                  </button>
+                </Toolbar>
+          
+                <ErrorBox text={error} />
+          
+                {loading ? (
+                  <Loading />
+                ) : (
+                  <Panel>
+                    <div className="workspace-table">
+                      <div className="workspace-row product-row product-table-header" role="row">
+                        <strong>Product</strong>
+                        <span>Category</span>
+                        <span>Gender</span>
+                        <span>Base Price</span>
+                        <span>Discount</span>
+                        <span>Offer Price</span>
+                        <span>Actions</span>
+                      </div>
+                      {visible.map((product) => (
+                        <div className="workspace-row product-row" key={product.id}>
+                          <strong>{product.name}</strong>
+                          <span>
+                            {categories.find((c) => c.id === product.category_id)?.name || 'Uncategorized'}
+                          </span>
+                          <span>{product.gender}</span>
+                          <span>₹{Number(product.base_price || 0).toLocaleString('en-IN')}</span>
+                          <span>{Number(product.discount_percentage || 0)}%</span>
+                          <span>
+                            ₹{Number(product.offer_price ?? product.base_price ?? 0).toLocaleString('en-IN')}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setError('')
+                              setVariants([])
+                              setEditing({
+                                ...product,
+                                base_price: product.base_price ?? '',
+                                discount_percentage: product.discount_percentage ?? '',
+                                offer_price: product.offer_price ?? product.base_price ?? '',
+                              })
+                              void loadVariants(product.id)
+                            }}
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </Panel>
+                )}
+          
+                {editing && !editing.id && (
+                  <EditModal title="Add Product" onClose={() => setEditing(null)} onSave={() => void save()}>
+                    <div className="workspace-form-row">
+                      <Field
+                        label="Name"
+                        value={editing.name}
+                        onChange={(v) => setEditing({ ...editing, name: v })}
+                      />
+                      <Select
+                        label="Category"
+                        value={editing.category_id || ''}
+                        options={categories.map((x) => x.id)}
+                        labels={Object.fromEntries(categories.map((x) => [x.id, x.name]))}
+                        onChange={(v) => setEditing({ ...editing, category_id: v })}
+                      />
+                    </div>
+                    <div className="workspace-form-row">
+                      <Field
+                        label="Product Type"
+                        value={editing.product_type || ''}
+                        onChange={(v) => setEditing({ ...editing, product_type: v })}
+                      />
+                      <Field
+                        label="Occasion Type"
+                        value={editing.occasion_type || ''}
+                        onChange={(v) => setEditing({ ...editing, occasion_type: v })}
+                      />
+                    </div>
+                    <div className="workspace-form-row workspace-form-row-description-gender">
+                      <Field
+                        label="Description"
+                        value={editing.description || ''}
+                        onChange={(v) => setEditing({ ...editing, description: v })}
+                        area
+                      />
+                      <Select
+                        label="Gender"
+                        value={editing.gender}
+                        options={['boys', 'girls', 'unisex']}
+                        onChange={(v) => setEditing({ ...editing, gender: v })}
+                      />
+                    </div>
+                    <div className="workspace-form-row workspace-form-row-pricing">
+                      <Field
+                        label="Base Price"
+                        value={String(editing.base_price ?? '')}
+                        onChange={(v) => setEditing({ ...editing, base_price: v })}
+                        type="number"
+                      />
+                      <Field
+                        label="Discount (%)"
+                        value={String(editing.discount_percentage ?? '')}
+                        onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
+                        type="number"
+                      />
+                      <Field
+                        label="Offer Price"
+                        value={String(editing.offer_price ?? '')}
+                        onChange={(v) => setEditing({ ...editing, offer_price: v })}
+                        type="number"
+                      />
+                    </div>
+                    <div className="workspace-form-row workspace-form-row-image-status">
+                      <div className="workspace-field">
+                        <span>Product Main Image</span>
+                        <ImagePicker
+                          value={editing.image_url || ''}
+                          folder="products"
+                          alt="Selected product"
+                          onChange={(v) => setEditing({ ...editing, image_url: v })}
+                        />
+                      </div>
+                      <div className="workspace-field">
+                        <span>Product Image Gallery</span>
+                        <GalleryPicker
+                          value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []}
+                          folder="products"
+                          onChange={(v) => setEditing({ ...editing, image_gallery: v })}
+                        />
+                      </div>
+                    </div>
+                  </EditModal>
+                )}
+          
+                  </>
       )}
 
       {editing?.id && (
