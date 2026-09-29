@@ -548,16 +548,11 @@ function Products({ productId }: { productId?: string | null }) {
   const isProductPage = Boolean(productId)
 
   useEffect(() => {
-    if (editing?.id) {
-      requestAnimationFrame(() => {
-        const workspaceBody = document.querySelector<HTMLElement>(
-          '.admin-workspace .workspace-body',
-        )
-        if (workspaceBody) {
-          workspaceBody.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-        }
-      })
-    }
+    if (!editing?.id) return
+
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    })
   }, [editing?.id])
 
   return (
@@ -804,20 +799,7 @@ function ProductEditorScreen({
   const [additionalDetailsOpen, setAdditionalDetailsOpen] = useState(false)
 
   const toggleAdditionalDetails = () => {
-    const workspaceBody = document.querySelector<HTMLElement>('.admin-workspace .workspace-body')
-    const nextOpen = !additionalDetailsOpen
-
-    setAdditionalDetailsOpen(nextOpen)
-
-    if (nextOpen) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (workspaceBody) {
-            workspaceBody.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-          }
-        })
-      })
-    }
+    setAdditionalDetailsOpen((open) => !open)
   }
 
   useEffect(() => {
