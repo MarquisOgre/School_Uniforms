@@ -387,9 +387,7 @@ function Products({ productSlug }: { productSlug?: string | null }) {
       }
 
       if (!product && !slugResult.error) {
-        const nameFromSlug = decodeURIComponent(productSlug)
-          .replace(/-/g, ' ')
-          .trim()
+        const nameFromSlug = decodeURIComponent(productSlug).replace(/-/g, ' ').trim()
 
         const nameResult = await dbFrom('products')
           .select('*')
