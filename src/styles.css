@@ -5565,6 +5565,11 @@ a {
 .workspace-form-row-pricing {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+.workspace-form-row-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
 
 .workspace-form-row-description-gender {
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -5670,6 +5675,8 @@ a {
     font-size: 26px;
   }
   .workspace-form-row,
+  .workspace-form-row-4,
+  .workspace-form-row-pricing,
   .workspace-form-row-description-gender,
   .workspace-form-row-image-status {
     grid-template-columns: 1fr;
