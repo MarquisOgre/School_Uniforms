@@ -544,6 +544,23 @@ function Products({ productId }: { productId?: string | null }) {
 
   return (
     <>
+      {isProductPage && !editing?.id ? (
+        <>
+          <ErrorBox text={error} />
+          {loading ? (
+            <Panel>
+              <Loading />
+            </Panel>
+          ) : (
+            <Panel>
+              <div className="workspace-empty">
+                {error || 'Unable to load this product.'}
+              </div>
+            </Panel>
+          )}
+        </>
+      ) : null}
+
       {!isEditingProduct && !isProductPage && (
         <>
           <Toolbar onRefresh={load}>
