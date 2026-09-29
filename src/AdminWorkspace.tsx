@@ -391,7 +391,11 @@ function Products({
     if (!supabase || !name || categorySaving) return
     setCategorySaving(true)
     setError('')
-    const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    const slug = name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
     const result = await dbFrom('product_categories')
       .insert({ name, slug, status: 'active' })
       .select('*')
@@ -399,7 +403,9 @@ function Products({
     if (result.error) {
       setError(result.error.message)
     } else {
-      setCategories((current) => [...current, result.data].sort((a, b) => a.name.localeCompare(b.name)))
+      setCategories((current) =>
+        [...current, result.data].sort((a, b) => a.name.localeCompare(b.name)),
+      )
       setNewCategoryName('')
     }
     setCategorySaving(false)
@@ -409,10 +415,14 @@ function Products({
     if (!supabase) return
     const used = rows.some((product) => product.category_id === categoryId)
     if (used) {
-      setError('This category is assigned to one or more products. Reassign those products before deactivating it.')
+      setError(
+        'This category is assigned to one or more products. Reassign those products before deactivating it.',
+      )
       return
     }
-    const result = await dbFrom('product_categories').update({ status: 'inactive' }).eq('id', categoryId)
+    const result = await dbFrom('product_categories')
+      .update({ status: 'inactive' })
+      .eq('id', categoryId)
     if (result.error) setError(result.error.message)
     else setCategories((current) => current.filter((x) => x.id !== categoryId))
   }
