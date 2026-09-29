@@ -786,9 +786,9 @@ function Products({ productSlug }: { productSlug?: string | null }) {
           setVariants={setVariants}
           variantsLoading={variantsLoading}
           onBack={() => {
-            if (productId) {
+            if (window.location.pathname.startsWith('/admin/products/edit/')) {
               window.history.pushState(
-                { schoolUniformApp: 'admin', tool: 'products', productId: null },
+                { schoolUniformApp: 'admin', tool: 'products', productSlug: null },
                 '',
                 '/admin/products',
               )
