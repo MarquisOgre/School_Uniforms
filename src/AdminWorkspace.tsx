@@ -3637,13 +3637,9 @@ function ParentStudents() {
                     value={child.full_name || ''}
                     onChange={(v) => updateChild(index, { full_name: v })}
                   />
+                  
                   <Field
-                    label="Father's Name"
-                    value={child.father_name || ''}
-                    onChange={(v) => updateChild(index, { father_name: v })}
-                  />
-                  <Field
-                    label="Class Name"
+                    label="Class"
                     value={child.class_name || ''}
                     onChange={(v) => updateChild(index, { class_name: v })}
                   />
@@ -3707,7 +3703,7 @@ function ParentStudents() {
             onChange={(v) => setStudentEditing({ ...studentEditing, branch_id: v })}
           />
           <Field
-            label="Class Name"
+            label="Class"
             value={studentEditing.class_name || ''}
             onChange={(v) => setStudentEditing({ ...studentEditing, class_name: v })}
           />
