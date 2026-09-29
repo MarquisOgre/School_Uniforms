@@ -112,6 +112,25 @@ export default function AdminWorkspace({
       <main className={`workspace-body workspace-${module}`}>
         {module !== 'reports' && (
           <>
+            {(module === 'products' || module === 'packages') && (
+              <div className="admin-branch-context">
+                <label htmlFor="admin-active-branch">Active Branch</label>
+                <select
+                  id="admin-active-branch"
+                  value={branchId || ''}
+                  onChange={(e) => handleBranchChange(e.target.value)}
+                  disabled={!branches.length}
+                >
+                  {!branches.length ? <option value="">No active branches</option> : null}
+                  {branches.map((branch: any) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                      {branch.code ? ` (${branch.code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div
               className="workspace-heading"
               style={{
@@ -159,25 +178,6 @@ export default function AdminWorkspace({
                 </div>
               ) : null}
             </div>
-            {(module === 'products' || module === 'packages') && (
-              <div className="admin-branch-context">
-                <label htmlFor="admin-active-branch">Active Branch</label>
-                <select
-                  id="admin-active-branch"
-                  value={branchId || ''}
-                  onChange={(e) => handleBranchChange(e.target.value)}
-                  disabled={!branches.length}
-                >
-                  {!branches.length ? <option value="">No active branches</option> : null}
-                  {branches.map((branch: any) => (
-                    <option key={branch.id} value={branch.id}>
-                      {branch.name}
-                      {branch.code ? ` (${branch.code})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </>
         )}
         <ModuleBody
