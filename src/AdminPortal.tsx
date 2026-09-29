@@ -253,6 +253,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     [error, setError] = useState('')
   const [tool, setTool] = useState<AdminTool>('home')
   const [productSlug, setProductSlug] = useState<string | null>(null)
+  const [packageSlug, setPackageSlug] = useState<string | null>(null)
   const adminPathForTool = (value: AdminTool) => {
     const paths: Record<AdminTool, string> = {
       home: '/admin/homepage',
@@ -276,6 +277,11 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/homepage') return 'home'
     if (path === '/admin/branches' || path === '/admin/schools') return 'branches'
     if (path === '/admin/products' || path.startsWith('/admin/products/edit/')) return 'products'
+    if (
+      path === '/admin/uniform-packages' ||
+      path.startsWith('/admin/uniform-packages/edit/')
+    )
+      return 'packages'
     if (path === '/admin/orders' || path === '/admin/payments') return 'orders'
     if (path === '/admin/inventory') return 'inventory'
     if (path === '/admin/parents-students') return 'students'
@@ -296,11 +302,21 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       }
       const nextTool = adminToolFromPath(window.location.pathname)
       const productMatch = window.location.pathname.match(/^\/admin\/products\/edit\/([^/]+)$/)
+      const packageMatch = window.location.pathname.match(
+        /^\/admin\/uniform-packages\/edit\/([^/]+)$/,
+      )
       setProductSlug(productMatch ? decodeURIComponent(productMatch[1]) : null)
+      setPackageSlug(packageMatch ? decodeURIComponent(packageMatch[1]) : null)
       setTool(nextTool)
-      const canonicalPath = productMatch ? window.location.pathname : adminPathForTool(nextTool)
+      const editMatch = productMatch || packageMatch
+      const canonicalPath = editMatch ? window.location.pathname : adminPathForTool(nextTool)
       window.history.replaceState(
-        { schoolUniformApp: 'admin', tool: nextTool, productSlug: productMatch?.[1] || null },
+        {
+          schoolUniformApp: 'admin',
+          tool: nextTool,
+          productSlug: productMatch?.[1] || null,
+          packageSlug: packageMatch?.[1] || null,
+        },
         '',
         canonicalPath,
       )
@@ -317,6 +333,12 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       const productPath = `/admin/products/edit/${productSlug}`
       if (window.location.pathname === productPath) return
       window.history.pushState({ schoolUniformApp: 'admin', tool, productSlug }, '', productPath)
+      return
+    }
+    if (tool === 'packages' && packageSlug) {
+      const packagePath = `/admin/uniform-packages/edit/${packageSlug}`
+      if (window.location.pathname === packagePath) return
+      window.history.pushState({ schoolUniformApp: 'admin', tool, packageSlug }, '', packagePath)
       return
     }
     const canonicalPath = adminPathForTool(tool)
@@ -471,9 +493,11 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
           <AdminWorkspace
             module={tool}
             productSlug={tool === 'products' ? productSlug : null}
+            packageSlug={tool === 'packages' ? packageSlug : null}
             onBack={() => {
               setProductSlug(null)
-              setTool('products')
+              setPackageSlug(null)
+              setTool(tool === 'packages' ? 'packages' : 'products')
             }}
           />
         </Suspense>
@@ -482,7 +506,14 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   return (
     <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
       <Suspense fallback={<div className="workspace-empty">Loading admin module...</div>}>
-        <AdminWorkspace module="packages" onBack={() => setTool('packages')} />
+        <AdminWorkspace
+          module="packages"
+          packageSlug={packageSlug}
+          onBack={() => {
+            setPackageSlug(null)
+            setTool('packages')
+          }}
+        />
       </Suspense>
     </AdminLayout>
   )
