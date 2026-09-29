@@ -4921,6 +4921,8 @@ a {
   background: #fffdf8;
   border: 1px solid var(--line);
   border-radius: 10px;
+  margin: 0 0 16px;
+  width: fit-content;
 }
 
 .admin-branch-context label {
