@@ -1,5 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Plus, RefreshCw, Save, Trash2, Search, X, Download } from 'lucide-react'
+import {
+  Plus,
+  RefreshCw,
+  Save,
+  Trash2,
+  Search,
+  X,
+  Download,
+  ArrowLeft,
+  Pencil,
+  Percent,
+} from 'lucide-react'
 import { supabase } from './lib/supabase'
 import EmailConfigSettings from './EmailConfigSettings'
 import SiteBrandingSettings from './SiteBrandingSettings'
@@ -239,383 +250,43 @@ function Branches() {
           </div>
         </Panel>
       )}
-      {editing && (
-        <EditModal
-          title={editing.id ? 'Edit Branch' : 'Add Branch'}
-          onClose={() => setEditing(null)}
-          onSave={saveBranch}
-        >
-          <Field
-            label="Branch Name"
-            value={editing.name}
-            onChange={(v) => setEditing({ ...editing, name: v })}
-          />
-          <Field
-            label="Code"
-            value={editing.code}
-            onChange={(v) => setEditing({ ...editing, code: v })}
-          />
-          <Field
-            label="City"
-            value={editing.city || ''}
-            onChange={(v) => setEditing({ ...editing, city: v })}
-          />
-          <Field
-            label="State"
-            value={editing.state || ''}
-            onChange={(v) => setEditing({ ...editing, state: v })}
-          />
-          <Field
-            label="Phone"
-            value={editing.phone || ''}
-            onChange={(v) => setEditing({ ...editing, phone: v })}
-          />
-          <Field
-            label="Email"
-            value={editing.email || ''}
-            onChange={(v) => setEditing({ ...editing, email: v })}
-          />
-          <Select
-            label="Status"
-            value={editing.status}
-            options={['active', 'inactive', 'suspended']}
-            onChange={(v) => setEditing({ ...editing, status: v })}
-          />
-        </EditModal>
-      )}
-    </>
-  )
-}
-function Products() {
-  const [rows, setRows] = useState<any[]>([]),
-    [categories, setCategories] = useState<any[]>([]),
-    [editing, setEditing] = useState<any>(null),
-    [variantEditing, setVariantEditing] = useState<any>(null),
-    [variants, setVariants] = useState<any[]>([]),
-    [variantsLoading, setVariantsLoading] = useState(false),
-    [itemVariants, setItemVariants] = useState<any[]>([]),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(true),
-    [search, setSearch] = useState('')
-
-  const load = async () => {
-    if (!supabase) return
-    setLoading(true)
-    const [p, c] = await Promise.all([
-      dbFrom('products').select('*').order('name'),
-      dbFrom('product_categories').select('*').eq('status', 'active').order('name'),
-    ])
-    setRows(p.data ?? [])
-    setCategories(c.data ?? [])
-    setError(p.error?.message || c.error?.message || '')
-    setLoading(false)
-  }
-
-  const loadVariants = async (productId: string) => {
-    if (!supabase || !productId) {
-      setVariants([])
-      return
-    }
-
-    setVariantsLoading(true)
-    setVariants([])
-    const r = await dbFrom('product_variants')
-      .select('id,product_id,sku,size_label,color,variant_name,price,status')
-      .eq('product_id', productId)
-      .order('size_label')
-
-    if (r.error) {
-      setVariants([])
-      setError(r.error.message || 'Unable to load product variants.')
-    } else {
-      setVariants(r.data ?? [])
-    }
-    setVariantsLoading(false)
-  }
-
-  useEffect(() => {
-    void load()
-  }, [])
-
-  const variantSkuBase = (productName: string) =>
-    String(productName || '')
-      .trim()
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') || 'PRODUCT'
-
-  const nextVariantSku = (productName: string, rows: any[], currentId?: string) => {
-    const base = variantSkuBase(productName)
-    const used = new Set<number>()
-
-    rows.forEach((row) => {
-      if (row.id === currentId) return
-      const match = String(row.sku || '').match(/-(\d+)$/)
-      if (match) used.add(Number(match[1]))
-    })
-
-    if (currentId) {
-      const current = rows.find((row) => row.id === currentId)
-      const match = String(current?.sku || '').match(/-(\d+)$/)
-      const currentNumber = match ? Number(match[1]) : 0
-      if (currentNumber > 0 && !used.has(currentNumber)) {
-        return `${base}-${currentNumber}`
-      }
-    }
-
-    let next = 1
-    while (used.has(next)) next += 1
-    return `${base}-${next}`
-  }
-
-  const save = async () => {
-    if (!supabase || !editing) return
-
-    const name = String(editing.name || '').trim()
-    if (!name) {
-      setError('Product Name is required.')
-      return
-    }
-
-    const slug = (editing.slug || name)
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-
-    const p = {
-      category_id: editing.category_id || null,
-      name,
-      slug,
-      description: editing.description || null,
-      product_type: editing.product_type || null,
-      occasion_type: editing.occasion_type || null,
-      gender: editing.gender,
-      material: editing.material || null,
-      brand: editing.brand || null,
-      quality: editing.quality || null,
-      fabric: editing.fabric || null,
-      care: editing.care || null,
-      delivery_returns: editing.delivery_returns || null,
-      cod_available: editing.cod_available !== false,
-      custom_order_cod: editing.custom_order_cod === true,
-      easy_returns: editing.easy_returns !== false,
-      express_shipping: editing.express_shipping !== false,
-      show_cod_returns_shipping: editing.show_cod_returns_shipping !== false,
-      show_details: editing.show_details !== false,
-      show_description: editing.show_description !== false,
-      show_quality_care: editing.show_quality_care !== false,
-      show_delivery_returns: editing.show_delivery_returns !== false,
-      image_url: editing.image_url || null,
-      image_gallery: Array.isArray(editing.image_gallery) ? editing.image_gallery : [],
-      base_price: Number(editing.base_price || 0),
-      offer_price:
-        editing.offer_price === '' || editing.offer_price == null
-          ? null
-          : Number(editing.offer_price),
-      discount_percentage: Number(editing.discount_percentage || 0),
-      status: editing.status,
-    }
-
-    const r = editing.id
-      ? await dbFrom('products').update(p).eq('id', editing.id)
-      : await dbFrom('products').insert(p)
-
-    if (r.error) {
-      setError(r.error.message)
-      return
-    }
-
-    // Variant SKUs/names are managed by the Variant editor.
-    // Do not regenerate them when saving the parent product; this preserves
-    // administrator edits and prevents deleted variants from being recreated.
-
-    setEditing(null)
-    setVariants([])
-    await load()
-  }
-
-  const deleteVariant = async () => {
-    if (!supabase || !variantEditing?.id) return
-    const confirmed = window.confirm(
-      `Delete this variant permanently? This will remove the variant and cannot be undone.\n\n${variantEditing.variant_name || variantEditing.sku || 'Selected variant'}`,
-    )
-    if (!confirmed) return
-
-    const productId = variantEditing.product_id
-    const r = await dbFrom('product_variants').delete().eq('id', variantEditing.id)
-    if (r.error) {
-      setError(r.error.message)
-      return
-    }
-
-    setVariantEditing(null)
-    setVariants((current) => current.filter((variant) => variant.id !== variantEditing.id))
-    setError('')
-    await loadVariants(productId)
-  }
-
-  const saveVariant = async () => {
-    if (!supabase || !variantEditing) return
-
-    if (!variantEditing.product_id) {
-      setError('Variant must be linked to a saved product.')
-      return
-    }
-
-    const generatedSku = nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)
-
-    const sizeLabel = String(variantEditing.size_label || '').trim()
-    const productName = String(editing?.name || '').trim()
-    const generatedVariantName = sizeLabel ? `${productName} - Size ${sizeLabel}` : productName
-    const sku = String(variantEditing.sku || '').trim() || generatedSku
-    const variantName = String(variantEditing.variant_name || '').trim() || generatedVariantName
-
-    const p = {
-      product_id: variantEditing.product_id,
-      sku,
-      size_label: sizeLabel || null,
-      color: String(variantEditing.color || '').trim() || null,
-      variant_name: variantName || null,
-      price:
-        variantEditing.price === '' || variantEditing.price == null
-          ? null
-          : Number(variantEditing.price),
-      status: 'active',
-    }
-
-    const r = variantEditing.id
-      ? await dbFrom('product_variants').update(p).eq('id', variantEditing.id)
-      : await dbFrom('product_variants').insert(p)
-
-    if (r.error) {
-      setError(r.error.message)
-    } else {
-      setVariantEditing(null)
-      setError('')
-      await loadVariants(variantEditing.product_id)
-    }
-  }
-
-  const visible = rows.filter((x) =>
-    String(x.name || '')
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  )
-
-  return (
-    <>
-      <Toolbar onRefresh={load}>
-        <div className="toolbar-search">
-          <Search size={15} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products"
-          />
-        </div>
-        <button
-          className="primary-button"
-          onClick={() =>
-            setEditing({
-              name: '',
-              description: '',
-              product_type: '',
-              occasion_type: '',
-              gender: 'unisex',
-              material: '',
-              brand: '',
-              quality: '',
-              fabric: '',
-              care: '',
-              delivery_returns: '',
-              cod_available: true,
-              custom_order_cod: false,
-              easy_returns: true,
-              express_shipping: true,
-              show_cod_returns_shipping: true,
-              show_details: true,
-              show_description: true,
-              show_quality_care: true,
-              show_delivery_returns: true,
-              base_price: '',
-              discount_percentage: '',
-              offer_price: '',
-              image_url: '',
-              image_gallery: [],
-              status: 'active',
-              category_id: categories[0]?.id || '',
-            })
-          }
-        >
-          <Plus size={15} /> Add Product
-        </button>
-      </Toolbar>
-
-      <ErrorBox text={error} />
-
-      {loading ? (
-        <Loading />
-      ) : (
-        <Panel>
-          <div className="workspace-table">
-            <div className="workspace-row product-row product-table-header" role="row">
-              <strong>Product</strong>
-              <span>Category</span>
-              <span>Gender</span>
-              <span>Base Price</span>
-              <span>Discount</span>
-              <span>Offer Price</span>
-              <span>Actions</span>
-            </div>
-            {visible.map((x) => (
-              <div className="workspace-row product-row" key={x.id}>
-                <strong>{x.name}</strong>
-                <span>
-                  {categories.find((c) => c.id === x.category_id)?.name || 'Uncategorized'}
-                </span>
-                <span>{x.gender}</span>
-                <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
-                <span>{Number(x.discount_percentage || 0)}%</span>
-                <span>₹{Number(x.offer_price ?? x.base_price ?? 0).toLocaleString('en-IN')}</span>
-                <button
-                  onClick={() => {
-                    setError('')
-                    setVariants([])
-                    setEditing({
-                      ...x,
-                      base_price: x.base_price ?? '',
-                      discount_percentage: x.discount_percentage ?? '',
-                      offer_price: x.offer_price ?? x.base_price ?? '',
-                    })
-                    void loadVariants(x.id)
-                  }}
-                >
-                  Edit
-                </button>
-              </div>
-            ))}
-          </div>
-        </Panel>
-      )}
-
-      {editing && (
-        <EditModal
-          title={editing.id ? 'Edit Product' : 'Add Product'}
-          onClose={() => {
+      {editing && editing.id && (
+        <ProductEditorScreen
+          editing={editing}
+          setEditing={setEditing}
+          categories={categories}
+          variants={variants}
+          setVariants={setVariants}
+          variantsLoading={variantsLoading}
+          onBack={() => {
             setEditing(null)
             setVariants([])
-            setVariantsLoading(false)
             setVariantEditing(null)
           }}
-          onSave={save}
+          onSaveProduct={async () => {
+            const ok = await save(false)
+            if (!ok) return false
+            const saved = await saveAllVariants()
+            if (saved) {
+              setError('')
+              await load()
+            }
+            return saved
+          }}
+          onRefreshVariants={() => editing?.id && void loadVariants(editing.id)}
+          error={error}
+          setError={setError}
+        />
+      )}
+
+      {editing && !editing.id && (
+        <EditModal
+          title="Add Product"
+          onClose={() => setEditing(null)}
+          onSave={() => void save()}
         >
           <div className="workspace-form-row">
-            <Field
-              label="Name"
-              value={editing.name}
-              onChange={(v) => setEditing({ ...editing, name: v })}
-            />
+            <Field label="Name" value={editing.name} onChange={(v) => setEditing({ ...editing, name: v })} />
             <Select
               label="Category"
               value={editing.category_id || ''}
@@ -624,367 +295,399 @@ function Products() {
               onChange={(v) => setEditing({ ...editing, category_id: v })}
             />
           </div>
-
           <div className="workspace-form-row">
-            <Field
-              label="Product Type"
-              value={editing.product_type || ''}
-              onChange={(v) => setEditing({ ...editing, product_type: v })}
-            />
-            <Field
-              label="Occasion Type"
-              value={editing.occasion_type || ''}
-              onChange={(v) => setEditing({ ...editing, occasion_type: v })}
-            />
+            <Field label="Product Type" value={editing.product_type || ''} onChange={(v) => setEditing({ ...editing, product_type: v })} />
+            <Field label="Occasion Type" value={editing.occasion_type || ''} onChange={(v) => setEditing({ ...editing, occasion_type: v })} />
           </div>
-
           <div className="workspace-form-row workspace-form-row-description-gender">
-            <Field
-              label="Description"
-              value={editing.description || ''}
-              onChange={(v) => setEditing({ ...editing, description: v })}
-              area
-            />
-            <Select
-              label="Gender"
-              value={editing.gender}
-              options={['boys', 'girls', 'unisex']}
-              onChange={(v) => setEditing({ ...editing, gender: v })}
-            />
+            <Field label="Description" value={editing.description || ''} onChange={(v) => setEditing({ ...editing, description: v })} area />
+            <Select label="Gender" value={editing.gender} options={['boys', 'girls', 'unisex']} onChange={(v) => setEditing({ ...editing, gender: v })} />
           </div>
-
-          <div className="workspace-form-row">
-            <Field
-              label="Material"
-              value={editing.material || ''}
-              onChange={(v) => setEditing({ ...editing, material: v })}
-            />
-            <Field
-              label="Brand"
-              value={editing.brand || ''}
-              onChange={(v) => setEditing({ ...editing, brand: v })}
-            />
-          </div>
-
-          <div className="workspace-form-row">
-            <Field
-              label="Quality"
-              value={editing.quality || ''}
-              onChange={(v) => setEditing({ ...editing, quality: v })}
-            />
-            <Field
-              label="Fabric"
-              value={editing.fabric || ''}
-              onChange={(v) => setEditing({ ...editing, fabric: v })}
-            />
-          </div>
-
-          <div className="workspace-form-row workspace-form-row-description-gender">
-            <Field
-              label="Care Instructions"
-              value={editing.care || ''}
-              onChange={(v) => setEditing({ ...editing, care: v })}
-              area
-            />
-            <Field
-              label="Delivery & Returns"
-              value={editing.delivery_returns || ''}
-              onChange={(v) => setEditing({ ...editing, delivery_returns: v })}
-              area
-            />
-          </div>
-
           <div className="workspace-form-row workspace-form-row-pricing">
-            <Field
-              label="Base Price"
-              value={String(editing.base_price ?? '')}
-              onChange={(v) => setEditing({ ...editing, base_price: v })}
-              type="number"
-              clearZeroOnFocus
-            />
-            <Field
-              label="Discount (%)"
-              value={String(editing.discount_percentage ?? '')}
-              onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
-              type="number"
-              clearZeroOnFocus
-            />
-            <Field
-              label="Offer Price"
-              value={String(editing.offer_price ?? '')}
-              onChange={(v) => setEditing({ ...editing, offer_price: v })}
-              type="number"
-              min="0"
-            />
+            <Field label="Base Price" value={String(editing.base_price ?? '')} onChange={(v) => setEditing({ ...editing, base_price: v })} type="number" />
+            <Field label="Discount (%)" value={String(editing.discount_percentage ?? '')} onChange={(v) => setEditing({ ...editing, discount_percentage: v })} type="number" />
+            <Field label="Offer Price" value={String(editing.offer_price ?? '')} onChange={(v) => setEditing({ ...editing, offer_price: v })} type="number" />
           </div>
-
-          <div className="workspace-product-benefits">
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.cod_available !== false}
-                onChange={(e) => setEditing({ ...editing, cod_available: e.target.checked })}
-              />{' '}
-              COD Available
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.custom_order_cod === true}
-                onChange={(e) => setEditing({ ...editing, custom_order_cod: e.target.checked })}
-              />{' '}
-              No COD on Custom Order (Embroidery)
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.easy_returns !== false}
-                onChange={(e) => setEditing({ ...editing, easy_returns: e.target.checked })}
-              />{' '}
-              Easy Returns & Exchange
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.express_shipping !== false}
-                onChange={(e) => setEditing({ ...editing, express_shipping: e.target.checked })}
-              />{' '}
-              1–3 Day Express Shipping
-            </label>
-          </div>
-
-          <div className="workspace-product-benefits">
-            <div className="workspace-muted" style={{ gridColumn: '1 / -1', fontWeight: 600 }}>
-              Product Detail Sections
-            </div>
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.show_cod_returns_shipping !== false}
-                onChange={(e) =>
-                  setEditing({ ...editing, show_cod_returns_shipping: e.target.checked })
-                }
-              />{' '}
-              COD, Returns & Shipping
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.show_details !== false}
-                onChange={(e) => setEditing({ ...editing, show_details: e.target.checked })}
-              />{' '}
-              Details
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.show_description !== false}
-                onChange={(e) => setEditing({ ...editing, show_description: e.target.checked })}
-              />{' '}
-              Description
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.show_quality_care !== false}
-                onChange={(e) => setEditing({ ...editing, show_quality_care: e.target.checked })}
-              />{' '}
-              Quality & Care
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={editing.show_delivery_returns !== false}
-                onChange={(e) =>
-                  setEditing({ ...editing, show_delivery_returns: e.target.checked })
-                }
-              />{' '}
-              Delivery & Returns
-            </label>
-          </div>
-
           <div className="workspace-form-row workspace-form-row-image-status">
             <div className="workspace-field">
               <span>Product Main Image</span>
-              <ImagePicker
-                value={editing.image_url || ''}
-                folder="products"
-                alt="Selected product"
-                onChange={(v) => setEditing({ ...editing, image_url: v })}
-              />
+              <ImagePicker value={editing.image_url || ''} folder="products" alt="Selected product" onChange={(v) => setEditing({ ...editing, image_url: v })} />
             </div>
-
             <div className="workspace-field">
               <span>Product Image Gallery</span>
-              <GalleryPicker
-                value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []}
-                folder="products"
-                onChange={(v) => setEditing({ ...editing, image_gallery: v })}
-              />
+              <GalleryPicker value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []} folder="products" onChange={(v) => setEditing({ ...editing, image_gallery: v })} />
             </div>
           </div>
-
-          <div className="workspace-form-row">
-            <Select
-              label="Status"
-              value={editing.status}
-              options={['active', 'inactive', 'suspended']}
-              onChange={(v) => setEditing({ ...editing, status: v })}
-            />
-          </div>
-
-          {editing.id && (
-            <>
-              <div className="panel-heading">
-                <div>
-                  <h3>Variants</h3>
-                  <p className="workspace-muted">
-                    Add sizes, colors, SKUs and variant-specific prices.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => {
-                    setError('')
-                    setVariantEditing({
-                      product_id: editing.id,
-                      sku: nextVariantSku(String(editing.name || ''), variants),
-                      size_label: '',
-                      color: '',
-                      variant_name: '',
-                      price: editing.base_price ?? '',
-                      status: 'active',
-                    })
-                  }}
-                >
-                  <Plus size={14} /> Add Variant
-                </button>
-              </div>
-
-              <div className="workspace-variants-panel">
-                <div className="workspace-variants-summary">
-                  <strong>
-                    {variantsLoading
-                      ? 'Loading variants…'
-                      : `${variants.length} variant${variants.length === 1 ? '' : 's'} loaded`}
-                  </strong>
-                  <span>
-                    Variant price is used when set; otherwise the product base price is shown.
-                  </span>
-                </div>
-                <div className="workspace-table workspace-scroll workspace-variants-table">
-                  {variantsLoading ? (
-                    <div className="workspace-empty">Loading variants and variant prices...</div>
-                  ) : (
-                    <>
-                      <div className="workspace-row product-row variant-row admin-table-header">
-                        <strong>SKU</strong>
-                        <span>Size</span>
-                        <span>Color</span>
-                        <span>Price</span>
-                        <span>Actions</span>
-                      </div>
-                      {variants.map((v) => {
-                        const effectivePrice = v.price ?? editing.base_price ?? 0
-                        return (
-                          <div className="workspace-row product-row variant-row" key={v.id}>
-                            <strong>{v.sku}</strong>
-                            <span>{v.size_label || '—'}</span>
-                            <span>{v.color || '—'}</span>
-                            <span>
-                              ₹{Number(effectivePrice).toLocaleString('en-IN')}
-                              {v.price == null && (
-                                <small className="workspace-price-fallback">Base</small>
-                              )}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setError('')
-                                setVariantEditing({
-                                  ...v,
-                                  price: v.price ?? editing.base_price ?? '',
-                                })
-                              }}
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        )
-                      })}
-                      {!variants.length && (
-                        <div className="workspace-empty">No variants added yet.</div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-
-          {!editing.id && (
-            <div className="workspace-note">
-              Save the product first, then use <strong>Edit → Add Variant</strong> to add its size,
-              color and SKU variants.
-            </div>
-          )}
         </EditModal>
       )}
 
-      {variantEditing && (
-        <EditModal
-          title={variantEditing.id ? 'Edit Variant' : 'Add Variant'}
-          onClose={() => setVariantEditing(null)}
-          onSave={saveVariant}
-          onDelete={variantEditing.id ? () => void deleteVariant() : undefined}
-        >
-          <div className="workspace-form-row">
-            <Field
-              label="SKU (Auto-generated, Editable)"
-              value={
-                variantEditing.sku ||
-                nextVariantSku(String(editing?.name || ''), variants, variantEditing.id)
-              }
-              onChange={(v) => setVariantEditing({ ...variantEditing, sku: v })}
-            />
-            <Field
-              label="Size"
-              value={variantEditing.size_label || ''}
-              onChange={(v) => setVariantEditing({ ...variantEditing, size_label: v })}
-            />
-          </div>
-          <div className="workspace-form-row">
-            <Field
-              label="Color"
-              value={variantEditing.color || ''}
-              onChange={(v) => setVariantEditing({ ...variantEditing, color: v })}
-            />
-            <Field
-              label="Variant Name (Auto-generated, Editable)"
-              value={
-                variantEditing.variant_name ||
-                (String(variantEditing.size_label || '').trim()
-                  ? `${String(editing?.name || '').trim()} - Size ${String(variantEditing.size_label).trim()}`
-                  : String(editing?.name || '').trim())
-              }
-              onChange={(v) => setVariantEditing({ ...variantEditing, variant_name: v })}
-            />
-          </div>
-          <div className="workspace-form-row">
-            <Field
-              label="Price"
-              value={String(variantEditing.price ?? '')}
-              onChange={(v) => setVariantEditing({ ...variantEditing, price: v })}
-              type="number"
-              min="0"
-              clearZeroOnFocus
-            />
-            <div className="workspace-field" />
-          </div>
-        </EditModal>
-      )}
     </>
+  )
+}
+
+
+function ProductEditorScreen({
+  editing,
+  setEditing,
+  categories,
+  variants,
+  setVariants,
+  variantsLoading,
+  onBack,
+  onSaveProduct,
+  onRefreshVariants,
+  error,
+  setError,
+}: {
+  editing: any
+  setEditing: (value: any) => void
+  categories: any[]
+  variants: any[]
+  setVariants: React.Dispatch<React.SetStateAction<any[]>>
+  variantsLoading: boolean
+  onBack: () => void
+  onSaveProduct: () => Promise<boolean>
+  onRefreshVariants: () => void
+  error: string
+  setError: (value: string) => void
+}) {
+  const [selected, setSelected] = useState<string[]>([])
+  const [bulkPrice, setBulkPrice] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    setSelected([])
+  }, [editing.id])
+
+  const updateVariant = (id: string, patch: any) => {
+    setVariants((current) =>
+      current.map((variant) => (variant.id === id ? { ...variant, ...patch } : variant)),
+    )
+  }
+
+  const addSize = () => {
+    const index = variants.length + 1
+    const base = String(editing.name || 'PRODUCT')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+    setVariants((current) => [
+      ...current,
+      {
+        id: '',
+        product_id: editing.id,
+        sku: \`\${base || 'PRODUCT'}-\${String(index).padStart(3, '0')}\`,
+        size_label: '',
+        color: '',
+        variant_name: '',
+        price: editing.base_price ?? '',
+        status: 'active',
+        _new: true,
+      },
+    ])
+  }
+
+  const deleteSelected = async () => {
+    if (!selected.length) return
+    const confirmed = window.confirm(
+      \`Delete \${selected.length} selected size\${selected.length === 1 ? '' : 's'}? This cannot be undone.\`,
+    )
+    if (!confirmed) return
+
+    const existingIds = selected.filter(Boolean)
+    if (existingIds.length && supabase) {
+      const result = await dbFrom('product_variants').delete().in('id', existingIds)
+      if (result.error) {
+        setError(result.error.message)
+        return
+      }
+    }
+    setVariants((current) => current.filter((variant) => !selected.includes(variant.id)))
+    setSelected([])
+  }
+
+  const applyBulkPrice = () => {
+    if (bulkPrice === '' || !selected.length) return
+    setVariants((current) =>
+      current.map((variant) =>
+        selected.includes(variant.id)
+          ? { ...variant, price: bulkPrice }
+          : variant,
+      ),
+    )
+  }
+
+  const save = async () => {
+    setSaving(true)
+    setError('')
+    const ok = await onSaveProduct()
+    setSaving(false)
+    if (ok) {
+      setSelected([])
+    }
+  }
+
+  return (
+    <div className="product-editor-page">
+      <div className="product-editor-breadcrumb">
+        <span>Products</span>
+        <strong>›</strong>
+        <span>Edit Product</span>
+        <button type="button" className="product-editor-back" onClick={onBack}>
+          <ArrowLeft size={16} /> Back to Products
+        </button>
+      </div>
+
+      <div className="product-editor-heading">
+        <div>
+          <h1>Edit Product</h1>
+          <p>Update product details, images and size-wise pricing.</p>
+        </div>
+      </div>
+
+      {error ? <div className="workspace-error">{error}</div> : null}
+
+      <section className="product-editor-card product-details-card">
+        <div className="product-details-main">
+          <div className="product-editor-section-title">Product Details</div>
+
+          <div className="product-editor-grid product-editor-grid-2">
+            <Field label="Product Name *" value={editing.name || ''} onChange={(v) => setEditing({ ...editing, name: v })} />
+            <Select label="Gender" value={editing.gender || 'unisex'} options={['boys', 'girls', 'unisex']} onChange={(v) => setEditing({ ...editing, gender: v })} />
+          </div>
+
+          <div className="product-editor-grid product-editor-grid-2">
+            <Select
+              label="Category"
+              value={editing.category_id || ''}
+              options={categories.map((x) => x.id)}
+              labels={Object.fromEntries(categories.map((x) => [x.id, x.name]))}
+              onChange={(v) => setEditing({ ...editing, category_id: v })}
+            />
+            <Field label="Sub Category" value={editing.occasion_type || ''} onChange={(v) => setEditing({ ...editing, occasion_type: v })} />
+          </div>
+
+          <div className="product-editor-grid product-editor-grid-2">
+            <div>
+              <Field label="Base Price (₹)" value={String(editing.base_price ?? '')} onChange={(v) => setEditing({ ...editing, base_price: v })} type="number" min="0" />
+              <p className="product-editor-help">This is the default price new sizes will use.</p>
+            </div>
+            <label className="product-editor-status">
+              <span>Status</span>
+              <button
+                type="button"
+                className={editing.status === 'active' ? 'product-status-toggle active' : 'product-status-toggle'}
+                onClick={() => setEditing({ ...editing, status: editing.status === 'active' ? 'inactive' : 'active' })}
+              >
+                <span />
+              </button>
+              <strong>{editing.status === 'active' ? 'Active' : 'Inactive'}</strong>
+            </label>
+          </div>
+
+          <Field label="Product Description" value={editing.description || ''} onChange={(v) => setEditing({ ...editing, description: v })} area />
+        </div>
+
+        <div className="product-editor-images">
+          <div className="product-editor-section-title">Product Images</div>
+          <div className="product-main-image">
+            <ImagePicker
+              value={editing.image_url || ''}
+              folder="products"
+              alt="Selected product"
+              onChange={(v) => setEditing({ ...editing, image_url: v })}
+            />
+          </div>
+          <GalleryPicker
+            value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []}
+            folder="products"
+            onChange={(v) => setEditing({ ...editing, image_gallery: v })}
+          />
+        </div>
+      </section>
+
+      <section className="product-editor-card product-variants-card">
+        <div className="product-variants-heading">
+          <div className="product-editor-section-title">Sizes &amp; Prices (Variants)</div>
+          <div className="product-variant-actions">
+            <button type="button" className="secondary-button" onClick={addSize}>
+              <Plus size={15} /> Add Size
+            </button>
+            <button type="button" className="secondary-button" disabled={!selected.length} onClick={applyBulkPrice}>
+              <Percent size={15} /> Bulk Price
+            </button>
+            <button type="button" className="product-delete-selected" disabled={!selected.length} onClick={() => void deleteSelected()}>
+              <Trash2 size={15} /> Delete Selected
+            </button>
+          </div>
+        </div>
+
+        <div className="product-variants-table-wrap">
+          {variantsLoading ? (
+            <div className="workspace-empty">Loading sizes and prices...</div>
+          ) : (
+            <table className="product-variants-edit-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" checked={variants.length > 0 && selected.length === variants.length} onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id) : [])} /></th>
+                  <th>Size</th>
+                  <th>SKU</th>
+                  <th>Price (₹)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {variants.map((variant, index) => (
+                  <tr key={variant.id || \`new-\${index}\`}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(variant.id)}
+                        disabled={!variant.id}
+                        onChange={(e) =>
+                          setSelected((current) =>
+                            e.target.checked
+                              ? [...current, variant.id]
+                              : current.filter((id) => id !== variant.id),
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        value={variant.size_label || ''}
+                        placeholder="Size"
+                        onChange={(e) => updateVariant(variant.id, { size_label: e.target.value })}
+                        onBlur={() => {
+                          if (!variant.id) {
+                            const row = variants[index]
+                            setVariants((current) =>
+                              current.map((x, i) =>
+                                i === index ? { ...x, size_label: row.size_label } : x,
+                              ),
+                            )
+                          }
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <input value={variant.sku || ''} onChange={(e) => updateVariant(variant.id, { sku: e.target.value })} />
+                    </td>
+                    <td>
+                      <input type="number" min="0" value={variant.price ?? ''} onChange={(e) => updateVariant(variant.id, { price: e.target.value })} />
+                    </td>
+                    <td>
+                      <select value={variant.status || 'active'} onChange={(e) => updateVariant(variant.id, { status: e.target.value })}>
+                        <option value="active">● Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                      </select>
+                    </td>
+                    <td>
+                      <button type="button" className="product-row-icon" onClick={() => updateVariant(variant.id, { _focus: true })} title="Edit size">
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        className="product-row-icon danger"
+                        onClick={async () => {
+                          if (!variant.id) {
+                            setVariants((current) => current.filter((_, i) => i !== index))
+                            return
+                          }
+                          const ok = window.confirm('Delete this size permanently?')
+                          if (!ok || !supabase) return
+                          const result = await dbFrom('product_variants').delete().eq('id', variant.id)
+                          if (result.error) {
+                            setError(result.error.message)
+                            return
+                          }
+                          setVariants((current) => current.filter((x) => x.id !== variant.id))
+                          setSelected((current) => current.filter((id) => id !== variant.id))
+                        }}
+                        title="Delete size"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {!variantsLoading && !variants.length ? (
+            <div className="workspace-empty">No sizes added yet. Click <strong>Add Size</strong> to create the first size.</div>
+          ) : null}
+        </div>
+
+        <div className="product-variants-footer">
+          <div className="product-bulk-price">
+            <label>
+              <input type="checkbox" checked={variants.length > 0 && selected.length === variants.length} onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id) : [])} />
+              <span>Select All</span>
+            </label>
+            <span>Set Price to</span>
+            <input value={bulkPrice} onChange={(e) => setBulkPrice(e.target.value)} type="number" min="0" placeholder="875" />
+            <button type="button" className="primary-button" disabled={!selected.length || bulkPrice === ''} onClick={applyBulkPrice}>
+              Apply to Selected
+            </button>
+          </div>
+          <button type="button" className="product-save-all" onClick={() => void save()} disabled={saving}>
+            <Save size={16} /> {saving ? 'Saving...' : 'Save All Changes'}
+          </button>
+        </div>
+      </section>
+
+      <section className="product-editor-card product-extra-card">
+        <details>
+          <summary>Additional Product Details</summary>
+          <div className="product-extra-content">
+            <div className="workspace-form-row">
+              <Field label="Product Type" value={editing.product_type || ''} onChange={(v) => setEditing({ ...editing, product_type: v })} />
+              <Field label="Material" value={editing.material || ''} onChange={(v) => setEditing({ ...editing, material: v })} />
+            </div>
+            <div className="workspace-form-row">
+              <Field label="Brand" value={editing.brand || ''} onChange={(v) => setEditing({ ...editing, brand: v })} />
+              <Field label="Quality" value={editing.quality || ''} onChange={(v) => setEditing({ ...editing, quality: v })} />
+            </div>
+            <div className="workspace-form-row">
+              <Field label="Fabric" value={editing.fabric || ''} onChange={(v) => setEditing({ ...editing, fabric: v })} />
+              <Field label="Care Instructions" value={editing.care || ''} onChange={(v) => setEditing({ ...editing, care: v })} area />
+            </div>
+            <div className="workspace-form-row">
+              <Field label="Delivery & Returns" value={editing.delivery_returns || ''} onChange={(v) => setEditing({ ...editing, delivery_returns: v })} area />
+              <div />
+            </div>
+            <div className="workspace-product-benefits">
+              {[
+                ['cod_available', 'COD Available'],
+                ['custom_order_cod', 'No COD on Custom Order (Embroidery)'],
+                ['easy_returns', 'Easy Returns & Exchange'],
+                ['express_shipping', '1–3 Day Express Shipping'],
+                ['show_cod_returns_shipping', 'COD, Returns & Shipping'],
+                ['show_details', 'Details'],
+                ['show_description', 'Description'],
+                ['show_quality_care', 'Quality & Care'],
+                ['show_delivery_returns', 'Delivery & Returns'],
+              ].map(([key, label]) => (
+                <label key={key}>
+                  <input
+                    type="checkbox"
+                    checked={key === 'cod_available' || key === 'easy_returns' || key === 'express_shipping'
+                      ? editing[key] !== false
+                      : editing[key] === true}
+                    onChange={(e) => setEditing({ ...editing, [key]: e.target.checked })}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </div>
+        </details>
+      </section>
+    </div>
   )
 }
 
