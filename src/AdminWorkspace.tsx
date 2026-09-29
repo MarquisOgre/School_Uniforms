@@ -519,6 +519,10 @@ function Products({
 
   const save = async (closeAfter = true): Promise<boolean> => {
     if (!supabase || !editing) return false
+    if (!branchId) {
+      setError('Select an active branch before saving the product.')
+      return false
+    }
 
     const name = String(editing.name || '').trim()
     if (!name) {
@@ -2116,6 +2120,10 @@ function Packages({
   const save = async (editingOverride?: any, closeAfter = true) => {
     const currentEditing = editingOverride || editing
     if (!supabase || !currentEditing) return
+    if (!branchId) {
+      setError('Select an active branch before saving the package.')
+      return
+    }
     const name = String(currentEditing.name || '').trim()
     if (!name) {
       setError('Package Name is required.')
