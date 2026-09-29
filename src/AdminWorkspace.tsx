@@ -553,9 +553,7 @@ function Products({ productId }: { productId?: string | null }) {
             </Panel>
           ) : (
             <Panel>
-              <div className="workspace-empty">
-                {error || 'Unable to load this product.'}
-              </div>
+              <div className="workspace-empty">{error || 'Unable to load this product.'}</div>
             </Panel>
           )}
         </>
