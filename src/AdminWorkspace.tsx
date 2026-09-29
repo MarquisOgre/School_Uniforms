@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Pencil,
   Percent,
-  KeyRound,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import EmailConfigSettings from './EmailConfigSettings'
@@ -3105,8 +3104,7 @@ function ParentStudents() {
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState(''),
-    [editing, setEditing] = useState<any>(null),
-    [resettingDemoPassword, setResettingDemoPassword] = useState(false)
+    [editing, setEditing] = useState<any>(null)
 
   const load = async () => {
     if (!supabase) return
@@ -3124,50 +3122,6 @@ function ParentStudents() {
   useEffect(() => {
     void load()
   }, [])
-
-  const resetDemoParentPassword = async () => {
-    if (!supabase || resettingDemoPassword) return
-    const confirmed = window.confirm(
-      'Reset the demo parent password for BHUPESHKUMAR to Qwerty@123?',
-    )
-    if (!confirmed) return
-
-    setResettingDemoPassword(true)
-    setError('')
-
-    const { data: parent, error: parentError } = await dbFrom('profiles')
-      .select('id,full_name,login_id,role,status')
-      .eq('login_id', 'BHUPESHKUMAR')
-      .maybeSingle()
-
-    if (parentError || !parent) {
-      setError(parentError?.message || 'Demo parent account BHUPESHKUMAR was not found.')
-      setResettingDemoPassword(false)
-      return
-    }
-
-    if (parent.status !== 'active' || !['customer', 'parent'].includes(parent.role)) {
-      setError('Demo parent account is not active.')
-      setResettingDemoPassword(false)
-      return
-    }
-
-    const { data, error } = await supabase.functions.invoke('admin-reset-parent-password', {
-      body: {
-        parent_user_id: parent.id,
-        password: 'Qwerty@123',
-      },
-    })
-
-    if (error || !data?.success) {
-      setError(data?.error || error?.message || 'Unable to reset the demo parent password.')
-      setResettingDemoPassword(false)
-      return
-    }
-
-    setError('Demo parent password reset successfully to Qwerty@123.')
-    setResettingDemoPassword(false)
-  }
 
   const openNew = () => {
     const firstBranch = branches[0]
@@ -3297,14 +3251,6 @@ function ParentStudents() {
             placeholder="Search parents & students"
           />
         </div>
-        <button
-          className="secondary-button"
-          onClick={() => void resetDemoParentPassword()}
-          disabled={resettingDemoPassword}
-        >
-          <KeyRound size={15} />
-          {resettingDemoPassword ? 'Resetting...' : 'Reset Demo Password'}
-        </button>
         <button className="primary-button" onClick={openNew}>
           <Plus size={15} /> Add Student
         </button>
