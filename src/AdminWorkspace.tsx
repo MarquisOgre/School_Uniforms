@@ -278,7 +278,7 @@ function Branches() {
       postal_code: editing.postal_code || null,
       phone: editing.phone || null,
       email: editing.email || null,
-      status: currentEditing.status,
+      status: editing.status,
     }
     const r = editing.id
       ? await dbFrom('branches').update(payload).eq('id', editing.id)
