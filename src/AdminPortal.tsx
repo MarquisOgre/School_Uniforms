@@ -249,7 +249,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     [admin, setAdmin] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState('')
-  const [tool, setTool] = useState<AdminTool>('packages')
+  const [tool, setTool] = useState<AdminTool>('home')
   const adminPathForTool = (value: AdminTool) => {
     const paths: Record<AdminTool, string> = {
       home: '/admin/homepage',
@@ -282,7 +282,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/settings') return 'settings'
     if (path === '/admin/email-templates') return 'email-templates'
     if (path === '/admin/media') return 'media'
-    return 'packages'
+    return 'home'
   }
 
   useEffect(() => {
@@ -293,7 +293,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       }
       const nextTool = adminToolFromPath(window.location.pathname)
       setTool(nextTool)
-      if (window.location.pathname === '/admin') return
       const canonicalPath = adminPathForTool(nextTool)
       window.history.replaceState({ schoolUniformApp: 'admin', tool: nextTool }, '', canonicalPath)
     }
@@ -332,7 +331,8 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       setLoading(false)
       return
     }
-    window.history.replaceState({ schoolUniformApp: 'admin', tool: 'packages' }, '', '/admin')
+    window.history.replaceState({ schoolUniformApp: 'admin', tool: 'home' }, '', '/admin/homepage')
+    setTool('home')
     setAdmin(true)
     setLoading(false)
   }
@@ -352,8 +352,8 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   const logoutAdmin = async () => {
     if (supabase) await supabase.auth.signOut({ scope: 'local' })
     localStorage.removeItem('school_uniform_admin_context')
-    window.history.replaceState({}, '', '/admin')
-    setTool('packages')
+    window.history.replaceState({}, '', '/admin/homepage')
+    setTool('home')
     setAdmin(false)
     setEmail('')
     setPassword('')
