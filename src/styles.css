@@ -4535,7 +4535,6 @@ a {
   }
 }
 
-
 .homepage-slider-settings {
   overflow: hidden;
 }
@@ -4583,7 +4582,7 @@ a {
   color: #7a8184;
   font-size: 8px;
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
 }
 .homepage-slider-tab-list > button.active {
   background: #253a41;
@@ -4613,7 +4612,7 @@ a {
   background: #fffdf8;
 }
 .homepage-slider-arrow:disabled {
-  opacity: .4;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 .homepage-slider-editor {
@@ -4635,7 +4634,7 @@ a {
   font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: .07em;
+  letter-spacing: 0.07em;
 }
 .homepage-slider-card-actions {
   display: flex;

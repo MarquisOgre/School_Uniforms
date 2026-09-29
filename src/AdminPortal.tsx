@@ -730,9 +730,7 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
             <div className="homepage-slider-editor">
               {(() => {
                 const slide = content.hero.slides[activeSlide] || content.hero.slides[0]
-                const index = content.hero.slides[activeSlide]
-                  ? activeSlide
-                  : 0
+                const index = content.hero.slides[activeSlide] ? activeSlide : 0
 
                 return (
                   <div className="home-edit-card homepage-slider-card" key={index}>
