@@ -3115,7 +3115,7 @@ function ParentStudents() {
     const [parentsResult, studentsResult, branchesResult, linksResult] = await Promise.all([
       dbFrom('profiles')
         .select('id,full_name,login_id,phone,branch_id,status,role')
-        .in('role', ['customer', 'parent'])
+        .eq('role', 'customer')
         .order('created_at', { ascending: false })
         .limit(200),
       dbFrom('students').select('*').order('created_at', { ascending: false }).limit(200),
