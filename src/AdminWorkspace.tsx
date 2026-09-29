@@ -359,9 +359,13 @@ function ProductEditorScreen({
     setSelected([])
   }, [editing.id])
 
-  const updateVariant = (id: string, patch: any) => {
+  const updateVariant = (id: string | null, patch: any, tempId?: string) => {
     setVariants((current) =>
-      current.map((variant) => (variant.id === id ? { ...variant, ...patch } : variant)),
+      current.map((variant) =>
+        variant.id === id && (id || variant._tempId === tempId)
+          ? { ...variant, ...patch }
+          : variant,
+      ),
     )
   }
 
@@ -375,7 +379,8 @@ function ProductEditorScreen({
     setVariants((current) => [
       ...current,
       {
-        id: '',
+        id: null,
+        _tempId: `new-${Date.now()}-${index}`,
         product_id: editing.id,
         sku: \`\${base || 'PRODUCT'}-\${String(index).padStart(3, '0')}\`,
         size_label: '',
@@ -559,7 +564,7 @@ function ProductEditorScreen({
                       <input
                         value={variant.size_label || ''}
                         placeholder="Size"
-                        onChange={(e) => updateVariant(variant.id, { size_label: e.target.value })}
+                        onChange={(e) => updateVariant(variant.id, { size_label: e.target.value }, variant._tempId)}
                         onBlur={() => {
                           if (!variant.id) {
                             const row = variants[index]
@@ -573,20 +578,20 @@ function ProductEditorScreen({
                       />
                     </td>
                     <td>
-                      <input value={variant.sku || ''} onChange={(e) => updateVariant(variant.id, { sku: e.target.value })} />
+                      <input value={variant.sku || ''} onChange={(e) => updateVariant(variant.id, { sku: e.target.value }, variant._tempId)} />
                     </td>
                     <td>
-                      <input type="number" min="0" value={variant.price ?? ''} onChange={(e) => updateVariant(variant.id, { price: e.target.value })} />
+                      <input type="number" min="0" value={variant.price ?? ''} onChange={(e) => updateVariant(variant.id, { price: e.target.value }, variant._tempId)} />
                     </td>
                     <td>
-                      <select value={variant.status || 'active'} onChange={(e) => updateVariant(variant.id, { status: e.target.value })}>
+                      <select value={variant.status || 'active'} onChange={(e) => updateVariant(variant.id, { status: e.target.value }, variant._tempId)}>
                         <option value="active">● Active</option>
                         <option value="inactive">Inactive</option>
                         <option value="suspended">Suspended</option>
                       </select>
                     </td>
                     <td>
-                      <button type="button" className="product-row-icon" onClick={() => updateVariant(variant.id, { _focus: true })} title="Edit size">
+                      <button type="button" className="product-row-icon" onClick={() => updateVariant(variant.id, { _focus: true }, variant._tempId)} title="Edit size">
                         <Pencil size={15} />
                       </button>
                       <button
