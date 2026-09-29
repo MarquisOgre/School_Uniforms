@@ -275,7 +275,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   const adminToolFromPath = (path: string): AdminTool => {
     if (path === '/admin/homepage') return 'home'
     if (path === '/admin/branches' || path === '/admin/schools') return 'branches'
-    if (path === '/admin/products') return 'products'
+    if (path === '/admin/products' || path.startsWith('/admin/products/edit/')) return 'products'
     if (path === '/admin/orders' || path === '/admin/payments') return 'orders'
     if (path === '/admin/inventory') return 'inventory'
     if (path === '/admin/parents-students') return 'students'
