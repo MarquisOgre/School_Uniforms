@@ -133,7 +133,15 @@ export default function AdminWorkspace({
   )
 }
 
-function ModuleBody({ module, ordersSearch, productId }: { module: ModuleKey; ordersSearch?: string; productId?: string | null }) {
+function ModuleBody({
+  module,
+  ordersSearch,
+  productId,
+}: {
+  module: ModuleKey
+  ordersSearch?: string
+  productId?: string | null
+}) {
   switch (module) {
     case 'branches':
       return <Branches />

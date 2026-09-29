@@ -298,9 +298,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       const productMatch = window.location.pathname.match(/^\/admin\/products\/edit\/([^/]+)$/)
       setProductId(productMatch ? decodeURIComponent(productMatch[1]) : null)
       setTool(nextTool)
-      const canonicalPath = productMatch
-        ? window.location.pathname
-        : adminPathForTool(nextTool)
+      const canonicalPath = productMatch ? window.location.pathname : adminPathForTool(nextTool)
       window.history.replaceState(
         { schoolUniformApp: 'admin', tool: nextTool, productId: productMatch?.[1] || null },
         '',
@@ -324,7 +322,11 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     const canonicalPath = adminPathForTool(tool)
     if (window.location.pathname === '/admin' && tool === 'packages') return
     if (window.location.pathname === canonicalPath) return
-    window.history.pushState({ schoolUniformApp: 'admin', tool, productId: null }, '', canonicalPath)
+    window.history.pushState(
+      { schoolUniformApp: 'admin', tool, productId: null },
+      '',
+      canonicalPath,
+    )
   }, [tool, productId])
   async function login() {
     const client = supabase
