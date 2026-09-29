@@ -2265,11 +2265,20 @@ function Packages({
                     </span>
                     <button
                       onClick={() => {
-                        const slug = String(x.name || 'package')
+                        const baseSlug = String(x.name || 'package')
                           .toLowerCase()
                           .trim()
                           .replace(/[^a-z0-9]+/g, '-')
                           .replace(/^-|-$/g, '')
+                        const duplicateNameCount = rows.filter(
+                          (row) =>
+                            String(row.name || '').trim().toLowerCase() ===
+                            String(x.name || '').trim().toLowerCase(),
+                        ).length
+                        const slug =
+                          duplicateNameCount > 1
+                            ? `${baseSlug}-${String(x.id).slice(0, 6)}`
+                            : baseSlug
                         window.history.pushState(
                           { schoolUniformApp: 'admin', tool: 'packages', packageSlug: slug },
                           '',
