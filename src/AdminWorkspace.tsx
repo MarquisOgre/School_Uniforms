@@ -3113,18 +3113,29 @@ function ParentStudents() {
     if (!supabase) return
     setLoading(true)
     const [parentsResult, studentsResult, branchesResult] = await Promise.all([
-      dbFrom('profiles').select('id,full_name,login_id,phone,branch_id,status,role').in('role', ['customer', 'parent']).order('created_at', { ascending: false }).limit(200),
+      dbFrom('profiles')
+        .select('id,full_name,login_id,phone,branch_id,status,role')
+        .in('role', ['customer', 'parent'])
+        .order('created_at', { ascending: false })
+        .limit(200),
       dbFrom('students').select('*').order('created_at', { ascending: false }).limit(200),
       dbFrom('branches').select('id,name').order('name'),
     ])
     setParents(parentsResult.data ?? [])
     setStudents(studentsResult.data ?? [])
     setBranches(branchesResult.data ?? [])
-    setError(parentsResult.error?.message || studentsResult.error?.message || branchesResult.error?.message || '')
+    setError(
+      parentsResult.error?.message ||
+        studentsResult.error?.message ||
+        branchesResult.error?.message ||
+        '',
+    )
     setLoading(false)
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+  }, [])
 
   const openNewParent = () => {
     setError('')
@@ -3167,7 +3178,12 @@ function ParentStudents() {
   const saveParent = async () => {
     if (!supabase || !parentEditing || savingParent) return
     setError('')
-    if (!parentEditing.branch_id || !parentEditing.full_name?.trim() || !parentEditing.login_id?.trim() || !parentEditing.password) {
+    if (
+      !parentEditing.branch_id ||
+      !parentEditing.full_name?.trim() ||
+      !parentEditing.login_id?.trim() ||
+      !parentEditing.password
+    ) {
       setError('Branch, Parent Name, Parent ID and Password are required.')
       return
     }
@@ -3227,7 +3243,11 @@ function ParentStudents() {
     }
 
     const result = studentEditing.id
-      ? await dbFrom('students').update(payload).eq('id', studentEditing.id).select('id').maybeSingle()
+      ? await dbFrom('students')
+          .update(payload)
+          .eq('id', studentEditing.id)
+          .select('id')
+          .maybeSingle()
       : await dbFrom('students').insert(payload).select('id').single()
 
     if (result.error) {
@@ -3238,21 +3258,41 @@ function ParentStudents() {
     await load()
   }
 
-  const filteredParents = parents.filter((p) => [
-    p.full_name, p.login_id, p.phone,
-    branches.find((b) => b.id === p.branch_id)?.name,
-  ].some((v) => String(v ?? '').toLowerCase().includes(search.toLowerCase())))
+  const filteredParents = parents.filter((p) =>
+    [p.full_name, p.login_id, p.phone, branches.find((b) => b.id === p.branch_id)?.name].some((v) =>
+      String(v ?? '')
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+    ),
+  )
 
-  const filteredStudents = students.filter((s) => [
-    s.student_code, s.full_name, s.father_name, s.class_name, s.section, s.gender, s.date_of_birth, s.status,
-  ].some((v) => String(v ?? '').toLowerCase().includes(search.toLowerCase())))
+  const filteredStudents = students.filter((s) =>
+    [
+      s.student_code,
+      s.full_name,
+      s.father_name,
+      s.class_name,
+      s.section,
+      s.gender,
+      s.date_of_birth,
+      s.status,
+    ].some((v) =>
+      String(v ?? '')
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+    ),
+  )
 
   return (
     <>
       <Toolbar onRefresh={load}>
         <div className="toolbar-search">
           <Search size={15} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search parents & students" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search parents & students"
+          />
         </div>
         <button className="primary-button" onClick={openNewParent}>
           <Plus size={15} /> Add Parent
@@ -3262,29 +3302,46 @@ function ParentStudents() {
         </button>
       </Toolbar>
       <ErrorBox text={error} />
-      {loading ? <Loading /> : (
+      {loading ? (
+        <Loading />
+      ) : (
         <>
           <Panel>
             <div className="panel-heading">
               <div>
                 <h2>Parents</h2>
-                <span className="workspace-muted">Parent ID and password are used for portal login. One parent can have multiple children.</span>
+                <span className="workspace-muted">
+                  Parent ID and password are used for portal login. One parent can have multiple
+                  children.
+                </span>
               </div>
             </div>
             <div className="workspace-scroll">
               <table>
-                <thead><tr><th>Parent ID</th><th>Parent Name</th><th>Branch</th><th>Phone</th><th>Status</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Parent ID</th>
+                    <th>Parent Name</th>
+                    <th>Branch</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {filteredParents.length ? filteredParents.map((p, i) => (
-                    <tr key={p.id || i}>
-                      <td>{p.login_id || '—'}</td>
-                      <td>{p.full_name || '—'}</td>
-                      <td>{branches.find((b) => b.id === p.branch_id)?.name || '—'}</td>
-                      <td>{p.phone || '—'}</td>
-                      <td>{p.status || '—'}</td>
+                  {filteredParents.length ? (
+                    filteredParents.map((p, i) => (
+                      <tr key={p.id || i}>
+                        <td>{p.login_id || '—'}</td>
+                        <td>{p.full_name || '—'}</td>
+                        <td>{branches.find((b) => b.id === p.branch_id)?.name || '—'}</td>
+                        <td>{p.phone || '—'}</td>
+                        <td>{p.status || '—'}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5}>No Parent accounts created yet.</td>
                     </tr>
-                  )) : (
-                    <tr><td colSpan={5}>No Parent accounts created yet.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -3295,27 +3352,52 @@ function ParentStudents() {
             <div className="panel-heading">
               <div>
                 <h2>Students</h2>
-                <span className="workspace-muted">Create children separately, then link them to a Parent.</span>
+                <span className="workspace-muted">
+                  Create children separately, then link them to a Parent.
+                </span>
               </div>
             </div>
             <div className="workspace-scroll">
               <table>
-                <thead><tr><th>Student Code</th><th>Father's Name</th><th>Full Name</th><th>Class</th><th>Section</th><th>Gender</th><th>Date of Birth</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Student Code</th>
+                    <th>Father's Name</th>
+                    <th>Full Name</th>
+                    <th>Class</th>
+                    <th>Section</th>
+                    <th>Gender</th>
+                    <th>Date of Birth</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {filteredStudents.length ? filteredStudents.map((r, i) => (
-                    <tr key={r.id || i}>
-                      <td>{r.student_code || '—'}</td>
-                      <td>{r.father_name || '—'}</td>
-                      <td>{r.full_name || '—'}</td>
-                      <td>{r.class_name || '—'}</td>
-                      <td>{r.section || '—'}</td>
-                      <td>{r.gender || '—'}</td>
-                      <td>{r.date_of_birth || '—'}</td>
-                      <td>{r.status || '—'}</td>
-                      <td><button className="table-action-button" onClick={() => openEditStudent(r)}>Edit</button></td>
+                  {filteredStudents.length ? (
+                    filteredStudents.map((r, i) => (
+                      <tr key={r.id || i}>
+                        <td>{r.student_code || '—'}</td>
+                        <td>{r.father_name || '—'}</td>
+                        <td>{r.full_name || '—'}</td>
+                        <td>{r.class_name || '—'}</td>
+                        <td>{r.section || '—'}</td>
+                        <td>{r.gender || '—'}</td>
+                        <td>{r.date_of_birth || '—'}</td>
+                        <td>{r.status || '—'}</td>
+                        <td>
+                          <button
+                            className="table-action-button"
+                            onClick={() => openEditStudent(r)}
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={9}>No student records created yet.</td>
                     </tr>
-                  )) : (
-                    <tr><td colSpan={9}>No student records created yet.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -3333,27 +3415,108 @@ function ParentStudents() {
             labels={Object.fromEntries(branches.map((b) => [b.id, b.name]))}
             onChange={(v) => setParentEditing({ ...parentEditing, branch_id: v })}
           />
-          <Field label="Parent Name" value={parentEditing.full_name || ''} onChange={(v) => setParentEditing({ ...parentEditing, full_name: v })} placeholder="Parent full name" />
-          <Field label="Parent ID" value={parentEditing.login_id || ''} onChange={(v) => setParentEditing({ ...parentEditing, login_id: v.toUpperCase() })} placeholder="Login ID" />
-          <Field label="Password" type="password" value={parentEditing.password || ''} onChange={(v) => setParentEditing({ ...parentEditing, password: v })} placeholder="Set parent password" />
-          <Field label="Confirm Password" type="password" value={parentEditing.confirm_password || ''} onChange={(v) => setParentEditing({ ...parentEditing, confirm_password: v })} placeholder="Confirm parent password" />
-          <Field label="Email (Optional)" type="email" value={parentEditing.email || ''} onChange={(v) => setParentEditing({ ...parentEditing, email: v })} placeholder="Parent email" />
-          <Field label="Phone (Optional)" value={parentEditing.phone || ''} onChange={(v) => setParentEditing({ ...parentEditing, phone: v })} placeholder="Phone number" />
-          <div className="workspace-note">Children can be created separately and linked to this Parent. The password is stored securely in Supabase Auth, not in the profiles table.</div>
+          <Field
+            label="Parent Name"
+            value={parentEditing.full_name || ''}
+            onChange={(v) => setParentEditing({ ...parentEditing, full_name: v })}
+            placeholder="Parent full name"
+          />
+          <Field
+            label="Parent ID"
+            value={parentEditing.login_id || ''}
+            onChange={(v) => setParentEditing({ ...parentEditing, login_id: v.toUpperCase() })}
+            placeholder="Login ID"
+          />
+          <Field
+            label="Password"
+            type="password"
+            value={parentEditing.password || ''}
+            onChange={(v) => setParentEditing({ ...parentEditing, password: v })}
+            placeholder="Set parent password"
+          />
+          <Field
+            label="Confirm Password"
+            type="password"
+            value={parentEditing.confirm_password || ''}
+            onChange={(v) => setParentEditing({ ...parentEditing, confirm_password: v })}
+            placeholder="Confirm parent password"
+          />
+          <Field
+            label="Email (Optional)"
+            type="email"
+            value={parentEditing.email || ''}
+            onChange={(v) => setParentEditing({ ...parentEditing, email: v })}
+            placeholder="Parent email"
+          />
+          <Field
+            label="Phone (Optional)"
+            value={parentEditing.phone || ''}
+            onChange={(v) => setParentEditing({ ...parentEditing, phone: v })}
+            placeholder="Phone number"
+          />
+          <div className="workspace-note">
+            Children can be created separately and linked to this Parent. The password is stored
+            securely in Supabase Auth, not in the profiles table.
+          </div>
         </EditModal>
       )}
 
       {studentEditing && (
-        <EditModal title={studentEditing.id ? 'Edit Student' : 'Add Student'} onClose={() => setStudentEditing(null)} onSave={saveStudent}>
-          <Field label="Student Code" value={studentEditing.student_code || ''} onChange={(v) => setStudentEditing({ ...studentEditing, student_code: v })} />
-          <Field label="Full Name" value={studentEditing.full_name || ''} onChange={(v) => setStudentEditing({ ...studentEditing, full_name: v })} />
-          <Field label="Father's Name" value={studentEditing.father_name || ''} onChange={(v) => setStudentEditing({ ...studentEditing, father_name: v })} />
-          <Select label="Branch" value={studentEditing.branch_id || ''} options={branches.map((b) => b.id)} labels={Object.fromEntries(branches.map((b) => [b.id, b.name]))} onChange={(v) => setStudentEditing({ ...studentEditing, branch_id: v })} />
-          <Field label="Class Name" value={studentEditing.class_name || ''} onChange={(v) => setStudentEditing({ ...studentEditing, class_name: v })} />
-          <Field label="Section" value={studentEditing.section || ''} onChange={(v) => setStudentEditing({ ...studentEditing, section: v })} />
-          <Select label="Gender" value={studentEditing.gender || ''} options={['boys', 'girls', 'unisex']} onChange={(v) => setStudentEditing({ ...studentEditing, gender: v })} />
-          <Field label="Date of Birth" type="date" value={studentEditing.date_of_birth || ''} onChange={(v) => setStudentEditing({ ...studentEditing, date_of_birth: v })} />
-          <Select label="Status" value={studentEditing.status || 'active'} options={['active', 'inactive']} onChange={(v) => setStudentEditing({ ...studentEditing, status: v })} />
+        <EditModal
+          title={studentEditing.id ? 'Edit Student' : 'Add Student'}
+          onClose={() => setStudentEditing(null)}
+          onSave={saveStudent}
+        >
+          <Field
+            label="Student Code"
+            value={studentEditing.student_code || ''}
+            onChange={(v) => setStudentEditing({ ...studentEditing, student_code: v })}
+          />
+          <Field
+            label="Full Name"
+            value={studentEditing.full_name || ''}
+            onChange={(v) => setStudentEditing({ ...studentEditing, full_name: v })}
+          />
+          <Field
+            label="Father's Name"
+            value={studentEditing.father_name || ''}
+            onChange={(v) => setStudentEditing({ ...studentEditing, father_name: v })}
+          />
+          <Select
+            label="Branch"
+            value={studentEditing.branch_id || ''}
+            options={branches.map((b) => b.id)}
+            labels={Object.fromEntries(branches.map((b) => [b.id, b.name]))}
+            onChange={(v) => setStudentEditing({ ...studentEditing, branch_id: v })}
+          />
+          <Field
+            label="Class Name"
+            value={studentEditing.class_name || ''}
+            onChange={(v) => setStudentEditing({ ...studentEditing, class_name: v })}
+          />
+          <Field
+            label="Section"
+            value={studentEditing.section || ''}
+            onChange={(v) => setStudentEditing({ ...studentEditing, section: v })}
+          />
+          <Select
+            label="Gender"
+            value={studentEditing.gender || ''}
+            options={['boys', 'girls', 'unisex']}
+            onChange={(v) => setStudentEditing({ ...studentEditing, gender: v })}
+          />
+          <Field
+            label="Date of Birth"
+            type="date"
+            value={studentEditing.date_of_birth || ''}
+            onChange={(v) => setStudentEditing({ ...studentEditing, date_of_birth: v })}
+          />
+          <Select
+            label="Status"
+            value={studentEditing.status || 'active'}
+            options={['active', 'inactive']}
+            onChange={(v) => setStudentEditing({ ...studentEditing, status: v })}
+          />
         </EditModal>
       )}
     </>
