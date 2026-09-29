@@ -67,9 +67,11 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
 export default function AdminWorkspace({
   module,
   onBack,
+  productId,
 }: {
   module: ModuleKey
   onBack: () => void
+  productId?: string | null
 }) {
   const m = META[module]
   const [ordersSearch, setOrdersSearch] = useState('')
@@ -125,18 +127,18 @@ export default function AdminWorkspace({
             ) : null}
           </div>
         )}
-        <ModuleBody module={module} ordersSearch={ordersSearch} />
+        <ModuleBody module={module} ordersSearch={ordersSearch} productId={productId} />
       </main>
     </div>
   )
 }
 
-function ModuleBody({ module, ordersSearch }: { module: ModuleKey; ordersSearch?: string }) {
+function ModuleBody({ module, ordersSearch, productId }: { module: ModuleKey; ordersSearch?: string; productId?: string | null }) {
   switch (module) {
     case 'branches':
       return <Branches />
     case 'products':
-      return <Products />
+      return <Products productId={productId} />
     case 'packages':
       return <Packages />
     case 'orders':
@@ -192,6 +194,31 @@ function Branches() {
   useEffect(() => {
     void load()
   }, [])
+
+  useEffect(() => {
+    if (!productId || !supabase) return
+    const loadProductPage = async () => {
+      setLoading(true)
+      setError('')
+      const result = await dbFrom('products').select('*').eq('id', productId).maybeSingle()
+      if (result.error || !result.data) {
+        setError(result.error?.message || 'Product not found.')
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+      const product = result.data
+      setEditing({
+        ...product,
+        base_price: product.base_price ?? '',
+        discount_percentage: product.discount_percentage ?? '',
+        offer_price: product.offer_price ?? product.base_price ?? '',
+      })
+      await loadVariants(product.id)
+      setLoading(false)
+    }
+    void loadProductPage()
+  }, [productId])
 
   const saveBranch = async () => {
     if (!supabase || !editing) return
@@ -298,7 +325,7 @@ function Branches() {
   )
 }
 
-function Products() {
+function Products({ productId }: { productId?: string | null }) {
   const [rows, setRows] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [editing, setEditing] = useState<any>(null)
@@ -492,6 +519,7 @@ function Products() {
     })
 
   const isEditingProduct = Boolean(editing?.id)
+  const isProductPage = Boolean(productId)
 
   useEffect(() => {
     if (editing?.id) {
@@ -508,7 +536,7 @@ function Products() {
 
   return (
     <>
-      {!isEditingProduct && (
+      {!isEditingProduct && !isProductPage && (
         <>
           <Toolbar onRefresh={load}>
             <div className="toolbar-search">
@@ -558,15 +586,7 @@ function Products() {
                     </span>
                     <button
                       onClick={() => {
-                        setError('')
-                        setVariants([])
-                        setEditing({
-                          ...product,
-                          base_price: product.base_price ?? '',
-                          discount_percentage: product.discount_percentage ?? '',
-                          offer_price: product.offer_price ?? product.base_price ?? '',
-                        })
-                        void loadVariants(product.id)
+                        window.location.assign(`/admin/products/edit/${product.id}`)
                       }}
                     >
                       Edit
@@ -676,6 +696,10 @@ function Products() {
           setVariants={setVariants}
           variantsLoading={variantsLoading}
           onBack={() => {
+            if (productId) {
+              window.location.assign('/admin/products')
+              return
+            }
             setEditing(null)
             setVariants([])
           }}
