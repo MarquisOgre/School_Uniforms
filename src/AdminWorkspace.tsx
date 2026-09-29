@@ -3301,6 +3301,9 @@ function ParentStudents() {
           continue
         }
         parentId = data.parent_id
+        if (data.student_id) {
+          await dbFrom('students').update({ father_name: first.parent_name }).eq('id', data.student_id)
+        }
         success += 1
       } else {
         success += 1
@@ -3322,6 +3325,7 @@ function ParentStudents() {
             {
               branch_id: row.branch_id,
               student_code: row.student_code,
+              father_name: row.parent_name,
               full_name: row.student_name,
               class_name: row.class || null,
               section: row.section || null,
@@ -3506,6 +3510,19 @@ function ParentStudents() {
       setError(data?.error || invokeError?.message || 'Unable to create Parent Login.')
       setSavingParent(false)
       return
+    }
+
+    if (data.student_id) {
+      await dbFrom('students')
+        .update({ father_name: parentEditing.full_name.trim() })
+        .eq('id', data.student_id)
+    }
+    if (Array.isArray(data.students)) {
+      for (const student of data.students) {
+        await dbFrom('students')
+          .update({ father_name: parentEditing.full_name.trim() })
+          .eq('id', student.id)
+      }
     }
 
     setParentEditing(null)
