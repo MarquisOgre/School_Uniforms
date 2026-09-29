@@ -252,6 +252,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     [loading, setLoading] = useState(false),
     [error, setError] = useState('')
   const [tool, setTool] = useState<AdminTool>('home')
+  const [productId, setProductId] = useState<string | null>(null)
   const adminPathForTool = (value: AdminTool) => {
     const paths: Record<AdminTool, string> = {
       home: '/admin/homepage',
@@ -294,9 +295,17 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
         return
       }
       const nextTool = adminToolFromPath(window.location.pathname)
+      const productMatch = window.location.pathname.match(/^\/admin\/products\/edit\/([^/]+)$/)
+      setProductId(productMatch ? decodeURIComponent(productMatch[1]) : null)
       setTool(nextTool)
-      const canonicalPath = adminPathForTool(nextTool)
-      window.history.replaceState({ schoolUniformApp: 'admin', tool: nextTool }, '', canonicalPath)
+      const canonicalPath = productMatch
+        ? window.location.pathname
+        : adminPathForTool(nextTool)
+      window.history.replaceState(
+        { schoolUniformApp: 'admin', tool: nextTool, productId: productMatch?.[1] || null },
+        '',
+        canonicalPath,
+      )
     }
 
     syncAdminRoute()
@@ -306,11 +315,17 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     if (!window.location.pathname.startsWith('/admin')) return
+    if (tool === 'products' && productId) {
+      const productPath = `/admin/products/edit/${productId}`
+      if (window.location.pathname === productPath) return
+      window.history.pushState({ schoolUniformApp: 'admin', tool, productId }, '', productPath)
+      return
+    }
     const canonicalPath = adminPathForTool(tool)
     if (window.location.pathname === '/admin' && tool === 'packages') return
     if (window.location.pathname === canonicalPath) return
-    window.history.pushState({ schoolUniformApp: 'admin', tool }, '', canonicalPath)
-  }, [tool])
+    window.history.pushState({ schoolUniformApp: 'admin', tool, productId: null }, '', canonicalPath)
+  }, [tool, productId])
   async function login() {
     const client = supabase
     if (!client || !email.trim() || !password) return
@@ -451,7 +466,14 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
         <Suspense fallback={<div className="workspace-empty">Loading admin module...</div>}>
-          <AdminWorkspace module={tool} onBack={() => setTool('packages')} />
+          <AdminWorkspace
+            module={tool}
+            productId={tool === 'products' ? productId : null}
+            onBack={() => {
+              setProductId(null)
+              setTool('products')
+            }}
+          />
         </Suspense>
       </AdminLayout>
     )
