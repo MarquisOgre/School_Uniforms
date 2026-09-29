@@ -834,7 +834,7 @@ export default function HomePage({
     [branches, setBranches] = useState<BranchOption[]>([])
   const [branch, setBranch] = useState(''),
     [parentId, setParentId] = useState(''),
-    [password, setPassword] = useState('Qwerty@123')
+    [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false),
     [loadingBranches, setLoadingBranches] = useState(false),
     [loggingIn, setLoggingIn] = useState(false),
@@ -1001,23 +1001,6 @@ export default function HomePage({
               {loggingIn ? 'SIGNING IN...' : 'SIGN IN TO PORTAL'}
               <ArrowRight size={18} />
             </button>
-            <div className="demo-credentials" aria-label="Demo user credentials">
-              <div className="demo-credentials-title">DEMO USER</div>
-              <div className="demo-credentials-grid">
-                <div className="demo-credential-row">
-                  <span>Branch</span>
-                  <strong>CBSE Branch</strong>
-                </div>
-                <div className="demo-credential-row">
-                  <span>Parent ID</span>
-                  <strong>BHUPESHKUMAR</strong>
-                </div>
-                <div className="demo-credential-row">
-                  <span>Password</span>
-                  <strong>Qwerty@123</strong>
-                </div>
-              </div>
-            </div>
             <button className="text-button">Forgot Password?</button>
             <button
               className="admin-link"
