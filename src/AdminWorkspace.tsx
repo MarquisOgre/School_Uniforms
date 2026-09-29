@@ -268,252 +268,6 @@ function Branches() {
     void load()
   }, [])
 
-  const downloadBulkTemplate = () => {
-    const headers = [
-      'Branch',
-      'Parent Name',
-      'Parent ID',
-      'Password',
-      'Email',
-      'Phone',
-      'Student Code',
-      'Student Name',
-      'Class',
-      'Section',
-      'Gender',
-      'DOB',
-    ]
-    const sample = [
-      'CBSE',
-      'Bhupesh Kumar',
-      'BHUPESHKUMAR',
-      'Qwerty@123',
-      '',
-      '',
-      'CBSE-001',
-      'Tanmay Kumar',
-      '7th',
-      'A',
-      'Boys',
-      '2014-03-01',
-    ]
-    const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, sheet, 'Parents & Students')
-    XLSX.writeFile(workbook, 'Parents_Students_Import_Template.xlsx')
-  }
-
-  const openBulkImport = () => {
-    setBulkRows([])
-    setBulkError('')
-    setBulkResult(null)
-    setBulkOpen(true)
-  }
-
-  const handleBulkFile = async (file: File) => {
-    try {
-      setBulkError('')
-      setBulkResult(null)
-      const buffer = await file.arrayBuffer()
-      const workbook = XLSX.read(buffer, { type: 'array', cellDates: true })
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const raw = XLSX.utils.sheet_to_json<any>(sheet, { defval: '' })
-      const normalized = raw
-        .map((row: any, index: number) => {
-          const out: any = { __row: index + 2 }
-          Object.entries(row).forEach(([key, value]) => {
-            const k = String(key)
-              .trim()
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, '_')
-              .replace(/^_|_$/g, '')
-            out[k] =
-              value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? '').trim()
-          })
-          out.branch = out.branch || ''
-          out.parent_name = out.parent_name || ''
-          out.parent_id = out.parent_id || ''
-          out.password = out.password || ''
-          out.email = out.email || ''
-          out.phone = out.phone || ''
-          out.student_code = out.student_code || ''
-          out.student_name = out.student_name || ''
-          out.class = out.class || out.class_name || ''
-          out.section = out.section || ''
-          out.gender = out.gender || ''
-          out.dob = out.dob || out.date_of_birth || ''
-          return out
-        })
-        .filter((row: any) =>
-          Object.values(row).some((v: any) => String(v).trim() && v !== row.__row),
-        )
-      if (!normalized.length) {
-        setBulkError('The Excel file contains no data rows.')
-        return
-      }
-      const required = ['branch', 'parent_name', 'parent_id', 'student_code', 'student_name', 'dob']
-      const missing = required.filter(
-        (key) => !Object.prototype.hasOwnProperty.call(normalized[0], key),
-      )
-      if (missing.length) {
-        setBulkError('Missing required columns: ' + missing.join(', '))
-        return
-      }
-      setBulkRows(normalized)
-    } catch (e) {
-      setBulkError(e instanceof Error ? e.message : 'Unable to read the Excel file.')
-    }
-  }
-
-  const runBulkImport = async () => {
-    if (!supabase || !bulkRows.length || bulkImporting) return
-    setBulkImporting(true)
-    setBulkError('')
-    let success = 0
-    let failed = 0
-    const errors: string[] = []
-
-    const grouped = new Map<string, any[]>()
-    for (const row of bulkRows) {
-      const branch = branches.find(
-        (b) =>
-          b.name.toLowerCase() === String(row.branch).trim().toLowerCase() ||
-          b.id === String(row.branch).trim(),
-      )
-      if (!branch) {
-        failed += 1
-        errors.push(`Row ${row.__row}: invalid Branch "${row.branch}".`)
-        continue
-      }
-      const key = branch.id + '|' + String(row.parent_id).trim().toUpperCase()
-      grouped.set(key, [...(grouped.get(key) || []), { ...row, branch_id: branch.id }])
-    }
-
-    for (const [, rows] of grouped) {
-      const first = rows[0]
-      let parentId = parents.find(
-        (p) =>
-          p.branch_id === first.branch_id &&
-          String(p.login_id).toUpperCase() === String(first.parent_id).toUpperCase(),
-      )?.id
-
-      if (!parentId) {
-        const { data, error: invokeError } = await supabase.functions.invoke(
-          'create-parent-login-v2',
-          {
-            body: {
-              branch_id: first.branch_id,
-              parent_name: first.parent_name,
-              login_id: first.parent_id,
-              password: first.password,
-              parent_email: first.email || '',
-              parent_phone: first.phone || '',
-              student_code: first.student_code,
-              student_name: first.student_name,
-              dob: first.dob,
-              class_name: first.class,
-              section: first.section,
-              gender: first.gender,
-            },
-          },
-        )
-        if (invokeError || !data?.success) {
-          failed += rows.length
-          errors.push(
-            `Parent ${first.parent_id}: ${data?.error || invokeError?.message || 'unable to create Parent'}`,
-          )
-          continue
-        }
-        parentId = data.parent_id
-        success += 1
-      } else {
-        success += 1
-      }
-
-      for (
-        let i =
-          parentId && rows.length
-            ? parentId && !parents.some((p) => p.id === parentId)
-              ? 1
-              : 0
-            : 0;
-        i < rows.length;
-        i += 1
-      ) {
-        const row = rows[i]
-        const studentResult = await dbFrom('students')
-          .upsert(
-            {
-              branch_id: row.branch_id,
-              student_code: row.student_code,
-              full_name: row.student_name,
-              class_name: row.class || null,
-              section: row.section || null,
-              gender: ['boys', 'girls', 'unisex'].includes(String(row.gender).toLowerCase())
-                ? String(row.gender).toLowerCase()
-                : null,
-              date_of_birth: row.dob || null,
-              status: 'active',
-            },
-            { onConflict: 'branch_id,student_code' },
-          )
-          .select('id')
-          .single()
-        if (studentResult.error || !studentResult.data?.id) {
-          failed += 1
-          errors.push(
-            `Row ${row.__row}: ${studentResult.error?.message || 'student creation failed'}`,
-          )
-          continue
-        }
-        const linkResult = await dbFrom('parent_student_links').upsert(
-          {
-            parent_user_id: parentId,
-            student_id: studentResult.data.id,
-            relationship: 'parent',
-            is_primary: false,
-          },
-          { onConflict: 'parent_user_id,student_id' },
-        )
-        if (linkResult.error) {
-          failed += 1
-          errors.push(`Row ${row.__row}: ${linkResult.error.message}`)
-          continue
-        }
-        if (i > 0 || parents.some((p) => p.id === parentId)) success += 1
-      }
-    }
-
-    setBulkResult({ processed: bulkRows.length, success, failed })
-    if (errors.length) setBulkError(errors.slice(0, 20).join('\\n'))
-    setBulkImporting(false)
-    await load()
-  }
-
-  const saveBranch = async () => {
-    if (!supabase || !editing) return
-    const payload = {
-      name: editing.name,
-      code: editing.code,
-      address_line1: editing.address_line1 || null,
-      address_line2: editing.address_line2 || null,
-      city: editing.city || null,
-      state: editing.state || null,
-      postal_code: editing.postal_code || null,
-      phone: editing.phone || null,
-      email: editing.email || null,
-      status: editing.status,
-    }
-    const r = editing.id
-      ? await dbFrom('branches').update(payload).eq('id', editing.id)
-      : await dbFrom('branches').insert(payload)
-    if (r.error) setError(r.error.message)
-    else {
-      setEditing(null)
-      await load()
-    }
-  }
-
   return (
     <>
       <Toolbar onRefresh={load}>
@@ -3389,6 +3143,254 @@ function ParentStudents() {
   useEffect(() => {
     void load()
   }, [])
+
+  const downloadBulkTemplate = () => {
+    const headers = [
+      'Branch',
+      'Parent Name',
+      'Parent ID',
+      'Password',
+      'Email',
+      'Phone',
+      'Student Code',
+      'Student Name',
+      'Class',
+      'Section',
+      'Gender',
+      'DOB',
+    ]
+    const sample = [
+      'CBSE',
+      'Bhupesh Kumar',
+      'BHUPESHKUMAR',
+      'Qwerty@123',
+      '',
+      '',
+      'CBSE-001',
+      'Tanmay Kumar',
+      '7th',
+      'A',
+      'Boys',
+      '2014-03-01',
+    ]
+    const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Parents & Students')
+    XLSX.writeFile(workbook, 'Parents_Students_Import_Template.xlsx')
+  }
+
+  const openBulkImport = () => {
+    setBulkRows([])
+    setBulkError('')
+    setBulkResult(null)
+    setBulkOpen(true)
+  }
+
+  const handleBulkFile = async (file: File) => {
+    try {
+      setBulkError('')
+      setBulkResult(null)
+      const buffer = await file.arrayBuffer()
+      const workbook = XLSX.read(buffer, { type: 'array', cellDates: true })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const raw = XLSX.utils.sheet_to_json<any>(sheet, { defval: '' })
+      const normalized = raw
+        .map((row: any, index: number) => {
+          const out: any = { __row: index + 2 }
+          Object.entries(row).forEach(([key, value]) => {
+            const k = String(key)
+              .trim()
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '_')
+              .replace(/^_|_$/g, '')
+            out[k] =
+              value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? '').trim()
+          })
+          out.branch = out.branch || ''
+          out.parent_name = out.parent_name || ''
+          out.parent_id = out.parent_id || ''
+          out.password = out.password || ''
+          out.email = out.email || ''
+          out.phone = out.phone || ''
+          out.student_code = out.student_code || ''
+          out.student_name = out.student_name || ''
+          out.class = out.class || out.class_name || ''
+          out.section = out.section || ''
+          out.gender = out.gender || ''
+          out.dob = out.dob || out.date_of_birth || ''
+          return out
+        })
+        .filter((row: any) =>
+          Object.values(row).some((v: any) => String(v).trim() && v !== row.__row),
+        )
+      if (!normalized.length) {
+        setBulkError('The Excel file contains no data rows.')
+        return
+      }
+      const required = ['branch', 'parent_name', 'parent_id', 'student_code', 'student_name', 'dob']
+      const missing = required.filter(
+        (key) => !Object.prototype.hasOwnProperty.call(normalized[0], key),
+      )
+      if (missing.length) {
+        setBulkError('Missing required columns: ' + missing.join(', '))
+        return
+      }
+      setBulkRows(normalized)
+    } catch (e) {
+      setBulkError(e instanceof Error ? e.message : 'Unable to read the Excel file.')
+    }
+  }
+
+  const runBulkImport = async () => {
+    if (!supabase || !bulkRows.length || bulkImporting) return
+    setBulkImporting(true)
+    setBulkError('')
+    let success = 0
+    let failed = 0
+    const errors: string[] = []
+
+    const grouped = new Map<string, any[]>()
+    for (const row of bulkRows) {
+      const branch = branches.find(
+        (b) =>
+          b.name.toLowerCase() === String(row.branch).trim().toLowerCase() ||
+          b.id === String(row.branch).trim(),
+      )
+      if (!branch) {
+        failed += 1
+        errors.push(`Row ${row.__row}: invalid Branch "${row.branch}".`)
+        continue
+      }
+      const key = branch.id + '|' + String(row.parent_id).trim().toUpperCase()
+      grouped.set(key, [...(grouped.get(key) || []), { ...row, branch_id: branch.id }])
+    }
+
+    for (const [, rows] of grouped) {
+      const first = rows[0]
+      let parentId = parents.find(
+        (p) =>
+          p.branch_id === first.branch_id &&
+          String(p.login_id).toUpperCase() === String(first.parent_id).toUpperCase(),
+      )?.id
+
+      if (!parentId) {
+        const { data, error: invokeError } = await supabase.functions.invoke(
+          'create-parent-login-v2',
+          {
+            body: {
+              branch_id: first.branch_id,
+              parent_name: first.parent_name,
+              login_id: first.parent_id,
+              password: first.password,
+              parent_email: first.email || '',
+              parent_phone: first.phone || '',
+              student_code: first.student_code,
+              student_name: first.student_name,
+              dob: first.dob,
+              class_name: first.class,
+              section: first.section,
+              gender: first.gender,
+            },
+          },
+        )
+        if (invokeError || !data?.success) {
+          failed += rows.length
+          errors.push(
+            `Parent ${first.parent_id}: ${data?.error || invokeError?.message || 'unable to create Parent'}`,
+          )
+          continue
+        }
+        parentId = data.parent_id
+        success += 1
+      } else {
+        success += 1
+      }
+
+      for (
+        let i =
+          parentId && rows.length
+            ? parentId && !parents.some((p) => p.id === parentId)
+              ? 1
+              : 0
+            : 0;
+        i < rows.length;
+        i += 1
+      ) {
+        const row = rows[i]
+        const studentResult = await dbFrom('students')
+          .upsert(
+            {
+              branch_id: row.branch_id,
+              student_code: row.student_code,
+              full_name: row.student_name,
+              class_name: row.class || null,
+              section: row.section || null,
+              gender: ['boys', 'girls', 'unisex'].includes(String(row.gender).toLowerCase())
+                ? String(row.gender).toLowerCase()
+                : null,
+              date_of_birth: row.dob || null,
+              status: 'active',
+            },
+            { onConflict: 'branch_id,student_code' },
+          )
+          .select('id')
+          .single()
+        if (studentResult.error || !studentResult.data?.id) {
+          failed += 1
+          errors.push(
+            `Row ${row.__row}: ${studentResult.error?.message || 'student creation failed'}`,
+          )
+          continue
+        }
+        const linkResult = await dbFrom('parent_student_links').upsert(
+          {
+            parent_user_id: parentId,
+            student_id: studentResult.data.id,
+            relationship: 'parent',
+            is_primary: false,
+          },
+          { onConflict: 'parent_user_id,student_id' },
+        )
+        if (linkResult.error) {
+          failed += 1
+          errors.push(`Row ${row.__row}: ${linkResult.error.message}`)
+          continue
+        }
+        if (i > 0 || parents.some((p) => p.id === parentId)) success += 1
+      }
+    }
+
+    setBulkResult({ processed: bulkRows.length, success, failed })
+    if (errors.length) setBulkError(errors.slice(0, 20).join('\\n'))
+    setBulkImporting(false)
+    await load()
+  }
+
+  const saveBranch = async () => {
+    if (!supabase || !editing) return
+    const payload = {
+      name: editing.name,
+      code: editing.code,
+      address_line1: editing.address_line1 || null,
+      address_line2: editing.address_line2 || null,
+      city: editing.city || null,
+      state: editing.state || null,
+      postal_code: editing.postal_code || null,
+      phone: editing.phone || null,
+      email: editing.email || null,
+      status: editing.status,
+    }
+    const r = editing.id
+      ? await dbFrom('branches').update(payload).eq('id', editing.id)
+      : await dbFrom('branches').insert(payload)
+    if (r.error) setError(r.error.message)
+    else {
+      setEditing(null)
+      await load()
+    }
+  }
+
+
 
   const openNewParent = () => {
     const branchId = branches[0]?.id || ''
