@@ -5395,13 +5395,34 @@ a {
   opacity: 0.55;
   cursor: wait;
 }
-.product-extra-card summary {
+.product-extra-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  color: #17272d;
   cursor: pointer;
+  text-align: left;
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 18px;
   font-weight: 700;
-  padding: 2px 0;
 }
+
+.product-extra-toggle-icon {
+  width: 14px;
+  flex: 0 0 14px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.product-extra-card {
+  overflow: visible;
+}
+
 .product-extra-content {
   padding-top: 18px;
 }
