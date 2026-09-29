@@ -814,15 +814,39 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
                     </div>
 
                     <div className="cms-hero-media-grid">
-                      <label className="cms-hero-description">
-                        Description
-                        <textarea
-                          value={slide.text || ''}
-                          onChange={(e) =>
-                            edit((c) => (c.hero.slides[index].text = e.target.value))
-                          }
-                        />
-                      </label>
+                      <div className="cms-hero-copy-column">
+                        <label className="cms-hero-description">
+                          Description
+                          <textarea
+                            value={slide.text || ''}
+                            onChange={(e) =>
+                              edit((c) => (c.hero.slides[index].text = e.target.value))
+                            }
+                          />
+                        </label>
+
+                        <div className="cms-field-grid cms-field-grid-2 cms-hero-buttons">
+                          <label>
+                            Primary Button
+                            <input
+                              value={slide.button || ''}
+                              onChange={(e) =>
+                                edit((c) => (c.hero.slides[index].button = e.target.value))
+                              }
+                            />
+                          </label>
+                          <label>
+                            Secondary Button
+                            <input
+                              value={slide.secondary || ''}
+                              onChange={(e) =>
+                                edit((c) => (c.hero.slides[index].secondary = e.target.value))
+                              }
+                            />
+                          </label>
+                        </div>
+                      </div>
+
                       <div className="cms-hero-image-field">
                         <span className="cms-field-label">Hero Image</span>
                         <HeroImageUpload
@@ -830,27 +854,6 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
                           onChange={(url) => edit((c) => (c.hero.slides[index].image = url))}
                         />
                       </div>
-                    </div>
-
-                    <div className="cms-field-grid cms-field-grid-2">
-                      <label>
-                        Primary Button
-                        <input
-                          value={slide.button || ''}
-                          onChange={(e) =>
-                            edit((c) => (c.hero.slides[index].button = e.target.value))
-                          }
-                        />
-                      </label>
-                      <label>
-                        Secondary Button
-                        <input
-                          value={slide.secondary || ''}
-                          onChange={(e) =>
-                            edit((c) => (c.hero.slides[index].secondary = e.target.value))
-                          }
-                        />
-                      </label>
                     </div>
                   </div>
                 )
