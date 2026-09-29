@@ -10680,6 +10680,17 @@ a {
   align-items: stretch;
 }
 
+.cms-hero-copy-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cms-hero-buttons {
+  margin-top: 0;
+}
+
 .cms-hero-description,
 .cms-hero-image-field {
   min-width: 0;
