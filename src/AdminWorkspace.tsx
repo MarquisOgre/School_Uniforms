@@ -727,6 +727,23 @@ function ProductEditorScreen({
   const [selected, setSelected] = useState<string[]>([])
   const [bulkPrice, setBulkPrice] = useState('')
   const [saving, setSaving] = useState(false)
+  const [additionalDetailsOpen, setAdditionalDetailsOpen] = useState(false)
+
+  const toggleAdditionalDetails = () => {
+    const workspaceBody = document.querySelector<HTMLElement>('.admin-workspace .workspace-body')
+    const currentScrollTop = workspaceBody?.scrollTop ?? window.scrollY
+
+    setAdditionalDetailsOpen((open) => !open)
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (workspaceBody) {
+          workspaceBody.scrollTop = currentScrollTop
+        }
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      })
+    })
+  }
 
   useEffect(() => {
     setSelected([])
@@ -1120,8 +1137,18 @@ function ProductEditorScreen({
       </section>
 
       <section className="product-editor-card product-extra-card">
-        <details>
-          <summary>Additional Product Details</summary>
+        <button
+          type="button"
+          className="product-extra-toggle"
+          aria-expanded={additionalDetailsOpen}
+          onClick={toggleAdditionalDetails}
+        >
+          <span className="product-extra-toggle-icon" aria-hidden="true">
+            {additionalDetailsOpen ? '▼' : '▶'}
+          </span>
+          <span>Additional Product Details</span>
+        </button>
+        {additionalDetailsOpen ? (
           <div className="product-extra-content">
             <div className="workspace-form-row">
               <Field
@@ -1198,7 +1225,7 @@ function ProductEditorScreen({
               ))}
             </div>
           </div>
-        </details>
+        ) : null}
       </section>
     </div>
   )
