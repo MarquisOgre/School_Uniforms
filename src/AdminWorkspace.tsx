@@ -2129,7 +2129,10 @@ function Packages({
       branch_id: branchId,
     }
     const r = currentEditing.id
-      ? await dbFrom('uniform_packages').update(p).eq('id', currentEditing.id).eq('branch_id', branchId)
+      ? await dbFrom('uniform_packages')
+          .update(p)
+          .eq('id', currentEditing.id)
+          .eq('branch_id', branchId)
       : await dbFrom('uniform_packages').insert(p)
     if (r.error) setError(r.error.message)
     else {
