@@ -10904,3 +10904,93 @@ a {
   font-size: 11px;
   color: #b42318;
 }
+
+
+/* Compact school login: keep the complete form visible on standard desktop heights */
+@media (min-width: 641px) and (max-height: 850px) {
+  .login-overlay {
+    padding: 10px;
+  }
+
+  .login-card-large {
+    width: min(720px, calc(100vw - 28px));
+    max-height: calc(100vh - 20px);
+    padding: 18px 24px;
+    overflow: hidden;
+  }
+
+  .login-card-large .brand-mark {
+    margin-bottom: 8px;
+  }
+
+  .login-card-large .login-logo-image {
+    width: 190px;
+    max-height: 62px;
+  }
+
+  .login-card-large > .eyebrow {
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+
+  .login-card-large > h1 {
+    font-size: 30px;
+    margin-bottom: 5px;
+  }
+
+  .login-card-large .subtitle {
+    font-size: 10px;
+    line-height: 1.4;
+    margin-bottom: 7px;
+  }
+
+  .login-card label,
+  .admin-login-card label,
+  .login-field label {
+    font-size: 9px;
+    margin: 7px 0 4px;
+  }
+
+  .input-wrap {
+    height: 40px;
+    min-height: 40px;
+    border-radius: 8px;
+    padding: 0 10px;
+  }
+
+  .login-card-large .primary-button {
+    min-height: 40px;
+    height: 40px;
+    margin-top: 10px;
+    font-size: 10px;
+  }
+
+  .demo-credentials {
+    margin-top: 8px;
+    padding: 8px 11px;
+  }
+
+  .demo-credentials-title {
+    font-size: 8px;
+    margin-bottom: 4px;
+  }
+
+  .demo-credential-row {
+    padding: 2px 0;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .text-button,
+  .admin-link {
+    font-size: 9px;
+    margin-top: 7px;
+  }
+
+  .modal-close {
+    width: 30px;
+    height: 30px;
+    right: 10px;
+    top: 10px;
+  }
+}
