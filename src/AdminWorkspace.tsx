@@ -5008,7 +5008,9 @@ function Field({
   )
 }
 function formatGender(value: unknown) {
-  const normalized = String(value || '').trim().toLowerCase()
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
   if (normalized === 'boys') return 'Boys'
   if (normalized === 'girls') return 'Girls'
   if (normalized === 'unisex') return 'Unisex'
