@@ -203,31 +203,6 @@ function Branches() {
     void load()
   }, [])
 
-  useEffect(() => {
-    if (!productId || !supabase) return
-    const loadProductPage = async () => {
-      setLoading(true)
-      setError('')
-      const result = await dbFrom('products').select('*').eq('id', productId).maybeSingle()
-      if (result.error || !result.data) {
-        setError(result.error?.message || 'Product not found.')
-        setEditing(null)
-        setLoading(false)
-        return
-      }
-      const product = result.data
-      setEditing({
-        ...product,
-        base_price: product.base_price ?? '',
-        discount_percentage: product.discount_percentage ?? '',
-        offer_price: product.offer_price ?? product.base_price ?? '',
-      })
-      await loadVariants(product.id)
-      setLoading(false)
-    }
-    void loadProductPage()
-  }, [productId])
-
   const saveBranch = async () => {
     if (!supabase || !editing) return
     const payload = {
@@ -380,6 +355,49 @@ function Products({ productId }: { productId?: string | null }) {
   useEffect(() => {
     void load()
   }, [])
+
+  useEffect(() => {
+    if (!productId || !supabase) return
+
+    let cancelled = false
+
+    const loadProductPage = async () => {
+      setLoading(true)
+      setError('')
+
+      const result = await dbFrom('products').select('*').eq('id', productId).maybeSingle()
+
+      if (cancelled) return
+
+      if (result.error || !result.data) {
+        setError(result.error?.message || 'Product not found.')
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+
+      const product = result.data
+
+      setEditing({
+        ...product,
+        base_price: product.base_price ?? '',
+        discount_percentage: product.discount_percentage ?? '',
+        offer_price: product.offer_price ?? product.base_price ?? '',
+      })
+
+      await loadVariants(product.id)
+
+      if (!cancelled) {
+        setLoading(false)
+      }
+    }
+
+    void loadProductPage()
+
+    return () => {
+      cancelled = true
+    }
+  }, [productId])
 
   const save = async (closeAfter = true): Promise<boolean> => {
     if (!supabase || !editing) return false
