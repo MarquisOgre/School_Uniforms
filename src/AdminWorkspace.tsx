@@ -2085,7 +2085,7 @@ function Packages({
     return () => {
       cancelled = true
     }
-  }, [packageSlug])
+  }, [packageSlug, branchId])
 
   const calculatePackageBasePrice = () =>
     items.reduce((total, item) => {
@@ -2125,10 +2125,11 @@ function Packages({
             Number(currentEditing.discount_percentage || 0),
           ),
       ),
-      status: editing.status,
+      status: currentEditing.status,
+      branch_id: branchId,
     }
-    const r = editing.id
-      ? await dbFrom('uniform_packages').update(p).eq('id', currentEditing.id)
+    const r = currentEditing.id
+      ? await dbFrom('uniform_packages').update(p).eq('id', currentEditing.id).eq('branch_id', branchId)
       : await dbFrom('uniform_packages').insert(p)
     if (r.error) setError(r.error.message)
     else {
