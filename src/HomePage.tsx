@@ -217,7 +217,7 @@ function Landing({ onLogin }: { onLogin: () => void }) {
           </nav>
           <div className="exact-header-icons">
             <button className="header-login-button" onClick={onLogin}>
-              Parent / Student Login <ArrowRight size={15} />
+              Student Login <ArrowRight size={15} />
             </button>
           </div>
           <button className="mobile-menu" onClick={() => setMenu((v) => !v)}>
@@ -414,7 +414,7 @@ function Landing({ onLogin }: { onLogin: () => void }) {
             </div>
             <div>
               <strong>Support</strong>
-              <a onClick={onLogin}>Parent / Student Login</a>
+              <a onClick={onLogin}>Student Login</a>
               <a onClick={() => go('help')}>Help Center</a>
               <a onClick={() => go('contact')}>Contact Us</a>
             </div>
@@ -518,7 +518,7 @@ function PublicPage({
           </nav>
           <div className="exact-header-icons">
             <button className="header-login-button" onClick={onLogin}>
-              Parent / Student Login <ArrowRight size={15} />
+              Student Login <ArrowRight size={15} />
             </button>
           </div>
         </div>
@@ -576,7 +576,7 @@ function PublicPage({
               : 'Secure school-specific shopping'}
           </p>
           <button onClick={onLogin}>
-            Parent / Student Login <ArrowRight />
+            Student Login <ArrowRight />
           </button>
         </div>
       )}
@@ -596,7 +596,7 @@ function PublicPage({
           </div>
           <div>
             <strong>Support</strong>
-            <a onClick={onLogin}>Parent / Student Login</a>
+            <a onClick={onLogin}>Student Login</a>
             <a onClick={() => onNavigate('help')}>Help Center</a>
           </div>
           <div>
@@ -678,7 +678,7 @@ function HelpContent({ onNavigate }: { onNavigate: (p: string) => void }) {
         {[
           [
             'How do I shop for my school?',
-            'Select Parent / Student Login and sign in with the credentials provided by your school.',
+            'Select Student Login and sign in with the Student ID and password provided by your school.',
           ],
           [
             'Why can’t I see another school’s products?',
