@@ -265,6 +265,29 @@ function Branches() {
   }
 
   useEffect(() => {
+  const saveBranch = async () => {
+    if (!supabase || !editing) return
+    const payload = {
+      name: editing.name,
+      code: editing.code,
+      address_line1: editing.address_line1 || null,
+      address_line2: editing.address_line2 || null,
+      city: editing.city || null,
+      state: editing.state || null,
+      postal_code: editing.postal_code || null,
+      phone: editing.phone || null,
+      email: editing.email || null,
+      status: editing.status,
+    }
+    const r = editing.id
+      ? await dbFrom('branches').update(payload).eq('id', editing.id)
+      : await dbFrom('branches').insert(payload)
+    if (r.error) setError(r.error.message)
+    else {
+      setEditing(null)
+      await load()
+    }
+  }
     void load()
   }, [])
 
@@ -3467,29 +3490,7 @@ function ParentStudents() {
     await load()
   }
 
-  const saveBranch = async () => {
-    if (!supabase || !editing) return
-    const payload = {
-      name: editing.name,
-      code: editing.code,
-      address_line1: editing.address_line1 || null,
-      address_line2: editing.address_line2 || null,
-      city: editing.city || null,
-      state: editing.state || null,
-      postal_code: editing.postal_code || null,
-      phone: editing.phone || null,
-      email: editing.email || null,
-      status: editing.status,
-    }
-    const r = editing.id
-      ? await dbFrom('branches').update(payload).eq('id', editing.id)
-      : await dbFrom('branches').insert(payload)
-    if (r.error) setError(r.error.message)
-    else {
-      setEditing(null)
-      await load()
-    }
-  }
+
 
   const openNewParent = () => {
     const branchId = branches[0]?.id || ''
