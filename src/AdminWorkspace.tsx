@@ -2000,7 +2000,7 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
   const calculateOfferPrice = (basePrice: number, discount: number) =>
     Math.max(0, basePrice * (1 - Math.min(100, Math.max(0, discount)) / 100))
 
-  const save = async (editingOverride?: any) => {
+  const save = async (editingOverride?: any, closeAfter = true) => {
     const currentEditing = editingOverride || editing
     if (!supabase || !currentEditing) return
     const name = String(currentEditing.name || '').trim()
@@ -2036,7 +2036,12 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
       : await dbFrom('uniform_packages').insert(p)
     if (r.error) setError(r.error.message)
     else {
-      setEditing(null)
+      if (closeAfter) {
+        setEditing(null)
+        setItems([])
+      } else {
+        setEditing({ ...currentEditing, base_price: Number(currentEditing.base_price || 0) })
+      }
       await load()
     }
   }
@@ -2296,8 +2301,8 @@ function Packages({ packageSlug }: { packageSlug?: string | null }) {
             )
             window.dispatchEvent(new PopStateEvent('popstate'))
           }}
-          onSave={async () => {
-            await save()
+          onSave={async (value) => {
+            await save(value, false)
           }}
           onAddItem={() => {
             setItemEditing({
