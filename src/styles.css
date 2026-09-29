@@ -5110,11 +5110,11 @@ a {
   border-radius: 13px;
   padding: 20px;
   margin-bottom: 18px;
-  box-shadow: 0 4px 18px rgba(23,39,45,.035);
+  box-shadow: 0 4px 18px rgba(23, 39, 45, 0.035);
 }
 .product-details-card {
   display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(300px, .75fr);
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.75fr);
   gap: 28px;
 }
 .product-details-main {
@@ -5173,7 +5173,7 @@ a {
   height: 19px;
   border-radius: 50%;
   background: #fff;
-  transition: transform .18s ease;
+  transition: transform 0.18s ease;
 }
 .product-status-toggle.active {
   background: #43a447;
@@ -5230,7 +5230,7 @@ a {
   color: #fff;
 }
 .product-delete-selected:disabled {
-  opacity: .45;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 .product-variants-table-wrap {
@@ -5250,7 +5250,7 @@ a {
   background: #faf6ef;
   color: #536064;
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   font-size: 9px;
   font-weight: 900;
   border-bottom: 1px solid #e7dfd2;
@@ -5282,7 +5282,7 @@ a {
 .product-variants-edit-table input:focus,
 .product-variants-edit-table select:focus {
   border-color: #d4a326;
-  box-shadow: 0 0 0 2px rgba(212,163,38,.12);
+  box-shadow: 0 0 0 2px rgba(212, 163, 38, 0.12);
 }
 .product-variants-edit-table td:first-child,
 .product-variants-edit-table th:first-child {
@@ -5348,7 +5348,7 @@ a {
 .product-bulk-price > span {
   color: #4f5c60;
 }
-.product-bulk-price input[type="number"] {
+.product-bulk-price input[type='number'] {
   width: 105px;
   border: 1px solid #d8d0c3;
   border-radius: 6px;
@@ -5375,7 +5375,7 @@ a {
   background: #172e35;
 }
 .product-save-all:disabled {
-  opacity: .55;
+  opacity: 0.55;
   cursor: wait;
 }
 .product-extra-card summary {

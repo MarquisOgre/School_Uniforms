@@ -422,18 +422,21 @@ function Products() {
     for (const variant of variants) {
       const sizeLabel = String(variant.size_label || '').trim()
       const productName = String(editing.name || '').trim()
-      const sku = String(variant.sku || '').trim() ||
-        `${productName.toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '')}-${String(variants.indexOf(variant) + 1).padStart(3, '0')}`
+      const sku =
+        String(variant.sku || '').trim() ||
+        `${productName
+          .toUpperCase()
+          .replace(/[^A-Z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')}-${String(variants.indexOf(variant) + 1).padStart(3, '0')}`
       const payload = {
         product_id: editing.id,
         sku,
         size_label: sizeLabel || null,
         color: String(variant.color || '').trim() || null,
-        variant_name: String(variant.variant_name || '').trim() || (sizeLabel ? `${productName} - Size ${sizeLabel}` : productName),
-        price:
-          variant.price === '' || variant.price == null
-            ? null
-            : Number(variant.price),
+        variant_name:
+          String(variant.variant_name || '').trim() ||
+          (sizeLabel ? `${productName} - Size ${sizeLabel}` : productName),
+        price: variant.price === '' || variant.price == null ? null : Number(variant.price),
         status: variant.status || 'active',
       }
 
@@ -452,7 +455,9 @@ function Products() {
   }
 
   const visible = rows.filter((product) =>
-    String(product.name || '').toLowerCase().includes(search.toLowerCase()),
+    String(product.name || '')
+      .toLowerCase()
+      .includes(search.toLowerCase()),
   )
 
   const newProduct = () =>
@@ -521,11 +526,15 @@ function Products() {
             {visible.map((product) => (
               <div className="workspace-row product-row" key={product.id}>
                 <strong>{product.name}</strong>
-                <span>{categories.find((c) => c.id === product.category_id)?.name || 'Uncategorized'}</span>
+                <span>
+                  {categories.find((c) => c.id === product.category_id)?.name || 'Uncategorized'}
+                </span>
                 <span>{product.gender}</span>
                 <span>₹{Number(product.base_price || 0).toLocaleString('en-IN')}</span>
                 <span>{Number(product.discount_percentage || 0)}%</span>
-                <span>₹{Number(product.offer_price ?? product.base_price ?? 0).toLocaleString('en-IN')}</span>
+                <span>
+                  ₹{Number(product.offer_price ?? product.base_price ?? 0).toLocaleString('en-IN')}
+                </span>
                 <button
                   onClick={() => {
                     setError('')
@@ -548,13 +557,13 @@ function Products() {
       )}
 
       {editing && !editing.id && (
-        <EditModal
-          title="Add Product"
-          onClose={() => setEditing(null)}
-          onSave={() => void save()}
-        >
+        <EditModal title="Add Product" onClose={() => setEditing(null)} onSave={() => void save()}>
           <div className="workspace-form-row">
-            <Field label="Name" value={editing.name} onChange={(v) => setEditing({ ...editing, name: v })} />
+            <Field
+              label="Name"
+              value={editing.name}
+              onChange={(v) => setEditing({ ...editing, name: v })}
+            />
             <Select
               label="Category"
               value={editing.category_id || ''}
@@ -564,26 +573,68 @@ function Products() {
             />
           </div>
           <div className="workspace-form-row">
-            <Field label="Product Type" value={editing.product_type || ''} onChange={(v) => setEditing({ ...editing, product_type: v })} />
-            <Field label="Occasion Type" value={editing.occasion_type || ''} onChange={(v) => setEditing({ ...editing, occasion_type: v })} />
+            <Field
+              label="Product Type"
+              value={editing.product_type || ''}
+              onChange={(v) => setEditing({ ...editing, product_type: v })}
+            />
+            <Field
+              label="Occasion Type"
+              value={editing.occasion_type || ''}
+              onChange={(v) => setEditing({ ...editing, occasion_type: v })}
+            />
           </div>
           <div className="workspace-form-row workspace-form-row-description-gender">
-            <Field label="Description" value={editing.description || ''} onChange={(v) => setEditing({ ...editing, description: v })} area />
-            <Select label="Gender" value={editing.gender} options={['boys', 'girls', 'unisex']} onChange={(v) => setEditing({ ...editing, gender: v })} />
+            <Field
+              label="Description"
+              value={editing.description || ''}
+              onChange={(v) => setEditing({ ...editing, description: v })}
+              area
+            />
+            <Select
+              label="Gender"
+              value={editing.gender}
+              options={['boys', 'girls', 'unisex']}
+              onChange={(v) => setEditing({ ...editing, gender: v })}
+            />
           </div>
           <div className="workspace-form-row workspace-form-row-pricing">
-            <Field label="Base Price" value={String(editing.base_price ?? '')} onChange={(v) => setEditing({ ...editing, base_price: v })} type="number" />
-            <Field label="Discount (%)" value={String(editing.discount_percentage ?? '')} onChange={(v) => setEditing({ ...editing, discount_percentage: v })} type="number" />
-            <Field label="Offer Price" value={String(editing.offer_price ?? '')} onChange={(v) => setEditing({ ...editing, offer_price: v })} type="number" />
+            <Field
+              label="Base Price"
+              value={String(editing.base_price ?? '')}
+              onChange={(v) => setEditing({ ...editing, base_price: v })}
+              type="number"
+            />
+            <Field
+              label="Discount (%)"
+              value={String(editing.discount_percentage ?? '')}
+              onChange={(v) => setEditing({ ...editing, discount_percentage: v })}
+              type="number"
+            />
+            <Field
+              label="Offer Price"
+              value={String(editing.offer_price ?? '')}
+              onChange={(v) => setEditing({ ...editing, offer_price: v })}
+              type="number"
+            />
           </div>
           <div className="workspace-form-row workspace-form-row-image-status">
             <div className="workspace-field">
               <span>Product Main Image</span>
-              <ImagePicker value={editing.image_url || ''} folder="products" alt="Selected product" onChange={(v) => setEditing({ ...editing, image_url: v })} />
+              <ImagePicker
+                value={editing.image_url || ''}
+                folder="products"
+                alt="Selected product"
+                onChange={(v) => setEditing({ ...editing, image_url: v })}
+              />
             </div>
             <div className="workspace-field">
               <span>Product Image Gallery</span>
-              <GalleryPicker value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []} folder="products" onChange={(v) => setEditing({ ...editing, image_gallery: v })} />
+              <GalleryPicker
+                value={Array.isArray(editing.image_gallery) ? editing.image_gallery : []}
+                folder="products"
+                onChange={(v) => setEditing({ ...editing, image_gallery: v })}
+              />
             </div>
           </div>
         </EditModal>
@@ -710,9 +761,7 @@ function ProductEditorScreen({
     if (bulkPrice === '' || !selected.length) return
     setVariants((current) =>
       current.map((variant) =>
-        selected.includes(variant.id)
-          ? { ...variant, price: bulkPrice }
-          : variant,
+        selected.includes(variant.id) ? { ...variant, price: bulkPrice } : variant,
       ),
     )
   }
@@ -752,8 +801,17 @@ function ProductEditorScreen({
           <div className="product-editor-section-title">Product Details</div>
 
           <div className="product-editor-grid product-editor-grid-2">
-            <Field label="Product Name *" value={editing.name || ''} onChange={(v) => setEditing({ ...editing, name: v })} />
-            <Select label="Gender" value={editing.gender || 'unisex'} options={['boys', 'girls', 'unisex']} onChange={(v) => setEditing({ ...editing, gender: v })} />
+            <Field
+              label="Product Name *"
+              value={editing.name || ''}
+              onChange={(v) => setEditing({ ...editing, name: v })}
+            />
+            <Select
+              label="Gender"
+              value={editing.gender || 'unisex'}
+              options={['boys', 'girls', 'unisex']}
+              onChange={(v) => setEditing({ ...editing, gender: v })}
+            />
           </div>
 
           <div className="product-editor-grid product-editor-grid-2">
@@ -764,20 +822,39 @@ function ProductEditorScreen({
               labels={Object.fromEntries(categories.map((x) => [x.id, x.name]))}
               onChange={(v) => setEditing({ ...editing, category_id: v })}
             />
-            <Field label="Sub Category" value={editing.occasion_type || ''} onChange={(v) => setEditing({ ...editing, occasion_type: v })} />
+            <Field
+              label="Sub Category"
+              value={editing.occasion_type || ''}
+              onChange={(v) => setEditing({ ...editing, occasion_type: v })}
+            />
           </div>
 
           <div className="product-editor-grid product-editor-grid-2">
             <div>
-              <Field label="Base Price (₹)" value={String(editing.base_price ?? '')} onChange={(v) => setEditing({ ...editing, base_price: v })} type="number" min="0" />
+              <Field
+                label="Base Price (₹)"
+                value={String(editing.base_price ?? '')}
+                onChange={(v) => setEditing({ ...editing, base_price: v })}
+                type="number"
+                min="0"
+              />
               <p className="product-editor-help">This is the default price new sizes will use.</p>
             </div>
             <label className="product-editor-status">
               <span>Status</span>
               <button
                 type="button"
-                className={editing.status === 'active' ? 'product-status-toggle active' : 'product-status-toggle'}
-                onClick={() => setEditing({ ...editing, status: editing.status === 'active' ? 'inactive' : 'active' })}
+                className={
+                  editing.status === 'active'
+                    ? 'product-status-toggle active'
+                    : 'product-status-toggle'
+                }
+                onClick={() =>
+                  setEditing({
+                    ...editing,
+                    status: editing.status === 'active' ? 'inactive' : 'active',
+                  })
+                }
               >
                 <span />
               </button>
@@ -785,7 +862,12 @@ function ProductEditorScreen({
             </label>
           </div>
 
-          <Field label="Product Description" value={editing.description || ''} onChange={(v) => setEditing({ ...editing, description: v })} area />
+          <Field
+            label="Product Description"
+            value={editing.description || ''}
+            onChange={(v) => setEditing({ ...editing, description: v })}
+            area
+          />
         </div>
 
         <div className="product-editor-images">
@@ -813,10 +895,20 @@ function ProductEditorScreen({
             <button type="button" className="secondary-button" onClick={addSize}>
               <Plus size={15} /> Add Size
             </button>
-            <button type="button" className="secondary-button" disabled={!selected.length} onClick={applyBulkPrice}>
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={!selected.length}
+              onClick={applyBulkPrice}
+            >
               <Percent size={15} /> Bulk Price
             </button>
-            <button type="button" className="product-delete-selected" disabled={!selected.length} onClick={() => void deleteSelected()}>
+            <button
+              type="button"
+              className="product-delete-selected"
+              disabled={!selected.length}
+              onClick={() => void deleteSelected()}
+            >
               <Trash2 size={15} /> Delete Selected
             </button>
           </div>
@@ -829,7 +921,17 @@ function ProductEditorScreen({
             <table className="product-variants-edit-table">
               <thead>
                 <tr>
-                  <th><input type="checkbox" checked={variants.length > 0 && selected.length === variants.length} onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id).filter(Boolean) : [])} /></th>
+                  <th>
+                    <input
+                      type="checkbox"
+                      checked={variants.length > 0 && selected.length === variants.length}
+                      onChange={(e) =>
+                        setSelected(
+                          e.target.checked ? variants.map((v) => v.id).filter(Boolean) : [],
+                        )
+                      }
+                    />
+                  </th>
                   <th>Size</th>
                   <th>SKU</th>
                   <th>Price (₹)</th>
@@ -858,7 +960,9 @@ function ProductEditorScreen({
                       <input
                         value={variant.size_label || ''}
                         placeholder="Size"
-                        onChange={(e) => updateVariant(variant.id, { size_label: e.target.value }, variant._tempId)}
+                        onChange={(e) =>
+                          updateVariant(variant.id, { size_label: e.target.value }, variant._tempId)
+                        }
                         onBlur={() => {
                           if (!variant.id) {
                             const row = variants[index]
@@ -872,20 +976,42 @@ function ProductEditorScreen({
                       />
                     </td>
                     <td>
-                      <input value={variant.sku || ''} onChange={(e) => updateVariant(variant.id, { sku: e.target.value }, variant._tempId)} />
+                      <input
+                        value={variant.sku || ''}
+                        onChange={(e) =>
+                          updateVariant(variant.id, { sku: e.target.value }, variant._tempId)
+                        }
+                      />
                     </td>
                     <td>
-                      <input type="number" min="0" value={variant.price ?? ''} onChange={(e) => updateVariant(variant.id, { price: e.target.value }, variant._tempId)} />
+                      <input
+                        type="number"
+                        min="0"
+                        value={variant.price ?? ''}
+                        onChange={(e) =>
+                          updateVariant(variant.id, { price: e.target.value }, variant._tempId)
+                        }
+                      />
                     </td>
                     <td>
-                      <select value={variant.status || 'active'} onChange={(e) => updateVariant(variant.id, { status: e.target.value }, variant._tempId)}>
+                      <select
+                        value={variant.status || 'active'}
+                        onChange={(e) =>
+                          updateVariant(variant.id, { status: e.target.value }, variant._tempId)
+                        }
+                      >
                         <option value="active">● Active</option>
                         <option value="inactive">Inactive</option>
                         <option value="suspended">Suspended</option>
                       </select>
                     </td>
                     <td>
-                      <button type="button" className="product-row-icon" onClick={() => updateVariant(variant.id, { _focus: true }, variant._tempId)} title="Edit size">
+                      <button
+                        type="button"
+                        className="product-row-icon"
+                        onClick={() => updateVariant(variant.id, { _focus: true }, variant._tempId)}
+                        title="Edit size"
+                      >
                         <Pencil size={15} />
                       </button>
                       <button
@@ -898,7 +1024,9 @@ function ProductEditorScreen({
                           }
                           const ok = window.confirm('Delete this size permanently?')
                           if (!ok || !supabase) return
-                          const result = await dbFrom('product_variants').delete().eq('id', variant.id)
+                          const result = await dbFrom('product_variants')
+                            .delete()
+                            .eq('id', variant.id)
                           if (result.error) {
                             setError(result.error.message)
                             return
@@ -917,23 +1045,45 @@ function ProductEditorScreen({
             </table>
           )}
           {!variantsLoading && !variants.length ? (
-            <div className="workspace-empty">No sizes added yet. Click <strong>Add Size</strong> to create the first size.</div>
+            <div className="workspace-empty">
+              No sizes added yet. Click <strong>Add Size</strong> to create the first size.
+            </div>
           ) : null}
         </div>
 
         <div className="product-variants-footer">
           <div className="product-bulk-price">
             <label>
-              <input type="checkbox" checked={variants.length > 0 && selected.length === variants.length} onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id) : [])} />
+              <input
+                type="checkbox"
+                checked={variants.length > 0 && selected.length === variants.length}
+                onChange={(e) => setSelected(e.target.checked ? variants.map((v) => v.id) : [])}
+              />
               <span>Select All</span>
             </label>
             <span>Set Price to</span>
-            <input value={bulkPrice} onChange={(e) => setBulkPrice(e.target.value)} type="number" min="0" placeholder="875" />
-            <button type="button" className="primary-button" disabled={!selected.length || bulkPrice === ''} onClick={applyBulkPrice}>
+            <input
+              value={bulkPrice}
+              onChange={(e) => setBulkPrice(e.target.value)}
+              type="number"
+              min="0"
+              placeholder="875"
+            />
+            <button
+              type="button"
+              className="primary-button"
+              disabled={!selected.length || bulkPrice === ''}
+              onClick={applyBulkPrice}
+            >
               Apply to Selected
             </button>
           </div>
-          <button type="button" className="product-save-all" onClick={() => void save()} disabled={saving}>
+          <button
+            type="button"
+            className="product-save-all"
+            onClick={() => void save()}
+            disabled={saving}
+          >
             <Save size={16} /> {saving ? 'Saving...' : 'Save All Changes'}
           </button>
         </div>
@@ -944,19 +1094,49 @@ function ProductEditorScreen({
           <summary>Additional Product Details</summary>
           <div className="product-extra-content">
             <div className="workspace-form-row">
-              <Field label="Product Type" value={editing.product_type || ''} onChange={(v) => setEditing({ ...editing, product_type: v })} />
-              <Field label="Material" value={editing.material || ''} onChange={(v) => setEditing({ ...editing, material: v })} />
+              <Field
+                label="Product Type"
+                value={editing.product_type || ''}
+                onChange={(v) => setEditing({ ...editing, product_type: v })}
+              />
+              <Field
+                label="Material"
+                value={editing.material || ''}
+                onChange={(v) => setEditing({ ...editing, material: v })}
+              />
             </div>
             <div className="workspace-form-row">
-              <Field label="Brand" value={editing.brand || ''} onChange={(v) => setEditing({ ...editing, brand: v })} />
-              <Field label="Quality" value={editing.quality || ''} onChange={(v) => setEditing({ ...editing, quality: v })} />
+              <Field
+                label="Brand"
+                value={editing.brand || ''}
+                onChange={(v) => setEditing({ ...editing, brand: v })}
+              />
+              <Field
+                label="Quality"
+                value={editing.quality || ''}
+                onChange={(v) => setEditing({ ...editing, quality: v })}
+              />
             </div>
             <div className="workspace-form-row">
-              <Field label="Fabric" value={editing.fabric || ''} onChange={(v) => setEditing({ ...editing, fabric: v })} />
-              <Field label="Care Instructions" value={editing.care || ''} onChange={(v) => setEditing({ ...editing, care: v })} area />
+              <Field
+                label="Fabric"
+                value={editing.fabric || ''}
+                onChange={(v) => setEditing({ ...editing, fabric: v })}
+              />
+              <Field
+                label="Care Instructions"
+                value={editing.care || ''}
+                onChange={(v) => setEditing({ ...editing, care: v })}
+                area
+              />
             </div>
             <div className="workspace-form-row">
-              <Field label="Delivery & Returns" value={editing.delivery_returns || ''} onChange={(v) => setEditing({ ...editing, delivery_returns: v })} area />
+              <Field
+                label="Delivery & Returns"
+                value={editing.delivery_returns || ''}
+                onChange={(v) => setEditing({ ...editing, delivery_returns: v })}
+                area
+              />
               <div />
             </div>
             <div className="workspace-product-benefits">
@@ -974,9 +1154,13 @@ function ProductEditorScreen({
                 <label key={key}>
                   <input
                     type="checkbox"
-                    checked={key === 'cod_available' || key === 'easy_returns' || key === 'express_shipping'
-                      ? editing[key] !== false
-                      : editing[key] === true}
+                    checked={
+                      key === 'cod_available' ||
+                      key === 'easy_returns' ||
+                      key === 'express_shipping'
+                        ? editing[key] !== false
+                        : editing[key] === true
+                    }
                     onChange={(e) => setEditing({ ...editing, [key]: e.target.checked })}
                   />
                   {label}
