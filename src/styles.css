@@ -5075,15 +5075,7 @@ a {
 }
 
 .admin-workspace .workspace-products:has(.product-editor-page) > .workspace-heading {
-  display: block;
-}
-
-.admin-workspace .workspace-products:has(.product-editor-page) > .workspace-heading h1 {
-  margin: 0;
-}
-
-.admin-workspace .workspace-products:has(.product-editor-page) > .workspace-heading p {
-  margin: 6px 0 18px;
+  display: none !important;
 }
 
 .product-editor-page {
