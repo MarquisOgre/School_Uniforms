@@ -474,7 +474,6 @@ function Products({
         const nameResult = await dbFrom('products')
           .select('*')
           .eq('branch_id', branchId)
-          .eq('branch_id', branchId)
           .ilike('name', nameFromSlug)
           .maybeSingle()
 
@@ -516,7 +515,7 @@ function Products({
     return () => {
       cancelled = true
     }
-  }, [productSlug])
+  }, [productSlug, branchId])
 
   const save = async (closeAfter = true): Promise<boolean> => {
     if (!supabase || !editing) return false
@@ -537,7 +536,7 @@ function Products({
       category_id: editing.category_id || null,
       name,
       slug,
-      description: currentEditing.description || null,
+      description: editing.description || null,
       product_type: editing.product_type || null,
       occasion_type: editing.occasion_type || null,
       gender: editing.gender || 'unisex',
@@ -556,14 +555,14 @@ function Products({
       show_description: editing.show_description !== false,
       show_quality_care: editing.show_quality_care !== false,
       show_delivery_returns: editing.show_delivery_returns !== false,
-      image_url: currentEditing.image_url || null,
+      image_url: editing.image_url || null,
       image_gallery: Array.isArray(editing.image_gallery) ? editing.image_gallery : [],
-      base_price: Number(currentEditing.base_price || 0),
+      base_price: Number(editing.base_price || 0),
       offer_price:
         editing.offer_price === '' || editing.offer_price == null
           ? null
           : Number(editing.offer_price),
-      discount_percentage: Number(currentEditing.discount_percentage || 0),
+      discount_percentage: Number(editing.discount_percentage || 0),
       status: editing.status || 'active',
       branch_id: branchId,
     }
@@ -2006,6 +2005,7 @@ function Packages({
         const nameFromSlug = decodeURIComponent(packageSlug).replace(/-/g, ' ').trim()
         const nameResult = await dbFrom('uniform_packages')
           .select('*')
+          .eq('branch_id', branchId)
           .ilike('name', nameFromSlug)
           .maybeSingle()
 
