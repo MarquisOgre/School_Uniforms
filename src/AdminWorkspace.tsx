@@ -2286,8 +2286,12 @@ function Packages({
                           .replace(/^-|-$/g, '')
                         const duplicateNameCount = rows.filter(
                           (row) =>
-                            String(row.name || '').trim().toLowerCase() ===
-                            String(x.name || '').trim().toLowerCase(),
+                            String(row.name || '')
+                              .trim()
+                              .toLowerCase() ===
+                            String(x.name || '')
+                              .trim()
+                              .toLowerCase(),
                         ).length
                         const slug =
                           duplicateNameCount > 1
