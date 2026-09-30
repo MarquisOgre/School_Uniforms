@@ -1063,6 +1063,13 @@ export default function HomePage({
                 type="button"
                 className="demo-credential-row admin-demo-row"
                 onClick={() => {
+                  sessionStorage.setItem(
+                    'school_uniform_admin_demo_prefill',
+                    JSON.stringify({
+                      email: ADMIN_DEMO.id,
+                      password: ADMIN_DEMO.password,
+                    }),
+                  )
                   setShowLogin(false)
                   window.history.pushState({}, '', '/admin')
                   onAdmin()
