@@ -54,7 +54,13 @@ type CartItem = CheckoutCartItem & {
   easyReturns?: boolean
   expressShipping?: boolean
   imageGallery?: string[]
-  variantOptions?: { id: string; label: string; price?: number | null; disabled?: boolean }[]
+  variantOptions?: {
+    id: string
+    label: string
+    color?: string | null
+    price?: number | null
+    disabled?: boolean
+  }[]
   sizeOptions?: string[]
 }
 type CheckoutStep = 'cart' | 'details' | 'payment' | 'success'
@@ -1023,45 +1029,54 @@ function Products({
       }>
       const pv = await client
         .from('product_variants')
-        .select('id,product_id,size_label,variant_name,price,status')
+        .select('id,product_id,size_label,color,variant_name,price,status')
         .in('product_id', ids)
         .order('size_label')
       const variants = (pv.data ?? []) as Array<{
         id: string
         product_id: string
         size_label: string | null
+        color: string | null
         variant_name: string | null
         price: number | null
         status: string | null
       }>
-      const sizes: Record<string, string[]> = Object.fromEntries(ids.map((id) => [id, []]))
       const variantOptions: Record<
         string,
-        { id: string; label: string; price?: number | null; disabled?: boolean }[]
+        {
+          id: string
+          label: string
+          color?: string | null
+          price?: number | null
+          disabled?: boolean
+        }[]
       > = Object.fromEntries(ids.map((id) => [id, []]))
+
       variants.forEach((x) => {
-        if (x.size_label && sizes[x.product_id] && !sizes[x.product_id].includes(x.size_label)) {
-          sizes[x.product_id].push(x.size_label)
-          variantOptions[x.product_id].push({
-            id: x.id,
-            label: x.size_label,
-            price: x.price == null ? null : Number(x.price),
-            disabled: x.status !== 'active',
-          })
-        }
+        if (!x.size_label || !variantOptions[x.product_id]) return
+        variantOptions[x.product_id].push({
+          id: x.id,
+          label: x.size_label,
+          color: x.color || null,
+          price: x.price == null ? null : Number(x.price),
+          disabled: x.status !== 'active',
+        })
       })
 
-      // Always display sizes in natural ascending order (4, 6, 8, 10, 12...)
-      // instead of PostgreSQL's lexicographic order (10, 12, 14, ..., 4, 40...).
-      Object.values(sizes).forEach((options) =>
-        options.sort((a, b) =>
-          a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
-        ),
-      )
+      // Keep variants ordered by Color, then Size (numeric ascending).
       Object.values(variantOptions).forEach((options) =>
-        options.sort((a, b) =>
-          a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }),
-        ),
+        options.sort((a, b) => {
+          const colorCompare = String(a.color || '').localeCompare(
+            String(b.color || ''),
+            undefined,
+            { sensitivity: 'base' },
+          )
+          if (colorCompare !== 0) return colorCompare
+          return a.label.localeCompare(b.label, undefined, {
+            numeric: true,
+            sensitivity: 'base',
+          })
+        }),
       )
 
       if (!cancelled)
@@ -1094,7 +1109,11 @@ function Products({
             sourceId: x.id,
             image: x.image_url || '/category-accessories.jpg',
             imageGallery: Array.isArray(x.image_gallery) ? x.image_gallery : [],
-            sizeOptions: sizes[x.id] || [],
+            sizeOptions: Array.from(
+              new Set((variantOptions[x.id] || []).map((v) => v.label)),
+            ).sort((a, b) =>
+              a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+            ),
             variantOptions: variantOptions[x.id] || [],
           })),
         )
@@ -1195,7 +1214,13 @@ function ProductCard({
   id: string
   type: 'package' | 'product'
   image?: string
-  variantOptions?: { id: string; label: string; price?: number | null; disabled?: boolean }[]
+  variantOptions?: {
+    id: string
+    label: string
+    color?: string | null
+    price?: number | null
+    disabled?: boolean
+  }[]
   saved?: boolean
   onToggleSaved?: () => void
 }) {
@@ -1274,18 +1299,35 @@ function ProductDetail({
   onBuyNow: (x: CartItem) => void
 }) {
   const [size, setSize] = useState(''),
+    [color, setColor] = useState(''),
     [quantity, setQuantity] = useState(1),
     [mainImage, setMainImage] = useState(item.image || '/category-packages.jpg'),
     [bundleSizes, setBundleSizes] = useState<Record<string, string>>({})
   const productOptions: {
     id: string
     label: string
+    color?: string | null
     price?: number | null
     disabled?: boolean
   }[] = item.variantOptions?.length
     ? item.variantOptions
     : (item.sizeOptions || []).map((x) => ({ id: x, label: x }))
-  const selectedProductOption = productOptions.find((x: any) => x.id === size)
+
+  const colors = Array.from(
+    new Set(
+      productOptions
+        .map((x) => String(x.color || '').trim())
+        .filter(Boolean),
+    ),
+  )
+  const availableProductOptions = color
+    ? productOptions.filter((x) => String(x.color || '').trim() === color)
+    : productOptions
+  const selectedProductOption = productOptions.find(
+    (x: any) =>
+      x.id === size &&
+      (!colors.length || String(x.color || '').trim() === color),
+  )
   const variantPrices =
     item.type === 'product'
       ? productOptions
@@ -1300,14 +1342,35 @@ function ProductDetail({
       : item.price
   const packageComponents = item.bundleComponents || []
   const requiredComponents = packageComponents.filter((x) => x.required && x.requiresSize)
+
+  useEffect(() => {
+    if (item.type !== 'product') return
+    const firstColor = Array.from(
+      new Set(
+        productOptions
+          .map((x) => String(x.color || '').trim())
+          .filter(Boolean),
+      ),
+    )[0]
+    setColor(firstColor || '')
+    setSize('')
+    setMainImage(item.image || '/category-packages.jpg')
+  }, [item.id])
+
   const ready =
     item.type === 'product'
-      ? Boolean(size)
+      ? Boolean(size && (!colors.length || color))
       : requiredComponents.every((x) => Boolean(bundleSizes[x.packageItemId]))
   const selectedVariants =
     item.type === 'product'
       ? size
-        ? [{ variantId: size, sizeLabel: productOptions.find((x) => x.id === size)?.label }]
+        ? [
+            {
+              variantId: size,
+              sizeLabel: selectedProductOption?.label,
+              color: selectedProductOption?.color || color || undefined,
+            },
+          ]
         : []
       : packageComponents
           .filter((x) => x.requiresSize)
@@ -1409,34 +1472,60 @@ function ProductDetail({
               : `₹${selectedUnitPrice.toLocaleString('en-IN')}`}
           </strong>
           {item.type === 'product' ? (
-            <div className="detail-size-selector">
-              <div className="detail-size-heading">
-                <span>Size</span>
-                <strong>{productOptions.find((x: any) => x.id === size)?.label || '—'}</strong>
+            <>
+              {colors.length ? (
+                <div className="detail-size-selector">
+                  <div className="detail-size-heading">
+                    <span>Color</span>
+                    <strong>{color || '—'}</strong>
+                  </div>
+                  <div className="detail-size-options" role="radiogroup" aria-label="Select color">
+                    {colors.map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className={'detail-size-option' + (color === value ? ' selected' : '')}
+                        aria-pressed={color === value}
+                        onClick={() => {
+                          setColor(value)
+                          setSize('')
+                        }}
+                      >
+                        <span>{value}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              <div className="detail-size-selector">
+                <div className="detail-size-heading">
+                  <span>Size</span>
+                  <strong>{selectedProductOption?.label || '—'}</strong>
+                </div>
+                <div className="detail-size-options" role="radiogroup" aria-label="Select size">
+                  {availableProductOptions.map((x: any) => {
+                    const unavailable = Boolean(x.disabled)
+                    const selectedSize = size === x.id
+                    return (
+                      <button
+                        key={x.id}
+                        type="button"
+                        className={
+                          'detail-size-option' +
+                          (selectedSize ? ' selected' : '') +
+                          (unavailable ? ' unavailable' : '')
+                        }
+                        disabled={unavailable}
+                        aria-pressed={selectedSize}
+                        onClick={() => setSize(x.id)}
+                      >
+                        <span>{x.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-              <div className="detail-size-options" role="radiogroup" aria-label="Select size">
-                {productOptions.map((x: any) => {
-                  const unavailable = Boolean(x.disabled)
-                  const selectedSize = size === x.id
-                  return (
-                    <button
-                      key={x.id}
-                      type="button"
-                      className={
-                        'detail-size-option' +
-                        (selectedSize ? ' selected' : '') +
-                        (unavailable ? ' unavailable' : '')
-                      }
-                      disabled={unavailable}
-                      aria-pressed={selectedSize}
-                      onClick={() => setSize(x.id)}
-                    >
-                      <span>{x.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
+            </>
           ) : null}
           <div className="quantity">
             <span>Quantity</span>
