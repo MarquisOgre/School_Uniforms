@@ -1111,9 +1111,7 @@ function Products({
             image: x.image_url || '/category-accessories.jpg',
             imageGallery: Array.isArray(x.image_gallery) ? x.image_gallery : [],
             colorImageMap:
-              x.color_image_map && typeof x.color_image_map === 'object'
-                ? x.color_image_map
-                : {},
+              x.color_image_map && typeof x.color_image_map === 'object' ? x.color_image_map : {},
             sizeOptions: Array.from(new Set((variantOptions[x.id] || []).map((v) => v.label))).sort(
               (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
             ),

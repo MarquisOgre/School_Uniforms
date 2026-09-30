@@ -1980,7 +1980,10 @@ function ProductEditorScreen({
     const existingIds = variants
       .filter(
         (variant) =>
-          variant.id && String(variant.color || '').trim().toLowerCase() === normalized,
+          variant.id &&
+          String(variant.color || '')
+            .trim()
+            .toLowerCase() === normalized,
       )
       .map((variant) => variant.id)
 
@@ -1994,7 +1997,10 @@ function ProductEditorScreen({
 
     setVariants((current) =>
       current.filter(
-        (variant) => String(variant.color || '').trim().toLowerCase() !== normalized,
+        (variant) =>
+          String(variant.color || '')
+            .trim()
+            .toLowerCase() !== normalized,
       ),
     )
     const map = { ...(editing.color_image_map || {}) }
