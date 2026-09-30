@@ -54,6 +54,7 @@ type CartItem = CheckoutCartItem & {
   easyReturns?: boolean
   expressShipping?: boolean
   imageGallery?: string[]
+  colorImageMap?: Record<string, string>
   variantOptions?: {
     id: string
     label: string
@@ -1109,6 +1110,10 @@ function Products({
             sourceId: x.id,
             image: x.image_url || '/category-accessories.jpg',
             imageGallery: Array.isArray(x.image_gallery) ? x.image_gallery : [],
+            colorImageMap:
+              x.color_image_map && typeof x.color_image_map === 'object'
+                ? x.color_image_map
+                : {},
             sizeOptions: Array.from(new Set((variantOptions[x.id] || []).map((v) => v.label))).sort(
               (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
             ),
@@ -1320,26 +1325,21 @@ function ProductDetail({
     ),
   )
   const colorImageMap = (() => {
-    if (item.type !== 'product' || !colors.length || !galleryImages.length)
-      return {} as Record<string, string>
+    if (item.type !== 'product' || !colors.length) return {} as Record<string, string>
 
-    // The Sports T Shirt images were imported in different source orders for
-    // the ₹480 and ₹540 product groups. Keep the color/image relationship
-    // explicit so selecting a color always shows that exact color photo.
-    const title = displayCatalogName(item.title).toUpperCase()
-    const colorOrder =
-      title === 'UNIFORM SPORTS PANT'
-        ? ['Green', 'Blue', 'Yellow', 'Red']
-        : title === 'UNIFORM SPORTS T SHIRT' && Number(item.price) === 480
-          ? ['Green', 'Blue', 'Yellow', 'Red']
-          : title === 'UNIFORM SPORTS T SHIRT' && Number(item.price) === 540
-            ? ['Blue', 'Red', 'Green', 'Yellow']
-            : colors
-
-    return colorOrder.reduce<Record<string, string>>((map, value, index) => {
-      if (galleryImages[index]) map[value] = galleryImages[index]
-      return map
-    }, {})
+    // Admin-managed mapping takes priority. The gallery-order fallback keeps
+    // older products working until their colors are mapped in Admin.
+    const managed = item.colorImageMap || {}
+    const mapped: Record<string, string> = {}
+    colors.forEach((color) => {
+      const exact = managed[color]
+      const caseInsensitiveKey = Object.keys(managed).find(
+        (key) => key.toLowerCase() === color.toLowerCase(),
+      )
+      if (exact) mapped[color] = exact
+      else if (caseInsensitiveKey) mapped[color] = managed[caseInsensitiveKey]
+    })
+    return mapped
   })()
   const availableProductOptions = color
     ? productOptions.filter((x) => String(x.color || '').trim() === color)
