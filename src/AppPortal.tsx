@@ -1109,10 +1109,8 @@ function Products({
             sourceId: x.id,
             image: x.image_url || '/category-accessories.jpg',
             imageGallery: Array.isArray(x.image_gallery) ? x.image_gallery : [],
-            sizeOptions: Array.from(
-              new Set((variantOptions[x.id] || []).map((v) => v.label)),
-            ).sort((a, b) =>
-              a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+            sizeOptions: Array.from(new Set((variantOptions[x.id] || []).map((v) => v.label))).sort(
+              (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
             ),
             variantOptions: variantOptions[x.id] || [],
           })),
@@ -1314,19 +1312,13 @@ function ProductDetail({
     : (item.sizeOptions || []).map((x) => ({ id: x, label: x }))
 
   const colors = Array.from(
-    new Set(
-      productOptions
-        .map((x) => String(x.color || '').trim())
-        .filter(Boolean),
-    ),
+    new Set(productOptions.map((x) => String(x.color || '').trim()).filter(Boolean)),
   )
   const availableProductOptions = color
     ? productOptions.filter((x) => String(x.color || '').trim() === color)
     : productOptions
   const selectedProductOption = productOptions.find(
-    (x: any) =>
-      x.id === size &&
-      (!colors.length || String(x.color || '').trim() === color),
+    (x: any) => x.id === size && (!colors.length || String(x.color || '').trim() === color),
   )
   const variantPrices =
     item.type === 'product'
@@ -1346,11 +1338,7 @@ function ProductDetail({
   useEffect(() => {
     if (item.type !== 'product') return
     const firstColor = Array.from(
-      new Set(
-        productOptions
-          .map((x) => String(x.color || '').trim())
-          .filter(Boolean),
-      ),
+      new Set(productOptions.map((x) => String(x.color || '').trim()).filter(Boolean)),
     )[0]
     setColor(firstColor || '')
     setSize('')
