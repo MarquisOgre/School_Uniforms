@@ -938,9 +938,9 @@ export default function HomePage({
             </div>
             <p className="eyebrow">SECURE SCHOOL PORTAL</p>
             {/* <h1>Welcome back</h1> */}
-            <p className="subtitle">
+            {/* <p className="subtitle">
               Select your branch, then sign in with the credentials provided by your school.
-            </p>
+            </p> */}
             <div className="login-fields-grid">
               <div className="login-field">
                 <label>Branch</label>
