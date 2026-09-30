@@ -254,6 +254,7 @@ function Branches() {
   const [editing, setEditing] = useState<any>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [importing, setImporting] = useState(false)
 
   const load = async () => {
     if (!supabase) return
@@ -267,8 +268,8 @@ function Branches() {
   const saveBranch = async () => {
     if (!supabase || !editing) return
     const payload = {
-      name: editing.name,
-      code: editing.code,
+      name: String(editing.name || '').trim(),
+      code: String(editing.code || '').trim(),
       address_line1: editing.address_line1 || null,
       address_line2: editing.address_line2 || null,
       city: editing.city || null,
@@ -276,7 +277,11 @@ function Branches() {
       postal_code: editing.postal_code || null,
       phone: editing.phone || null,
       email: editing.email || null,
-      status: editing.status,
+      status: editing.status || 'active',
+    }
+    if (!payload.name || !payload.code) {
+      setError('Branch Name and Code are required.')
+      return
     }
     const r = editing.id
       ? await dbFrom('branches').update(payload).eq('id', editing.id)
@@ -288,6 +293,153 @@ function Branches() {
     }
   }
 
+  const downloadBranchTemplate = () => {
+    const headers = [
+      'Branch Name',
+      'Code',
+      'Address Line 1',
+      'Address Line 2',
+      'City',
+      'State',
+      'Postal Code',
+      'Phone',
+      'Email',
+      'Status',
+    ]
+    const sample = [
+      'Narayana Kukatpally',
+      'NAR-003',
+      'Main Road',
+      '',
+      'Hyderabad',
+      'Telangana',
+      '500072',
+      '9876543210',
+      'kukatpally@example.com',
+      'active',
+    ]
+    const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Branches')
+    XLSX.writeFile(workbook, 'Branches_Import_Template.xlsx')
+  }
+
+  const exportBranches = () => {
+    const headers = [
+      'Branch Name',
+      'Code',
+      'Address Line 1',
+      'Address Line 2',
+      'City',
+      'State',
+      'Postal Code',
+      'Phone',
+      'Email',
+      'Status',
+    ]
+    const rows = branches.map((branch) => [
+      branch.name || '',
+      branch.code || '',
+      branch.address_line1 || '',
+      branch.address_line2 || '',
+      branch.city || '',
+      branch.state || '',
+      branch.postal_code || '',
+      branch.phone || '',
+      branch.email || '',
+      branch.status || 'active',
+    ])
+    const sheet = XLSX.utils.aoa_to_sheet([headers, ...rows])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Branches')
+    XLSX.writeFile(workbook, `Branches_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
+  const importBranches = async (file: File) => {
+    if (!supabase || importing) return
+    setImporting(true)
+    setError('')
+    try {
+      const buffer = await file.arrayBuffer()
+      const workbook = XLSX.read(buffer, { type: 'array', cellDates: true })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const raw = XLSX.utils.sheet_to_json<any>(sheet, { defval: '' })
+      if (!raw.length) {
+        setError('The Excel file contains no branch records.')
+        return
+      }
+
+      let success = 0
+      const errors: string[] = []
+
+      for (let index = 0; index < raw.length; index += 1) {
+        const source = raw[index]
+        const row: Record<string, any> = {}
+        Object.entries(source).forEach(([key, value]) => {
+          const normalizedKey = String(key)
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_|_$/g, '')
+          row[normalizedKey] =
+            value instanceof Date
+              ? value.toISOString().slice(0, 10)
+              : String(value ?? '').trim()
+        })
+
+        const payload = {
+          name: String(row.branch_name || row.name || '').trim(),
+          code: String(row.code || '').trim(),
+          address_line1: String(row.address_line_1 || '').trim() || null,
+          address_line2: String(row.address_line_2 || '').trim() || null,
+          city: String(row.city || '').trim() || null,
+          state: String(row.state || '').trim() || null,
+          postal_code: String(row.postal_code || '').trim() || null,
+          phone: String(row.phone || '').trim() || null,
+          email: String(row.email || '').trim() || null,
+          status: String(row.status || 'active').trim().toLowerCase() || 'active',
+        }
+
+        if (!payload.name || !payload.code) {
+          errors.push(`Row ${index + 2}: Branch Name and Code are required.`)
+          continue
+        }
+        if (!['active', 'inactive', 'suspended'].includes(payload.status)) {
+          errors.push(`Row ${index + 2}: Status must be active, inactive or suspended.`)
+          continue
+        }
+
+        const result = await dbFrom('branches')
+          .upsert(payload, { onConflict: 'code' })
+          .select('id')
+          .single()
+
+        if (result.error) {
+          errors.push(`Row ${index + 2}: ${result.error.message}`)
+        } else {
+          success += 1
+        }
+      }
+
+      await load()
+      setError(
+        errors.length
+          ? `Imported ${success} branch(es). ${errors.length} row(s) failed. ${errors.slice(0, 5).join(' | ')}`
+          : `Successfully imported ${success} branch(es).`,
+      )
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unable to import the branch file.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  const handleBranchImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) void importBranches(file)
+  }
+
   useEffect(() => {
     void load()
   }, [])
@@ -296,8 +448,30 @@ function Branches() {
     <>
       <Toolbar onRefresh={load}>
         <button
+          className="secondary-button"
+          onClick={downloadBranchTemplate}
+        >
+          <Download size={15} /> Demo File
+        </button>
+        <label className="secondary-button" style={{ cursor: importing ? 'wait' : 'pointer' }}>
+          <Upload size={15} /> {importing ? 'Importing...' : 'Import'}
+          <input
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleBranchImport}
+            disabled={importing}
+            style={{ display: 'none' }}
+          />
+        </label>
+        <button className="secondary-button" onClick={exportBranches} disabled={!branches.length}>
+          <Download size={15} /> Export
+        </button>
+        <button
           className="primary-button"
-          onClick={() => setEditing({ name: '', code: '', status: 'active' })}
+          onClick={() => {
+            setError('')
+            setEditing({ name: '', code: '', status: 'active' })
+          }}
         >
           <Plus size={15} /> Add Branch
         </button>
@@ -342,6 +516,16 @@ function Branches() {
             onChange={(v) => setEditing({ ...editing, code: v })}
           />
           <Field
+            label="Address Line 1"
+            value={editing.address_line1 || ''}
+            onChange={(v) => setEditing({ ...editing, address_line1: v })}
+          />
+          <Field
+            label="Address Line 2"
+            value={editing.address_line2 || ''}
+            onChange={(v) => setEditing({ ...editing, address_line2: v })}
+          />
+          <Field
             label="City"
             value={editing.city || ''}
             onChange={(v) => setEditing({ ...editing, city: v })}
@@ -350,6 +534,11 @@ function Branches() {
             label="State"
             value={editing.state || ''}
             onChange={(v) => setEditing({ ...editing, state: v })}
+          />
+          <Field
+            label="Postal Code"
+            value={editing.postal_code || ''}
+            onChange={(v) => setEditing({ ...editing, postal_code: v })}
           />
           <Field
             label="Phone"
@@ -363,7 +552,7 @@ function Branches() {
           />
           <Select
             label="Status"
-            value={editing.status}
+            value={editing.status || 'active'}
             options={['active', 'inactive', 'suspended']}
             onChange={(v) => setEditing({ ...editing, status: v })}
           />
@@ -372,6 +561,7 @@ function Branches() {
     </>
   )
 }
+
 
 function Products({
   productSlug,
