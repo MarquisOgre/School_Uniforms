@@ -6016,7 +6016,8 @@ a {
   padding-top: 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
   gap: 25px;
   font-size: clamp(10px, 0.72vw, 12px);
   line-height: 1.45;
