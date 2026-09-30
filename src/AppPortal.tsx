@@ -1314,6 +1314,32 @@ function ProductDetail({
   const colors = Array.from(
     new Set(productOptions.map((x) => String(x.color || '').trim()).filter(Boolean)),
   )
+  const galleryImages = Array.from(
+    new Set(
+      [item.image, ...(item.imageGallery || [])].filter(
+        (url): url is string => Boolean(url),
+      ),
+    ),
+  )
+  const colorImageMap = (() => {
+    if (item.type !== 'product' || !colors.length || !galleryImages.length) return {} as Record<string, string>
+
+    // The Sports T Shirt images were imported in different source orders for
+    // the ₹480 and ₹540 product groups. Keep the color/image relationship
+    // explicit so selecting a color always shows that exact color photo.
+    const title = displayCatalogName(item.title).toUpperCase()
+    const colorOrder =
+      title === 'UNIFORM SPORTS T SHIRT' && Number(item.price) === 480
+        ? ['Green', 'Blue', 'Yellow', 'Red']
+        : title === 'UNIFORM SPORTS T SHIRT' && Number(item.price) === 540
+          ? ['Yellow', 'Green', 'Blue', 'Red']
+          : colors
+
+    return colorOrder.reduce<Record<string, string>>((map, value, index) => {
+      if (galleryImages[index]) map[value] = galleryImages[index]
+      return map
+    }, {})
+  })()
   const availableProductOptions = color
     ? productOptions.filter((x) => String(x.color || '').trim() === color)
     : productOptions
@@ -1342,8 +1368,18 @@ function ProductDetail({
     )[0]
     setColor(firstColor || '')
     setSize('')
-    setMainImage(item.image || '/category-packages.jpg')
+    setMainImage(
+      (firstColor && colorImageMap[firstColor]) ||
+        item.image ||
+        '/category-packages.jpg',
+    )
   }, [item.id])
+  
+  useEffect(() => {
+    if (item.type !== 'product' || !color) return
+    const nextImage = colorImageMap[color]
+    if (nextImage) setMainImage(nextImage)
+  }, [color, item.id])
 
   const ready =
     item.type === 'product'
@@ -1477,6 +1513,7 @@ function ProductDetail({
                         onClick={() => {
                           setColor(value)
                           setSize('')
+                          if (colorImageMap[value]) setMainImage(colorImageMap[value])
                         }}
                       >
                         <span>{value}</span>
