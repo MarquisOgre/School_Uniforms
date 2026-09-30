@@ -1048,7 +1048,7 @@ export default function HomePage({
                       <strong>{demo.branch}</strong>
                     </span>
                     <span>
-                      <small>Student / Parent ID</small>
+                      <small>Parent ID</small>
                       <strong>{demo.id}</strong>
                     </span>
                     <span>
