@@ -328,7 +328,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     })
     setResetLoading(false)
     if (resetError) setError(resetError.message)
-    else setResetMessage('Password reset email sent to ' + targetEmail + '.')
+    else window.alert('Password reset email sent to ' + targetEmail + '. Please check the admin inbox.')
   }
 
   const [tool, setTool] = useState<AdminTool>('home')
