@@ -1328,11 +1328,13 @@ function ProductDetail({
     // explicit so selecting a color always shows that exact color photo.
     const title = displayCatalogName(item.title).toUpperCase()
     const colorOrder =
-      title === 'UNIFORM SPORTS T SHIRT' && Number(item.price) === 480
+      title === 'UNIFORM SPORTS PANT'
         ? ['Green', 'Blue', 'Yellow', 'Red']
-        : title === 'UNIFORM SPORTS T SHIRT' && Number(item.price) === 540
-          ? ['Yellow', 'Green', 'Blue', 'Red']
-          : colors
+        : title === 'UNIFORM SPORTS T SHIRT' && Number(item.price) === 480
+          ? ['Green', 'Blue', 'Yellow', 'Red']
+          : title === 'UNIFORM SPORTS T SHIRT' && Number(item.price) === 540
+            ? ['Blue', 'Red', 'Green', 'Yellow']
+            : colors
 
     return colorOrder.reduce<Record<string, string>>((map, value, index) => {
       if (galleryImages[index]) map[value] = galleryImages[index]
