@@ -193,10 +193,7 @@ function ChangeAdminPassword() {
         </div>
       </div>
 
-      <div
-        className="home-edit-card"
-        style={{ maxWidth: 560 }}
-      >
+      <div className="home-edit-card" style={{ maxWidth: 560 }}>
         <div className="cms-item-heading">
           <div>
             <h3>Administrator Password</h3>
