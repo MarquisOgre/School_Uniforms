@@ -246,14 +246,32 @@ function MediaLibrary() {
 }
 
 function AdminPortal({ onBack }: { onBack: () => void }) {
-  const [email, setEmail] = useState(''),
-    [password, setPassword] = useState(''),
+  const [email, setEmail] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem('school_uniform_admin_demo_prefill')
+      return raw ? JSON.parse(raw)?.email || '' : ''
+    } catch {
+      return ''
+    }
+  }),
+    [password, setPassword] = useState(() => {
+      try {
+        const raw = sessionStorage.getItem('school_uniform_admin_demo_prefill')
+        return raw ? JSON.parse(raw)?.password || '' : ''
+      } catch {
+        return ''
+      }
+    }),
     [admin, setAdmin] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState('')
   const [tool, setTool] = useState<AdminTool>('home')
   const [productSlug, setProductSlug] = useState<string | null>(null)
   const [packageSlug, setPackageSlug] = useState<string | null>(null)
+  useEffect(() => {
+    sessionStorage.removeItem('school_uniform_admin_demo_prefill')
+  }, [])
+
   const adminPathForTool = (value: AdminTool) => {
     const paths: Record<AdminTool, string> = {
       home: '/admin/homepage',
