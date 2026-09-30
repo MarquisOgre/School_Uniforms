@@ -1316,13 +1316,12 @@ function ProductDetail({
   )
   const galleryImages = Array.from(
     new Set(
-      [item.image, ...(item.imageGallery || [])].filter(
-        (url): url is string => Boolean(url),
-      ),
+      [item.image, ...(item.imageGallery || [])].filter((url): url is string => Boolean(url)),
     ),
   )
   const colorImageMap = (() => {
-    if (item.type !== 'product' || !colors.length || !galleryImages.length) return {} as Record<string, string>
+    if (item.type !== 'product' || !colors.length || !galleryImages.length)
+      return {} as Record<string, string>
 
     // The Sports T Shirt images were imported in different source orders for
     // the ₹480 and ₹540 product groups. Keep the color/image relationship
@@ -1369,12 +1368,10 @@ function ProductDetail({
     setColor(firstColor || '')
     setSize('')
     setMainImage(
-      (firstColor && colorImageMap[firstColor]) ||
-        item.image ||
-        '/category-packages.jpg',
+      (firstColor && colorImageMap[firstColor]) || item.image || '/category-packages.jpg',
     )
   }, [item.id])
-  
+
   useEffect(() => {
     if (item.type !== 'product' || !color) return
     const nextImage = colorImageMap[color]
