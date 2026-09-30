@@ -8686,9 +8686,18 @@ a {
     'title toolbar'
     'description toolbar'
     'error error'
-    'body body';
+    'parents parents'
+    'students students';
   align-content: start;
   column-gap: 24px;
+}
+
+.admin-workspace .workspace-students > .workspace-panel:first-of-type {
+  grid-area: parents;
+}
+
+.admin-workspace .workspace-students > .workspace-panel:last-of-type {
+  grid-area: students;
 }
 
 .admin-workspace .workspace-students > .workspace-heading {
@@ -8719,7 +8728,6 @@ a {
 }
 
 .admin-workspace .workspace-students > .workspace-panel {
-  grid-area: body;
   width: 100%;
   min-width: 0;
 }
