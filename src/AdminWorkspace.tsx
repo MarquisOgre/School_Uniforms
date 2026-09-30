@@ -2531,7 +2531,7 @@ function Packages({
         const itemText = String(r.Items ?? r.items ?? '').trim()
         if (itemText) {
           await dbFrom('package_items').delete().eq('package_id', packageId)
-          const names = itemText.split(',').map((value) => value.replace(/ × \\d+$/, '').trim()).filter(Boolean)
+          const names = itemText.split(',').map((value) => value.replace(/ × \d+$/, '').trim()).filter(Boolean)
           const packageRows: any[] = []
           let basePrice = 0
 
@@ -3938,7 +3938,7 @@ function ParentStudents() {
     setBulkOpen(true)
   }
 
-  const handleBulkFile = async (file: File) => {
+  const handleBulkFile = async (file: File, autoImport = false) => {
     try {
       setBulkError('')
       setBulkResult(null)
@@ -3988,13 +3988,15 @@ function ParentStudents() {
         return
       }
       setBulkRows(normalized)
+      if (autoImport) await runBulkImport(normalized)
     } catch (e) {
       setBulkError(e instanceof Error ? e.message : 'Unable to read the Excel file.')
     }
   }
 
-  const runBulkImport = async () => {
-    if (!supabase || !bulkRows.length || bulkImporting) return
+  const runBulkImport = async (rowsOverride?: any[]) => {
+    const rowsToImport = rowsOverride ?? bulkRows
+    if (!supabase || !rowsToImport.length || bulkImporting) return
     setBulkImporting(true)
     setBulkError('')
     let success = 0
@@ -4002,7 +4004,7 @@ function ParentStudents() {
     const errors: string[] = []
 
     const grouped = new Map<string, any[]>()
-    for (const row of bulkRows) {
+    for (const row of rowsToImport) {
       const branch = branches.find(
         (b) =>
           b.name.toLowerCase() === String(row.branch).trim().toLowerCase() ||
@@ -4118,7 +4120,7 @@ function ParentStudents() {
       }
     }
 
-    setBulkResult({ processed: bulkRows.length, success, failed })
+    setBulkResult({ processed: rowsToImport.length, success, failed })
     if (errors.length) setBulkError(errors.slice(0, 20).join('\\n'))
     setBulkImporting(false)
     await load()
@@ -4539,7 +4541,7 @@ function ParentStudents() {
           canExport={parents.length > 0 || students.length > 0}
           onDemo={downloadBulkTemplate}
           onExport={exportParentsStudents}
-          onImport={(file) => { openBulkImport(); void handleBulkFile(file) }}
+          onImport={(file) => void handleBulkFile(file, true)}
         />
         <button className="primary-button" onClick={openNewParent}>
           <Plus size={15} /> Add Parent
@@ -4803,92 +4805,7 @@ function ParentStudents() {
         </EditModal>
       )}
 
-      {bulkOpen && (
-        <EditModal
-          title="Bulk Import Parents & Students"
-          onClose={() => !bulkImporting && setBulkOpen(false)}
-          onSave={runBulkImport}
-        >
-          <div className="workspace-note">
-            <strong>1. Download the Excel template</strong>
-            <br />
-            One row represents one child. Repeat the same Parent ID for multiple children. A Parent
-            account is created only once.
-            <div style={{ marginTop: 10 }}>
-              <button type="button" className="secondary-button" onClick={downloadBulkTemplate}>
-                <Download size={15} /> Download Template
-              </button>
-            </div>
-          </div>
-          <div className="workspace-note">
-            <strong>2. Upload your completed Excel file</strong>
-            <br />
-            Required columns: Branch, Parent Name, Parent ID, Password, Student Code, Student Name,
-            DOB.
-            <div style={{ marginTop: 10 }}>
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) void handleBulkFile(file)
-                }}
-              />
-            </div>
-          </div>
-          {bulkRows.length > 0 && (
-            <div className="workspace-note">
-              <strong>Preview</strong>
-              <br />
-              {bulkRows.length} rows loaded ·{' '}
-              {new Set(bulkRows.map((r) => String(r.parent_id).toUpperCase())).size} Parent IDs
-              <div style={{ maxHeight: 220, overflow: 'auto', marginTop: 10 }}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Branch</th>
-                      <th>Parent ID</th>
-                      <th>Student Code</th>
-                      <th>Student Name</th>
-                      <th>Class</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bulkRows.slice(0, 20).map((r) => (
-                      <tr key={r.__row}>
-                        <td>{r.branch}</td>
-                        <td>{r.parent_id}</td>
-                        <td>{r.student_code}</td>
-                        <td>{r.student_name}</td>
-                        <td>{r.class}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {bulkRows.length > 20 ? (
-                <div style={{ marginTop: 8 }}>Showing first 20 rows.</div>
-              ) : null}
-            </div>
-          )}
-          {bulkResult && (
-            <div className="workspace-note">
-              <strong>Import Complete</strong>
-              <br />
-              Processed: {bulkResult.processed} · Successful: {bulkResult.success} · Failed:{' '}
-              {bulkResult.failed}
-            </div>
-          )}
-          {bulkError ? (
-            <div className="workspace-note" style={{ whiteSpace: 'pre-wrap' }}>
-              {bulkError}
-            </div>
-          ) : null}
-          <div className="workspace-note">
-            {bulkImporting ? 'Importing… Please keep this window open.' : 'Save starts the import.'}
-          </div>
-        </EditModal>
-      )}
+
 
       {studentEditing && (
         <EditModal
