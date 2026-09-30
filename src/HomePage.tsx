@@ -823,6 +823,17 @@ function Step({ n, title, text }: { n: string; title: string; text: string }) {
   )
 }
 
+const DEMO_LOGINS = [
+  { branch: 'CBSE Branch', id: 'BHUPESHKUMAR', password: '01031984', type: 'Customer' },
+  { branch: 'KUKATPALLY', id: 'PRASHANTH', password: 'ADD_PASSWORD', type: 'Customer' },
+]
+
+const ADMIN_DEMO = {
+  branch: 'Administrator',
+  id: 'admin@gmail.com',
+  password: 'ADD_ADMIN_PASSWORD',
+}
+
 export default function HomePage({
   onLoginSuccess,
   onAdmin,
@@ -1001,6 +1012,44 @@ export default function HomePage({
               {loggingIn ? 'SIGNING IN...' : 'SIGN IN TO PORTAL'}
               <ArrowRight size={18} />
             </button>
+
+            <div className="demo-credentials">
+              <div className="demo-credentials-title">DEMO USERS</div>
+              <div className="demo-credentials-grid">
+                {DEMO_LOGINS.map((demo) => (
+                  <button
+                    type="button"
+                    className="demo-credential-row"
+                    key={demo.id}
+                    onClick={() => {
+                      const selected = branches.find((x) => x.name.toLowerCase() === demo.branch.toLowerCase())
+                      if (selected) setBranch(selected.id)
+                      setParentId(demo.id)
+                      setPassword(demo.password)
+                    }}
+                  >
+                    <span><small>Branch</small><strong>{demo.branch}</strong></span>
+                    <span><small>Student / Parent ID</small><strong>{demo.id}</strong></span>
+                    <span><small>Password</small><strong>{demo.password}</strong></span>
+                  </button>
+                ))}
+              </div>
+              <div className="demo-credentials-title admin-demo-title">ADMINISTRATOR</div>
+              <button
+                type="button"
+                className="demo-credential-row admin-demo-row"
+                onClick={() => {
+                  setShowLogin(false)
+                  window.history.pushState({}, '', '/admin')
+                  onAdmin()
+                }}
+              >
+                <span><small>Portal</small><strong>{ADMIN_DEMO.branch}</strong></span>
+                <span><small>Admin Login</small><strong>{ADMIN_DEMO.id}</strong></span>
+                <span><small>Password</small><strong>{ADMIN_DEMO.password}</strong></span>
+              </button>
+            </div>
+
             <button className="text-button">Forgot Password?</button>
             <button
               className="admin-link"
