@@ -265,6 +265,72 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     [admin, setAdmin] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState('')
+  const requestAdminPasswordReset = async () => {
+    const client = supabase
+    if (!client) return
+    setError('')
+    setResetMessage('')
+    const targetEmail = email.trim()
+    if (!targetEmail) {
+      setError('Enter the admin email address first.')
+      return
+    }
+    setResetLoading(true)
+    const { error: resetError } = await client.auth.resetPasswordForEmail(targetEmail, {
+      redirectTo: window.location.origin + '/admin/homepage',
+    })
+    setResetLoading(false)
+    if (resetError) setError(resetError.message)
+    else setResetMessage('Password reset email sent. Check the admin email inbox.')
+  }
+
+  const changeAdminPassword = async () => {
+    const client = supabase
+    if (!client) return
+    setResetMessage('')
+    setError('')
+    if (resetPassword.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+    if (resetPassword !== resetConfirm) {
+      setError('Passwords do not match.')
+      return
+    }
+    setResetLoading(true)
+    const { error: updateError } = await client.auth.updateUser({ password: resetPassword })
+    setResetLoading(false)
+    if (updateError) {
+      setError(updateError.message)
+      return
+    }
+    setResetPassword('')
+    setResetConfirm('')
+    setRecoveryMode(false)
+    window.history.replaceState({}, '', '/admin/homepage')
+    setResetMessage('Admin password changed successfully.')
+  }
+
+  const resetAdminPasswordFromPanel = async () => {
+    const client = supabase
+    if (!client) return
+    setError('')
+    setResetMessage('')
+    const { data } = await client.auth.getUser()
+    const targetEmail = data.user?.email || email.trim()
+    if (!targetEmail) {
+      setError('No admin email address is available for password reset.')
+      return
+    }
+    setResetLoading(true)
+    const { error: resetError } = await client.auth.resetPasswordForEmail(targetEmail, {
+      redirectTo: window.location.origin + '/admin/homepage',
+    })
+    setResetLoading(false)
+    if (resetError) setError(resetError.message)
+    else setResetMessage('Password reset email sent to ' + targetEmail + '.')
+  }
+
   const [tool, setTool] = useState<AdminTool>('home')
   const [productSlug, setProductSlug] = useState<string | null>(null)
   const [packageSlug, setPackageSlug] = useState<string | null>(null)
@@ -416,6 +482,29 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     setError('')
   }
 
+  if (recoveryMode)
+    return (
+      <div className="admin-login-page">
+        <div className="admin-login-card">
+          <div className="admin-login-logo">
+            <img src="/logo.png" alt="Artisan" />
+          </div>
+          <p className="eyebrow">ADMINISTRATION</p>
+          <h1>Reset Admin Password</h1>
+          <p>Enter a new password for the administrator account.</p>
+          <label>New Password</label>
+          <input type="password" value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} autoComplete="new-password" />
+          <label>Confirm Password</label>
+          <input type="password" value={resetConfirm} onChange={(e) => setResetConfirm(e.target.value)} autoComplete="new-password" />
+          {error && <p className="login-error">{error}</p>}
+          {resetMessage && <p className="form-success">{resetMessage}</p>}
+          <button className="primary-button" onClick={() => void changeAdminPassword()} disabled={resetLoading || !resetPassword || !resetConfirm}>
+            {resetLoading ? 'UPDATING...' : 'UPDATE PASSWORD'}
+          </button>
+        </div>
+      </div>
+    )
+
   if (!admin)
     return (
       <div className="admin-login-page">
@@ -450,6 +539,9 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
             disabled={loading || !email || !password}
           >
             {loading ? 'SIGNING IN...' : 'ADMIN LOGIN'}
+          </button>
+          <button type="button" className="text-button" onClick={() => void requestAdminPasswordReset()} disabled={resetLoading} style={{ marginTop: 14 }}>
+            {resetLoading ? 'SENDING...' : 'Forgot Password?'}
           </button>
         </div>
       </div>
