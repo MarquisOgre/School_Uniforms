@@ -266,31 +266,42 @@ function UsersCustomers() {
     setLoading(true)
     setError('')
     const [usersResult, branchesResult] = await Promise.all([
-      dbFrom('profiles').select('id,full_name,role,branch_id,login_id,phone,status,created_at').order('created_at', { ascending: false }),
+      dbFrom('profiles')
+        .select('id,full_name,role,branch_id,login_id,phone,status,created_at')
+        .order('created_at', { ascending: false }),
       dbFrom('branches').select('id,name,code').order('name'),
     ])
     if (usersResult.error || branchesResult.error) {
-      setError(usersResult.error?.message || branchesResult.error?.message || 'Unable to load users.')
+      setError(
+        usersResult.error?.message || branchesResult.error?.message || 'Unable to load users.',
+      )
       setUsers([])
     } else {
       const branchMap = Object.fromEntries((branchesResult.data || []).map((b: any) => [b.id, b]))
       setBranches(branchesResult.data || [])
-      setUsers((usersResult.data || []).map((u: any) => ({
-        ...u,
-        branch_name: branchMap[u.branch_id]?.name || '—',
-        branch_code: branchMap[u.branch_id]?.code || '—',
-      })))
+      setUsers(
+        (usersResult.data || []).map((u: any) => ({
+          ...u,
+          branch_name: branchMap[u.branch_id]?.name || '—',
+          branch_code: branchMap[u.branch_id]?.code || '—',
+        })),
+      )
     }
     setLoading(false)
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+  }, [])
 
   const filtered = users.filter((u) => {
     const q = search.trim().toLowerCase()
     if (!q) return true
-    return [u.full_name, u.login_id, u.role, u.phone, u.branch_name, u.branch_code]
-      .some((value) => String(value || '').toLowerCase().includes(q))
+    return [u.full_name, u.login_id, u.role, u.phone, u.branch_name, u.branch_code].some((value) =>
+      String(value || '')
+        .toLowerCase()
+        .includes(q),
+    )
   })
 
   return (
@@ -304,13 +315,16 @@ function UsersCustomers() {
         />
       </Toolbar>
       <ErrorBox text={error} />
-      {loading ? <Loading /> : (
+      {loading ? (
+        <Loading />
+      ) : (
         <Panel>
           <div className="panel-heading">
             <div>
               <h2>Users & Customers</h2>
               <p className="workspace-muted">
-                Administrator and customer accounts. Passwords are managed by Supabase Auth and are never stored or displayed in plaintext.
+                Administrator and customer accounts. Passwords are managed by Supabase Auth and are
+                never stored or displayed in plaintext.
               </p>
             </div>
             <span className="workspace-status">{filtered.length} users</span>
@@ -339,7 +353,9 @@ function UsersCustomers() {
             {!filtered.length && <div className="workspace-empty">No users found.</div>}
           </div>
           <div className="workspace-note" style={{ marginTop: 16 }}>
-            <strong>Password:</strong> Existing passwords cannot be retrieved from Supabase Auth. If a user needs a new password, use the password reset flow rather than exposing or storing the existing password.
+            <strong>Password:</strong> Existing passwords cannot be retrieved from Supabase Auth. If
+            a user needs a new password, use the password reset flow rather than exposing or storing
+            the existing password.
           </div>
         </Panel>
       )}
