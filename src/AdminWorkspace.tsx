@@ -908,6 +908,10 @@ function Products({
       show_delivery_returns: editing.show_delivery_returns !== false,
       image_url: editing.image_url || null,
       image_gallery: Array.isArray(editing.image_gallery) ? editing.image_gallery : [],
+      color_image_map:
+        editing.color_image_map && typeof editing.color_image_map === 'object'
+          ? editing.color_image_map
+          : {},
       base_price: Number(editing.base_price || 0),
       offer_price:
         editing.offer_price === '' || editing.offer_price == null
@@ -959,7 +963,7 @@ function Products({
       return false
     }
 
-    for (const variant of variants) {
+    for (const variant of variants.filter((variant: any) => !variant._colorOnly)) {
       const sizeLabel = String(variant.size_label || '').trim()
       const productName = String(editing.name || '').trim()
       const sku =
@@ -1253,6 +1257,7 @@ function Products({
       offer_price: '',
       image_url: '',
       image_gallery: [],
+      color_image_map: {},
       status: 'active',
       category_id: '',
     })
@@ -1693,6 +1698,68 @@ function PackageEditorScreen({
         </div>
       </section>
 
+
+      <section className="product-editor-card">
+        <div className="product-editor-section-title">Colors &amp; Color Images</div>
+        <div className="workspace-note" style={{ marginTop: 10 }}>
+          Define colors, map each color to its exact image, then generate the Color × Size variants.
+        </div>
+        <div className="product-editor-grid product-editor-grid-2" style={{ marginTop: 16 }}>
+          <label className="workspace-field">
+            <span>Add Color</span>
+            <input
+              value={newColor}
+              placeholder="e.g. Green"
+              onChange={(e) => setNewColor(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addColor()
+                }
+              }}
+            />
+          </label>
+          <div style={{ display: 'flex', alignItems: 'end' }}>
+            <button type="button" className="secondary-button" onClick={addColor} disabled={!newColor.trim()}>
+              <Plus size={15} /> Add Color
+            </button>
+          </div>
+        </div>
+        {currentColors.length ? (
+          <div style={{ display: 'grid', gap: 14, marginTop: 16 }}>
+            {currentColors.map((color) => (
+              <div
+                key={color}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '140px minmax(220px, 1fr) auto',
+                  gap: 14,
+                  alignItems: 'center',
+                  padding: 12,
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 10,
+                }}
+              >
+                <strong>{color}</strong>
+                <ImagePicker
+                  value={String(editing.color_image_map?.[color] || '')}
+                  folder="products"
+                  alt={color + ' product image'}
+                  onChange={(v) => setColorImage(color, v)}
+                />
+                <button type="button" className="secondary-button" onClick={() => removeColor(color)}>
+                  <Trash2 size={14} /> Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="workspace-empty" style={{ marginTop: 14 }}>
+            No colors mapped yet. Add Green, Blue, Yellow, Red, etc.
+          </div>
+        )}
+      </section>
+
       <section className="product-editor-card product-variants-card">
         <div className="product-variants-heading">
           <div className="product-editor-section-title">Package Items</div>
@@ -1797,6 +1864,7 @@ function ProductEditorScreen({
   const [bulkPrice, setBulkPrice] = useState('')
   const [saving, setSaving] = useState(false)
   const [additionalDetailsOpen, setAdditionalDetailsOpen] = useState(false)
+  const [newColor, setNewColor] = useState('')
 
   const toggleAdditionalDetails = () => {
     setAdditionalDetailsOpen((open) => !open)
@@ -1814,6 +1882,101 @@ function ProductEditorScreen({
           : variant,
       ),
     )
+  }
+
+
+  const currentColors = Array.from(
+    new Set(variants.map((variant) => String(variant.color || '').trim()).filter(Boolean)),
+  )
+
+  const addColor = () => {
+    const color = newColor.trim()
+    if (!color) return
+    if (currentColors.some((x) => x.toLowerCase() === color.toLowerCase())) {
+      setNewColor('')
+      return
+    }
+    setVariants((current) => [
+      ...current,
+      {
+        id: null,
+        _tempId: `color-${Date.now()}`,
+        product_id: editing.id,
+        sku: '',
+        size_label: '',
+        color,
+        variant_name: '',
+        price: editing.base_price ?? '',
+        status: 'active',
+        _new: true,
+        _colorOnly: true,
+      },
+    ])
+    setNewColor('')
+  }
+
+  const generateColorSizes = () => {
+    const colors = currentColors
+    const sizes = Array.from(
+      new Set(variants.map((variant) => String(variant.size_label || '').trim()).filter(Boolean)),
+    )
+    if (!colors.length || !sizes.length) {
+      setError('Add at least one Color and one Size before generating variants.')
+      return
+    }
+
+    const existingKeys = new Set(
+      variants
+        .filter((variant) => variant.size_label && variant.color)
+        .map(
+          (variant) =>
+            `${String(variant.color).trim().toLowerCase()}::${String(variant.size_label).trim().toLowerCase()}`,
+        ),
+    )
+    const base = String(editing.name || 'PRODUCT')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+
+    const additions: any[] = []
+    colors.forEach((color) => {
+      sizes.forEach((size) => {
+        const key = `${color.toLowerCase()}::${size.toLowerCase()}`
+        if (existingKeys.has(key)) return
+        additions.push({
+          id: null,
+          _tempId: `generated-${Date.now()}-${additions.length}`,
+          product_id: editing.id,
+          sku: `${base || 'PRODUCT'}-${color.toUpperCase().replace(/[^A-Z0-9]+/g, '-')}-${size.toUpperCase().replace(/[^A-Z0-9]+/g, '-')}`,
+          size_label: size,
+          color,
+          variant_name: `${String(editing.name || 'Product').trim()} - ${color} - Size ${size}`,
+          price: editing.base_price ?? '',
+          status: 'active',
+          _new: true,
+        })
+      })
+    })
+    if (additions.length) setVariants((current) => [...current.filter((x) => !x._colorOnly), ...additions])
+    else setError('All Color × Size combinations already exist.')
+  }
+
+  const removeColor = (color: string) => {
+    const normalized = color.toLowerCase()
+    setVariants((current) =>
+      current.filter((variant) => String(variant.color || '').trim().toLowerCase() !== normalized),
+    )
+    const map = { ...(editing.color_image_map || {}) }
+    delete map[color]
+    setEditing({ ...editing, color_image_map: map })
+  }
+
+  const setColorImage = (color: string, image: string) => {
+    setEditing({
+      ...editing,
+      color_image_map: { ...(editing.color_image_map || {}), [color]: image },
+    })
   }
 
   const addSize = () => {
@@ -2000,6 +2163,14 @@ function ProductEditorScreen({
             <button
               type="button"
               className="secondary-button"
+              onClick={generateColorSizes}
+              disabled={!currentColors.length}
+            >
+              Generate Color × Size
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
               disabled={!selected.length}
               onClick={applyBulkPrice}
             >
@@ -2043,7 +2214,7 @@ function ProductEditorScreen({
                 </tr>
               </thead>
               <tbody>
-                {variants.map((variant, index) => (
+                {variants.filter((variant) => !variant._colorOnly).map((variant, index) => (
                   <tr key={variant.id || `new-${index}`}>
                     <td>
                       <input
