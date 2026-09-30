@@ -18,6 +18,7 @@ import {
   Upload,
   Images,
   Trash2,
+  KeyRound,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 const AdminWorkspace = lazy(() => import('./AdminWorkspace'))
@@ -39,6 +40,7 @@ type AdminTool =
   | 'settings'
   | 'email-templates'
   | 'media'
+  | 'change-password'
 
 const ADMIN_NAV: Array<{
   key: AdminTool
@@ -91,6 +93,14 @@ function AdminSidebar({
           </button>
         ))}
       </nav>
+      <button
+        type="button"
+        className="admin-sidebar-logout"
+        onClick={() => onNavigate('change-password')}
+      >
+        <KeyRound size={17} />
+        <span>Change Password</span>
+      </button>
       <button type="button" className="admin-sidebar-logout" onClick={onLogout}>
         <LogOut size={17} />
         <span>Logout</span>
@@ -114,6 +124,135 @@ function AdminLayout({
     <div className="admin-portal-layout">
       <AdminSidebar tool={tool} onNavigate={onNavigate} onLogout={onLogout} />
       <main className="admin-portal-main">{children}</main>
+    </div>
+  )
+}
+
+function ChangeAdminPassword() {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  const changePassword = async () => {
+    const client = supabase
+    if (!client) return
+
+    setError('')
+    setSuccess('')
+
+    if (!currentPassword) {
+      setError('Enter your current password.')
+      return
+    }
+    if (newPassword.length < 6) {
+      setError('New password must be at least 6 characters.')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setError('New password and confirmation do not match.')
+      return
+    }
+    if (currentPassword === newPassword) {
+      setError('New password must be different from your current password.')
+      return
+    }
+
+    setLoading(true)
+
+    const { error: updateError } = await client.auth.updateUser({
+      password: newPassword,
+      current_password: currentPassword,
+    })
+
+    setLoading(false)
+
+    if (updateError) {
+      setError(
+        updateError.message.toLowerCase().includes('current password')
+          ? 'Current password is incorrect.'
+          : updateError.message,
+      )
+      return
+    }
+
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setSuccess('Admin password changed successfully.')
+  }
+
+  return (
+    <div className="workspace-body">
+      <div className="workspace-heading">
+        <div>
+          <h1>Change Password</h1>
+          <p>Update the administrator password securely after signing in.</p>
+        </div>
+      </div>
+
+      <div
+        className="home-edit-card"
+        style={{ maxWidth: 560 }}
+      >
+        <div className="cms-item-heading">
+          <div>
+            <h3>Administrator Password</h3>
+            <span>Enter your current password and choose a new password.</span>
+          </div>
+        </div>
+
+        <div className="cms-field-grid">
+          <label>
+            Current Password
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              autoComplete="current-password"
+              placeholder="Enter current password"
+            />
+          </label>
+
+          <label>
+            New Password
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              autoComplete="new-password"
+              placeholder="Enter new password"
+            />
+          </label>
+
+          <label>
+            Confirm New Password
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              placeholder="Re-enter new password"
+            />
+          </label>
+        </div>
+
+        {error ? <p className="login-error">{error}</p> : null}
+        {success ? <p className="form-success">{success}</p> : null}
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => void changePassword()}
+            disabled={loading || !currentPassword || !newPassword || !confirmPassword}
+          >
+            {loading ? 'CHANGING PASSWORD...' : 'CHANGE PASSWORD'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -356,6 +495,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       settings: '/admin/settings',
       'email-templates': '/admin/email-templates',
       media: '/admin/media',
+      'change-password': '/admin/change-password',
     }
     return paths[value]
   }
@@ -375,6 +515,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/settings') return 'settings'
     if (path === '/admin/email-templates') return 'email-templates'
     if (path === '/admin/media') return 'media'
+    if (path === '/admin/change-password') return 'change-password'
     return 'home'
   }
 
@@ -574,6 +715,12 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
         <HomepageEditor onBack={() => setTool('packages')} />
+      </AdminLayout>
+    )
+  if (tool === 'change-password')
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <ChangeAdminPassword />
       </AdminLayout>
     )
   if (tool === 'support')
