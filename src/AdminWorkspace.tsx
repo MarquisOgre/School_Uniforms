@@ -6395,12 +6395,14 @@ function EditModal({
   onClose,
   onSave,
   onDelete,
+  saveLabel = 'Save',
   children,
 }: {
   title: string
   onClose: () => void
   onSave: () => void
   onDelete?: () => void
+  saveLabel?: string
   children: ReactNode
 }) {
   return (
@@ -6422,7 +6424,7 @@ function EditModal({
               Cancel
             </button>
             <button className="primary-button" onClick={onSave}>
-              <Save size={15} /> Save
+              <Save size={15} /> {saveLabel}
             </button>
           </div>
         </div>
