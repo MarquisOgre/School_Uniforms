@@ -162,19 +162,34 @@ function ChangeAdminPassword() {
 
     setLoading(true)
 
+    // Re-authenticate with the current password before changing it.
+    const { data: currentUser } = await client.auth.getUser()
+    const currentEmail = currentUser.user?.email
+    if (!currentEmail) {
+      setLoading(false)
+      setError('Unable to identify the administrator account.')
+      return
+    }
+
+    const { error: verifyError } = await client.auth.signInWithPassword({
+      email: currentEmail,
+      password: currentPassword,
+    })
+
+    if (verifyError) {
+      setLoading(false)
+      setError('Current password is incorrect.')
+      return
+    }
+
     const { error: updateError } = await client.auth.updateUser({
       password: newPassword,
-      current_password: currentPassword,
     })
 
     setLoading(false)
 
     if (updateError) {
-      setError(
-        updateError.message.toLowerCase().includes('current password')
-          ? 'Current password is incorrect.'
-          : updateError.message,
-      )
+      setError(updateError.message)
       return
     }
 
@@ -400,7 +415,12 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     }),
     [admin, setAdmin] = useState(false),
     [loading, setLoading] = useState(false),
-    [error, setError] = useState('')
+    [error, setError] = useState(''),
+    [recoveryMode, setRecoveryMode] = useState(() => window.location.hash.includes('type=recovery')),
+    [resetPassword, setResetPassword] = useState(''),
+    [resetConfirm, setResetConfirm] = useState(''),
+    [resetMessage, setResetMessage] = useState(''),
+    [resetLoading, setResetLoading] = useState(false)
   const requestAdminPasswordReset = async () => {
     const client = supabase
     if (!client) return
