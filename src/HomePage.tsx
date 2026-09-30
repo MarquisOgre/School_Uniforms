@@ -1035,7 +1035,9 @@ export default function HomePage({
                         setBranch(selected.id)
                         setError('')
                       } else {
-                        setError(`Branch "${demo.branch}" is not available in the active branch list.`)
+                        setError(
+                          `Branch "${demo.branch}" is not available in the active branch list.`,
+                        )
                       }
                       setParentId(demo.id)
                       setPassword(demo.password)
