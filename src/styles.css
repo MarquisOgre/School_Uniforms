@@ -9027,8 +9027,13 @@ a {
   color: #fff;
 }
 
-.admin-sidebar-logout {
+.admin-sidebar-change-password {
   margin-top: auto;
+  margin-bottom: 8px;
+}
+
+.admin-sidebar-logout {
+  margin-top: 0;
   color: #c5cdcb;
 }
 
