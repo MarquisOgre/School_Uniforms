@@ -255,7 +255,6 @@ function Branches() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [importing, setImporting] = useState(false)
-  const [branchToolsOpen, setBranchToolsOpen] = useState(false)
 
   const load = async () => {
     if (!supabase) return
@@ -449,9 +448,17 @@ function Branches() {
   return (
     <>
       <Toolbar onRefresh={load}>
-        <button className="secondary-button" onClick={() => setBranchToolsOpen(true)}>
-          <Upload size={15} /> Import / Export
-        </button>
+        <BulkTools
+          title="Excel Bulk Import / Export — Branches"
+          description="Download a branch template, export current branches, or upload branches in bulk."
+          demoLabel="Download Branch Template"
+          exportLabel="Download All Branches"
+          importing={importing}
+          canExport={branches.length > 0}
+          onDemo={downloadBranchTemplate}
+          onExport={exportBranches}
+          onImport={(file) => void importBranches(file)}
+        />
         <button
           className="primary-button"
           onClick={() => {
@@ -485,88 +492,7 @@ function Branches() {
           </div>
         </Panel>
       )}
-      {branchToolsOpen && (
-        <div className="workspace-modal">
-          <div className="workspace-modal-card" style={{ maxWidth: 820 }}>
-            <div className="workspace-modal-header">
-              <div>
-                <h2>Excel Bulk Import / Export</h2>
-                <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 15 }}>
-                  Download a template, export your current branches, or upload branches in bulk.
-                </p>
-              </div>
-            </div>
-            <button
-              className="workspace-close"
-              onClick={() => !importing && setBranchToolsOpen(false)}
-              aria-label="Close"
-              disabled={importing}
-            >
-              <X size={18} />
-            </button>
 
-            <div className="workspace-form" style={{ gap: 18 }}>
-              <div className="workspace-note">
-                <strong>Download Demo File</strong>
-                <br />
-                Use the Excel template to prepare new branch records. Keep the column names
-                unchanged.
-                <div style={{ marginTop: 12 }}>
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={downloadBranchTemplate}
-                  >
-                    <Download size={15} /> Download Branch Template
-                  </button>
-                </div>
-              </div>
-
-              <div className="workspace-note">
-                <strong>Export Current Branches</strong>
-                <br />
-                Download all branches currently stored in your database as an Excel file.
-                <div style={{ marginTop: 12 }}>
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={exportBranches}
-                    disabled={!branches.length}
-                  >
-                    <Download size={15} /> Download All Branches
-                  </button>
-                </div>
-              </div>
-
-              <div className="workspace-note">
-                <strong>Upload Branches Excel</strong>
-                <br />
-                Import or update branches in bulk. Existing branch codes are updated instead of
-                duplicated.
-                <div style={{ marginTop: 12 }}>
-                  <label
-                    className="secondary-button"
-                    style={{ cursor: importing ? 'wait' : 'pointer' }}
-                  >
-                    <Upload size={15} /> {importing ? 'Importing...' : 'Choose Excel File'}
-                    <input
-                      type="file"
-                      accept=".xlsx,.xls,.csv"
-                      onChange={handleBranchImport}
-                      disabled={importing}
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-                </div>
-                <div style={{ marginTop: 12, fontSize: 13, color: '#64748b' }}>
-                  Required columns: Branch Name, Code. Status must be active, inactive, or
-                  suspended.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {editing && (
         <EditModal
@@ -631,6 +557,120 @@ function Branches() {
   )
 }
 
+
+type BulkToolsProps = {
+  title: string
+  description: string
+  demoLabel: string
+  exportLabel: string
+  accept?: string
+  importing?: boolean
+  canExport?: boolean
+  onDemo: () => void
+  onExport: () => void
+  onImport: (file: File) => void
+}
+
+function BulkTools({
+  title,
+  description,
+  demoLabel,
+  exportLabel,
+  accept = '.xlsx,.xls,.csv',
+  importing = false,
+  canExport = true,
+  onDemo,
+  onExport,
+  onImport,
+}: BulkToolsProps) {
+  const [open, setOpen] = useState(false)
+
+  const handleFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) onImport(file)
+  }
+
+  return (
+    <>
+      <button className="secondary-button" onClick={() => setOpen(true)}>
+        <Upload size={15} /> Import / Export
+      </button>
+
+      {open ? (
+        <div className="workspace-modal">
+          <div className="workspace-modal-card" style={{ maxWidth: 820 }}>
+            <div className="workspace-modal-header">
+              <div>
+                <h2>{title}</h2>
+                <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 15 }}>{description}</p>
+              </div>
+            </div>
+            <button
+              className="workspace-close"
+              onClick={() => !importing && setOpen(false)}
+              aria-label="Close"
+              disabled={importing}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="workspace-form" style={{ gap: 18 }}>
+              <div className="workspace-note">
+                <strong>Download Demo File</strong>
+                <br />
+                Use the demo Excel file as the starting point. Keep the column names unchanged.
+                <div style={{ marginTop: 12 }}>
+                  <button type="button" className="secondary-button" onClick={onDemo}>
+                    <Download size={15} /> {demoLabel}
+                  </button>
+                </div>
+              </div>
+
+              <div className="workspace-note">
+                <strong>Export Current Data</strong>
+                <br />
+                Download the records currently stored in the database as an Excel file.
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={onExport}
+                    disabled={!canExport || importing}
+                  >
+                    <Download size={15} /> {exportLabel}
+                  </button>
+                </div>
+              </div>
+
+              <div className="workspace-note">
+                <strong>Import Data</strong>
+                <br />
+                Upload a completed Excel or CSV file to import or update records in bulk.
+                <div style={{ marginTop: 12 }}>
+                  <label
+                    className="secondary-button"
+                    style={{ cursor: importing ? 'wait' : 'pointer' }}
+                  >
+                    <Upload size={15} /> {importing ? 'Importing...' : 'Choose Excel File'}
+                    <input
+                      type="file"
+                      accept={accept}
+                      onChange={handleFile}
+                      disabled={importing}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  )
+}
+
 function Products({
   productSlug,
   branchId,
@@ -649,6 +689,7 @@ function Products({
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [categorySaving, setCategorySaving] = useState(false)
+  const [bulkImporting, setBulkImporting] = useState(false)
 
   const load = async () => {
     if (!supabase) return
@@ -955,6 +996,81 @@ function Products({
     return true
   }
 
+  const downloadProductTemplate = () => {
+    const headers = ['Branch ID', 'Product Name', 'Category ID', 'Product Type', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status']
+    const sample = [branchId || '', 'Sample Shirt', categories[0]?.id || '', 'Shirt', 'unisex', 1000, 10, 900, 'active']
+    const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Products')
+    XLSX.writeFile(workbook, 'Products_Variants_Import_Template.xlsx')
+  }
+
+  const exportProducts = () => {
+    const headers = ['Product', 'Category', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status']
+    const values = rows.map((p) => [
+      p.name || '',
+      categories.find((c) => c.id === p.category_id)?.name || '',
+      formatGender(p.gender),
+      Number(p.base_price || 0),
+      Number(p.discount_percentage || 0),
+      Number(p.offer_price ?? p.base_price ?? 0),
+      p.status || 'active',
+    ])
+    const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Products')
+    XLSX.writeFile(workbook, `Products_Variants_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
+  const importProducts = async (file: File) => {
+    if (!supabase || bulkImporting || !branchId) return
+    setBulkImporting(true)
+    setError('')
+    try {
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const raw = XLSX.utils.sheet_to_json<any>(sheet, { defval: '' })
+      if (!raw.length) throw new Error('The Excel file contains no product records.')
+      let success = 0
+      const errors: string[] = []
+      for (let index = 0; index < raw.length; index += 1) {
+        const r = raw[index]
+        const payload = {
+          branch_id: branchId,
+          name: String(r['Product Name'] ?? r.product_name ?? r.name ?? '').trim(),
+          category_id: String(r['Category ID'] ?? r.category_id ?? '').trim() || null,
+          product_type: String(r['Product Type'] ?? r.product_type ?? '').trim() || null,
+          gender: String(r.Gender ?? r.gender ?? 'unisex').trim().toLowerCase() || 'unisex',
+          base_price: Number(r['Base Price'] ?? r.base_price ?? 0),
+          discount_percentage: Number(r['Discount (%)'] ?? r.discount_percentage ?? 0),
+          offer_price:
+            r['Offer Price'] === '' || r.offer_price === ''
+              ? null
+              : Number(r['Offer Price'] ?? r.offer_price ?? 0),
+          status: String(r.Status ?? r.status ?? 'active').trim().toLowerCase() || 'active',
+        }
+        if (!payload.name) {
+          errors.push(`Row ${index + 2}: Product Name is required.`)
+          continue
+        }
+        if (!['boys', 'girls', 'unisex'].includes(payload.gender)) payload.gender = 'unisex'
+        const slug = payload.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        const result = await dbFrom('products').upsert(
+          { ...payload, slug },
+          { onConflict: 'branch_id,slug' },
+        ).select('id').single()
+        if (result.error) errors.push(`Row ${index + 2}: ${result.error.message}`)
+        else success += 1
+      }
+      await load()
+      setError(errors.length ? `Imported ${success} product(s). ${errors.length} row(s) failed. ${errors.slice(0, 5).join(' | ')}` : `Successfully imported ${success} product(s).`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unable to import products.')
+    } finally {
+      setBulkImporting(false)
+    }
+  }
+
   const visible = rows.filter((product) =>
     String(product.name || '')
       .toLowerCase()
@@ -1032,6 +1148,17 @@ function Products({
                 placeholder="Search products"
               />
             </div>
+            <BulkTools
+              title="Excel Bulk Import / Export — Products & Variants"
+              description="Download a template, export your current products, or upload products in bulk."
+              demoLabel="Download Product Template"
+              exportLabel="Download Products"
+              importing={bulkImporting}
+              canExport={rows.length > 0}
+              onDemo={downloadProductTemplate}
+              onExport={exportProducts}
+              onImport={(file) => void importProducts(file)}
+            />
             <button className="secondary-button" onClick={() => setCategoryManagerOpen(true)}>
               <Plus size={15} /> Categories
             </button>
@@ -2252,7 +2379,8 @@ function Packages({
     [itemEditing, setItemEditing] = useState<any>(null),
     [itemVariants, setItemVariants] = useState<any[]>([]),
     [error, setError] = useState(''),
-    [loading, setLoading] = useState(true)
+    [loading, setLoading] = useState(true),
+    [bulkImporting, setBulkImporting] = useState(false)
   const load = async () => {
     if (!supabase) return
     setLoading(true)
@@ -2298,6 +2426,53 @@ function Packages({
     setError(p.error?.message || x.error?.message || pi.error?.message || '')
     setLoading(false)
   }
+  const downloadPackageTemplate = () => {
+    const headers = ['Branch ID', 'Package Name', 'Gender', 'Discount (%)', 'Description', 'Status']
+    const sample = [branchId || '', 'Sample Package', 'unisex', 10, 'Package description', 'active']
+    const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Uniform Packages')
+    XLSX.writeFile(workbook, 'Uniform_Packages_Import_Template.xlsx')
+  }
+  const exportPackages = () => {
+    const headers = ['Package', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Items', 'Status']
+    const values = rows.map((p) => [p.name || '', formatGender(p.gender), Number(p.base_price || 0), Number(p.discount_percentage || 0), Number(p.offer_price || 0), (p.item_names || []).join(', '), p.status || 'active'])
+    const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Uniform Packages')
+    XLSX.writeFile(workbook, `Uniform_Packages_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+  const importPackages = async (file: File) => {
+    if (!supabase || bulkImporting || !branchId) return
+    setBulkImporting(true)
+    setError('')
+    try {
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
+      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
+      if (!raw.length) throw new Error('The Excel file contains no package records.')
+      let success = 0
+      const errors: string[] = []
+      for (let i=0;i<raw.length;i+=1) {
+        const r=raw[i]
+        const name=String(r['Package Name'] ?? r.package_name ?? r.name ?? '').trim()
+        if (!name) { errors.push(`Row ${i+2}: Package Name is required.`); continue }
+        const baseSlug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')
+        const result=await dbFrom('uniform_packages').upsert({
+          branch_id:branchId,name,slug:baseSlug,gender:String(r.Gender ?? r.gender ?? 'unisex').toLowerCase(),
+          description:String(r.Description ?? r.description ?? '').trim()||null,
+          discount_percentage:Number(r['Discount (%)'] ?? r.discount_percentage ?? 0),
+          base_price:0,offer_price:0,status:String(r.Status ?? r.status ?? 'active').toLowerCase()
+        },{onConflict:'branch_id,slug'}).select('id').single()
+        if(result.error) errors.push(`Row ${i+2}: ${result.error.message}`)
+        else success += 1
+      }
+      await load()
+      setError(errors.length ? `Imported ${success} package(s). ${errors.length} failed. ${errors.slice(0,5).join(' | ')}` : `Successfully imported ${success} package(s).`)
+    } catch(e) {
+      setError(e instanceof Error ? e.message : 'Unable to import uniform packages.')
+    } finally { setBulkImporting(false) }
+  }
+
   const loadItems = async (packageId: string) => {
     if (!supabase) return
     const r = await dbFrom('package_items')
@@ -2602,6 +2777,19 @@ function Packages({
       ) : null}
       {!isPackagePage && (
         <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+            <BulkTools
+              title="Excel Bulk Import / Export — Uniform Packages"
+              description="Download a package template, export current packages, or upload package records in bulk."
+              demoLabel="Download Package Template"
+              exportLabel="Download Packages"
+              importing={bulkImporting}
+              canExport={rows.length > 0}
+              onDemo={downloadPackageTemplate}
+              onExport={exportPackages}
+              onImport={(file) => void importPackages(file)}
+            />
+          </div>
           <ErrorBox text={error} />
           {loading ? (
             <Loading />
@@ -3310,7 +3498,8 @@ function InventoryAdmin() {
   const [rows, setRows] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
-    [search, setSearch] = useState('')
+    [search, setSearch] = useState(''),
+    [bulkImporting, setBulkImporting] = useState(false)
 
   const load = async () => {
     if (!supabase) return
@@ -3341,6 +3530,63 @@ function InventoryAdmin() {
   useEffect(() => {
     void load()
   }, [])
+
+  const downloadInventoryTemplate = () => {
+    const headers = ['Branch', 'Product', 'SKU', 'Size', 'Quantity on Hand', 'Reorder Level']
+    const sample = ['', '', '', '', 0, 5]
+    const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Inventory')
+    XLSX.writeFile(workbook, 'Inventory_Import_Template.xlsx')
+  }
+  const exportInventory = () => {
+    const headers = ['Branch', 'Product', 'SKU', 'Size', 'Quantity on Hand', 'Reorder Level']
+    const values = rows.map((r) => [r.branch_name || '', r.product_name || '', r.sku || '', r.size || '', Number(r.quantity_on_hand || 0), Number(r.reorder_level || 0)])
+    const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Inventory')
+    XLSX.writeFile(workbook, `Inventory_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+  const importInventory = async (file: File) => {
+    if (!supabase || bulkImporting) return
+    setBulkImporting(true)
+    setError('')
+    try {
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
+      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
+      if (!raw.length) throw new Error('The Excel file contains no inventory records.')
+      let success = 0
+      const errors: string[] = []
+      for (let i = 0; i < raw.length; i += 1) {
+        const r = raw[i]
+        const branchText = String(r.Branch ?? r.branch ?? '').trim()
+        const productText = String(r.Product ?? r.product ?? '').trim()
+        const sku = String(r.SKU ?? r.sku ?? '').trim()
+        const branch = (await dbFrom('branches').select('id').or(`name.ilike.%${branchText}%,id.eq.${branchText}`).maybeSingle()).data
+        const product = (await dbFrom('products').select('id').eq('branch_id', branch?.id).ilike('name', productText).maybeSingle()).data
+        const variant = product ? (await dbFrom('product_variants').select('id').eq('product_id', product.id).eq('sku', sku).maybeSingle()).data : null
+        if (!branch?.id || !product?.id || !variant?.id) {
+          errors.push(`Row ${i + 2}: Branch, Product and SKU must match existing records.`)
+          continue
+        }
+        const result = await dbFrom('branch_inventory').upsert({
+          branch_id: branch.id,
+          product_id: product.id,
+          variant_id: variant.id,
+          quantity_on_hand: Number(r['Quantity on Hand'] ?? r.quantity_on_hand ?? 0),
+          reorder_level: Number(r['Reorder Level'] ?? r.reorder_level ?? 0),
+        }, { onConflict: 'branch_id,variant_id' })
+        if (result.error) errors.push(`Row ${i + 2}: ${result.error.message}`)
+        else success += 1
+      }
+      await load()
+      setError(errors.length ? `Imported ${success} inventory row(s). ${errors.length} failed. ${errors.slice(0,5).join(' | ')}` : `Successfully imported ${success} inventory row(s).`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unable to import inventory.')
+    } finally {
+      setBulkImporting(false)
+    }
+  }
 
   const sizeOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
   const filtered = rows.filter((x) =>
@@ -3399,6 +3645,17 @@ function InventoryAdmin() {
             placeholder="Search inventory"
           />
         </div>
+        <BulkTools
+          title="Excel Bulk Import / Export — Inventory"
+          description="Download a template, export current inventory, or upload stock quantities in bulk."
+          demoLabel="Download Inventory Template"
+          exportLabel="Download Inventory"
+          importing={bulkImporting}
+          canExport={rows.length > 0}
+          onDemo={downloadInventoryTemplate}
+          onExport={exportInventory}
+          onImport={(file) => void importInventory(file)}
+        />
         <button
           className="primary-button"
           onClick={() => window.dispatchEvent(new CustomEvent('admin:add-product'))}
@@ -4105,6 +4362,21 @@ function ParentStudents() {
     await load()
   }
 
+  const exportParentsStudents = () => {
+    const headers = ['Branch', 'Parent ID', 'Parent Name', 'Phone', 'Student Code', 'Student Name', 'Class', 'Section', 'Gender', 'DOB', 'Status']
+    const values: any[][] = []
+    parents.forEach((p) => {
+      const childIds = parentChildren[p.id] || []
+      const children = students.filter((s) => childIds.includes(s.id))
+      if (!children.length) values.push([branches.find((b) => b.id === p.branch_id)?.name || '', p.login_id || '', p.full_name || '', p.phone || '', '', '', '', '', '', '', p.status || ''])
+      children.forEach((s) => values.push([branches.find((b) => b.id === p.branch_id)?.name || '', p.login_id || '', p.full_name || '', p.phone || '', s.student_code || '', s.full_name || '', s.class_name || '', s.section || '', s.gender || '', s.date_of_birth || '', s.status || '']))
+    })
+    const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Parents & Students')
+    XLSX.writeFile(workbook, `Parents_Students_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
   const filteredParents = parents.filter((p) =>
     [p.full_name, p.login_id, p.phone, branches.find((b) => b.id === p.branch_id)?.name].some((v) =>
       String(v ?? '')
@@ -4140,11 +4412,19 @@ function ParentStudents() {
             placeholder="Search parents & students"
           />
         </div>
+        <BulkTools
+          title="Excel Bulk Import / Export — Parents & Students"
+          description="Download the parent/student template, export current records, or upload records in bulk."
+          demoLabel="Download Parents & Students Template"
+          exportLabel="Download Parents & Students"
+          importing={bulkImporting}
+          canExport={parents.length > 0 || students.length > 0}
+          onDemo={downloadBulkTemplate}
+          onExport={exportParentsStudents}
+          onImport={(file) => { openBulkImport(); void handleBulkFile(file) }}
+        />
         <button className="primary-button" onClick={openNewParent}>
           <Plus size={15} /> Add Parent
-        </button>
-        <button className="secondary-button" onClick={openBulkImport}>
-          <Upload size={15} /> Bulk Import
         </button>
       </Toolbar>
       <ErrorBox text={error} />
