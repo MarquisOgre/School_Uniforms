@@ -11654,7 +11654,7 @@ a {
 /* Final demo login layout: one full-width row per login, three columns */
 .login-card-large .demo-credentials-grid {
   display: grid !important;
-  grid-template-columns: 1fr !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 7px !important;
   width: 100% !important;
 }
