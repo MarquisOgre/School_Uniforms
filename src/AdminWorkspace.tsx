@@ -255,6 +255,7 @@ function Branches() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [importing, setImporting] = useState(false)
+  const [branchToolsOpen, setBranchToolsOpen] = useState(false)
 
   const load = async () => {
     if (!supabase) return
@@ -448,21 +449,8 @@ function Branches() {
   return (
     <>
       <Toolbar onRefresh={load}>
-        <button className="secondary-button" onClick={downloadBranchTemplate}>
-          <Download size={15} /> Demo File
-        </button>
-        <label className="secondary-button" style={{ cursor: importing ? 'wait' : 'pointer' }}>
-          <Upload size={15} /> {importing ? 'Importing...' : 'Import'}
-          <input
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleBranchImport}
-            disabled={importing}
-            style={{ display: 'none' }}
-          />
-        </label>
-        <button className="secondary-button" onClick={exportBranches} disabled={!branches.length}>
-          <Download size={15} /> Export
+        <button className="secondary-button" onClick={() => setBranchToolsOpen(true)}>
+          <Upload size={15} /> Import / Export
         </button>
         <button
           className="primary-button"
@@ -497,6 +485,79 @@ function Branches() {
           </div>
         </Panel>
       )}
+      {branchToolsOpen && (
+        <div className="workspace-modal">
+          <div className="workspace-modal-card" style={{ maxWidth: 820 }}>
+            <div className="workspace-modal-header">
+              <div>
+                <h2>Excel Bulk Import / Export</h2>
+                <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 15 }}>
+                  Download a template, export your current branches, or upload branches in bulk.
+                </p>
+              </div>
+            </div>
+            <button
+              className="workspace-close"
+              onClick={() => !importing && setBranchToolsOpen(false)}
+              aria-label="Close"
+              disabled={importing}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="workspace-form" style={{ gap: 18 }}>
+              <div className="workspace-note">
+                <strong>Download Demo File</strong>
+                <br />
+                Use the Excel template to prepare new branch records. Keep the column names unchanged.
+                <div style={{ marginTop: 12 }}>
+                  <button type="button" className="secondary-button" onClick={downloadBranchTemplate}>
+                    <Download size={15} /> Download Branch Template
+                  </button>
+                </div>
+              </div>
+
+              <div className="workspace-note">
+                <strong>Export Current Branches</strong>
+                <br />
+                Download all branches currently stored in your database as an Excel file.
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={exportBranches}
+                    disabled={!branches.length}
+                  >
+                    <Download size={15} /> Download All Branches
+                  </button>
+                </div>
+              </div>
+
+              <div className="workspace-note">
+                <strong>Upload Branches Excel</strong>
+                <br />
+                Import or update branches in bulk. Existing branch codes are updated instead of duplicated.
+                <div style={{ marginTop: 12 }}>
+                  <label className="secondary-button" style={{ cursor: importing ? 'wait' : 'pointer' }}>
+                    <Upload size={15} /> {importing ? 'Importing...' : 'Choose Excel File'}
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={handleBranchImport}
+                      disabled={importing}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+                <div style={{ marginTop: 12, fontSize: 13, color: '#64748b' }}>
+                  Required columns: Branch Name, Code. Status must be active, inactive, or suspended.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {editing && (
         <EditModal
           title={editing.id ? 'Edit Branch' : 'Add Branch'}
