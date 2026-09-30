@@ -1022,10 +1022,21 @@ export default function HomePage({
                     className="demo-credential-row"
                     key={demo.id}
                     onClick={() => {
+                      const normalizeBranch = (value: string) =>
+                        value
+                          .toLowerCase()
+                          .replace(/\s+branch$/i, '')
+                          .replace(/\s+/g, ' ')
+                          .trim()
                       const selected = branches.find(
-                        (x) => x.name.toLowerCase() === demo.branch.toLowerCase(),
+                        (x) => normalizeBranch(x.name) === normalizeBranch(demo.branch),
                       )
-                      if (selected) setBranch(selected.id)
+                      if (selected) {
+                        setBranch(selected.id)
+                        setError('')
+                      } else {
+                        setError(`Branch "${demo.branch}" is not available in the active branch list.`)
+                      }
                       setParentId(demo.id)
                       setPassword(demo.password)
                     }}
