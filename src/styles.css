@@ -613,16 +613,20 @@ a {
 }
 .demo-credentials-grid {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 7px;
+  width: 100%;
 }
 .demo-credential-row {
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid #e3d9c7;
   background: #fbf7ef;
   border-radius: 9px;
   padding: 9px 11px;
-  display: grid;
-  grid-template-columns: 1fr 1.25fr 1fr;
+  display: grid !important;
+  grid-template-columns: minmax(120px, 1fr) minmax(150px, 1.25fr) minmax(120px, 1fr) !important;
+  align-items: center;
   gap: 10px;
   text-align: left;
   color: var(--ink);
