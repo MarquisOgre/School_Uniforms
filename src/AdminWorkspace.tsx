@@ -2034,6 +2034,7 @@ function ProductEditorScreen({
                       }
                     />
                   </th>
+                  <th>Color</th>
                   <th>Size</th>
                   <th>SKU</th>
                   <th>Price (₹)</th>
@@ -2055,6 +2056,15 @@ function ProductEditorScreen({
                               ? [...current, variant.id]
                               : current.filter((id) => id !== variant.id),
                           )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        value={variant.color || ''}
+                        placeholder="Color"
+                        onChange={(e) =>
+                          updateVariant(variant.id, { color: e.target.value }, variant._tempId)
                         }
                       />
                     </td>
