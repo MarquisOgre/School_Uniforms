@@ -124,7 +124,7 @@ export const DEFAULT_HOME: any = {
     enabled: true,
   },
   footer: {
-    tagline: 'School-specific uniform shopping for parents & students.' ,
+    tagline: 'School-specific uniform shopping for parents & students. Shop school-approved uniforms, packages and essentials in one simple place.',
     shopTitle: 'Shop',
     helpTitle: 'Help',
     informationTitle: 'Information',
