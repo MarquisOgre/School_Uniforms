@@ -8999,6 +8999,7 @@ a {
 }
 
 .admin-sidebar-nav button,
+.admin-sidebar-change-password,
 .admin-sidebar-logout {
   height: 42px;
   border: 0;
@@ -9022,7 +9023,8 @@ a {
   box-shadow: 0 8px 20px rgba(245, 173, 22, 0.15);
 }
 
-.admin-sidebar-nav button:hover:not(.active) {
+.admin-sidebar-nav button:hover:not(.active),
+.admin-sidebar-change-password:hover {
   background: #21343b;
   color: #fff;
 }
@@ -9077,11 +9079,13 @@ a {
 
   .admin-sidebar-brand div,
   .admin-sidebar-nav button span,
+  .admin-sidebar-change-password span,
   .admin-sidebar-logout span {
     display: none;
   }
 
   .admin-sidebar-nav button,
+  .admin-sidebar-change-password,
   .admin-sidebar-logout {
     justify-content: center;
     padding: 0;
@@ -9108,6 +9112,7 @@ a {
   }
 
   .admin-sidebar-nav button,
+  .admin-sidebar-change-password,
   .admin-sidebar-logout {
     height: 40px;
   }
