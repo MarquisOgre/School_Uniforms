@@ -1698,7 +1698,6 @@ function PackageEditorScreen({
         </div>
       </section>
 
-
       <section className="product-editor-card">
         <div className="product-editor-section-title">Colors &amp; Color Images</div>
         <div className="workspace-note" style={{ marginTop: 10 }}>
@@ -1720,7 +1719,12 @@ function PackageEditorScreen({
             />
           </label>
           <div style={{ display: 'flex', alignItems: 'end' }}>
-            <button type="button" className="secondary-button" onClick={addColor} disabled={!newColor.trim()}>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={addColor}
+              disabled={!newColor.trim()}
+            >
               <Plus size={15} /> Add Color
             </button>
           </div>
@@ -1747,7 +1751,11 @@ function PackageEditorScreen({
                   alt={color + ' product image'}
                   onChange={(v) => setColorImage(color, v)}
                 />
-                <button type="button" className="secondary-button" onClick={() => removeColor(color)}>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => removeColor(color)}
+                >
                   <Trash2 size={14} /> Remove
                 </button>
               </div>
@@ -1884,7 +1892,6 @@ function ProductEditorScreen({
     )
   }
 
-
   const currentColors = Array.from(
     new Set(variants.map((variant) => String(variant.color || '').trim()).filter(Boolean)),
   )
@@ -1958,14 +1965,20 @@ function ProductEditorScreen({
         })
       })
     })
-    if (additions.length) setVariants((current) => [...current.filter((x) => !x._colorOnly), ...additions])
+    if (additions.length)
+      setVariants((current) => [...current.filter((x) => !x._colorOnly), ...additions])
     else setError('All Color × Size combinations already exist.')
   }
 
   const removeColor = (color: string) => {
     const normalized = color.toLowerCase()
     setVariants((current) =>
-      current.filter((variant) => String(variant.color || '').trim().toLowerCase() !== normalized),
+      current.filter(
+        (variant) =>
+          String(variant.color || '')
+            .trim()
+            .toLowerCase() !== normalized,
+      ),
     )
     const map = { ...(editing.color_image_map || {}) }
     delete map[color]
@@ -2214,116 +2227,124 @@ function ProductEditorScreen({
                 </tr>
               </thead>
               <tbody>
-                {variants.filter((variant) => !variant._colorOnly).map((variant, index) => (
-                  <tr key={variant.id || `new-${index}`}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selected.includes(variant.id)}
-                        disabled={!variant.id}
-                        onChange={(e) =>
-                          setSelected((current) =>
-                            e.target.checked
-                              ? [...current, variant.id]
-                              : current.filter((id) => id !== variant.id),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        value={variant.color || ''}
-                        placeholder="Color"
-                        onChange={(e) =>
-                          updateVariant(variant.id, { color: e.target.value }, variant._tempId)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        value={variant.size_label || ''}
-                        placeholder="Size"
-                        onChange={(e) =>
-                          updateVariant(variant.id, { size_label: e.target.value }, variant._tempId)
-                        }
-                        onBlur={() => {
-                          if (!variant.id) {
-                            const row = variants[index]
-                            setVariants((current) =>
-                              current.map((x, i) =>
-                                i === index ? { ...x, size_label: row.size_label } : x,
-                              ),
+                {variants
+                  .filter((variant) => !variant._colorOnly)
+                  .map((variant, index) => (
+                    <tr key={variant.id || `new-${index}`}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(variant.id)}
+                          disabled={!variant.id}
+                          onChange={(e) =>
+                            setSelected((current) =>
+                              e.target.checked
+                                ? [...current, variant.id]
+                                : current.filter((id) => id !== variant.id),
                             )
                           }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        value={variant.sku || ''}
-                        onChange={(e) =>
-                          updateVariant(variant.id, { sku: e.target.value }, variant._tempId)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min="0"
-                        value={variant.price ?? ''}
-                        onChange={(e) =>
-                          updateVariant(variant.id, { price: e.target.value }, variant._tempId)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <select
-                        value={variant.status || 'active'}
-                        onChange={(e) =>
-                          updateVariant(variant.id, { status: e.target.value }, variant._tempId)
-                        }
-                      >
-                        <option value="active">● Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="suspended">Suspended</option>
-                      </select>
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="product-row-icon"
-                        onClick={() => updateVariant(variant.id, { _focus: true }, variant._tempId)}
-                        title="Edit size"
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        type="button"
-                        className="product-row-icon danger"
-                        onClick={async () => {
-                          if (!variant.id) {
-                            setVariants((current) => current.filter((_, i) => i !== index))
-                            return
+                        />
+                      </td>
+                      <td>
+                        <input
+                          value={variant.color || ''}
+                          placeholder="Color"
+                          onChange={(e) =>
+                            updateVariant(variant.id, { color: e.target.value }, variant._tempId)
                           }
-                          const ok = window.confirm('Delete this size permanently?')
-                          if (!ok || !supabase) return
-                          const result = await dbFrom('product_variants')
-                            .delete()
-                            .eq('id', variant.id)
-                          if (result.error) {
-                            setError(result.error.message)
-                            return
+                        />
+                      </td>
+                      <td>
+                        <input
+                          value={variant.size_label || ''}
+                          placeholder="Size"
+                          onChange={(e) =>
+                            updateVariant(
+                              variant.id,
+                              { size_label: e.target.value },
+                              variant._tempId,
+                            )
                           }
-                          setVariants((current) => current.filter((x) => x.id !== variant.id))
-                          setSelected((current) => current.filter((id) => id !== variant.id))
-                        }}
-                        title="Delete size"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                          onBlur={() => {
+                            if (!variant.id) {
+                              const row = variants[index]
+                              setVariants((current) =>
+                                current.map((x, i) =>
+                                  i === index ? { ...x, size_label: row.size_label } : x,
+                                ),
+                              )
+                            }
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          value={variant.sku || ''}
+                          onChange={(e) =>
+                            updateVariant(variant.id, { sku: e.target.value }, variant._tempId)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="0"
+                          value={variant.price ?? ''}
+                          onChange={(e) =>
+                            updateVariant(variant.id, { price: e.target.value }, variant._tempId)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <select
+                          value={variant.status || 'active'}
+                          onChange={(e) =>
+                            updateVariant(variant.id, { status: e.target.value }, variant._tempId)
+                          }
+                        >
+                          <option value="active">● Active</option>
+                          <option value="inactive">Inactive</option>
+                          <option value="suspended">Suspended</option>
+                        </select>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="product-row-icon"
+                          onClick={() =>
+                            updateVariant(variant.id, { _focus: true }, variant._tempId)
+                          }
+                          title="Edit size"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="product-row-icon danger"
+                          onClick={async () => {
+                            if (!variant.id) {
+                              setVariants((current) => current.filter((_, i) => i !== index))
+                              return
+                            }
+                            const ok = window.confirm('Delete this size permanently?')
+                            if (!ok || !supabase) return
+                            const result = await dbFrom('product_variants')
+                              .delete()
+                              .eq('id', variant.id)
+                            if (result.error) {
+                              setError(result.error.message)
+                              return
+                            }
+                            setVariants((current) => current.filter((x) => x.id !== variant.id))
+                            setSelected((current) => current.filter((id) => id !== variant.id))
+                          }}
+                          title="Delete size"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           )}
