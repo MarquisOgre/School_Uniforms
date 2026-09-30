@@ -509,9 +509,14 @@ function Branches() {
               <div className="workspace-note">
                 <strong>Download Demo File</strong>
                 <br />
-                Use the Excel template to prepare new branch records. Keep the column names unchanged.
+                Use the Excel template to prepare new branch records. Keep the column names
+                unchanged.
                 <div style={{ marginTop: 12 }}>
-                  <button type="button" className="secondary-button" onClick={downloadBranchTemplate}>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={downloadBranchTemplate}
+                  >
                     <Download size={15} /> Download Branch Template
                   </button>
                 </div>
@@ -536,9 +541,13 @@ function Branches() {
               <div className="workspace-note">
                 <strong>Upload Branches Excel</strong>
                 <br />
-                Import or update branches in bulk. Existing branch codes are updated instead of duplicated.
+                Import or update branches in bulk. Existing branch codes are updated instead of
+                duplicated.
                 <div style={{ marginTop: 12 }}>
-                  <label className="secondary-button" style={{ cursor: importing ? 'wait' : 'pointer' }}>
+                  <label
+                    className="secondary-button"
+                    style={{ cursor: importing ? 'wait' : 'pointer' }}
+                  >
                     <Upload size={15} /> {importing ? 'Importing...' : 'Choose Excel File'}
                     <input
                       type="file"
@@ -550,7 +559,8 @@ function Branches() {
                   </label>
                 </div>
                 <div style={{ marginTop: 12, fontSize: 13, color: '#64748b' }}>
-                  Required columns: Branch Name, Code. Status must be active, inactive, or suspended.
+                  Required columns: Branch Name, Code. Status must be active, inactive, or
+                  suspended.
                 </div>
               </div>
             </div>
