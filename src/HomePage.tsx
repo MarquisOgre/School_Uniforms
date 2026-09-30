@@ -824,14 +824,14 @@ function Step({ n, title, text }: { n: string; title: string; text: string }) {
 }
 
 const DEMO_LOGINS = [
-  { branch: 'CBSE Branch', id: 'BHUPESHKUMAR', password: '01031984', type: 'Customer' },
-  { branch: 'KUKATPALLY', id: 'PRASHANTH', password: 'ADD_PASSWORD', type: 'Customer' },
+  { branch: 'CBSE Branch', id: 'BHUPESHKUMAR', password: 'Qwerty@123', type: 'Customer' },
+  { branch: 'KUKATPALLY', id: 'PRASHANTH', password: 'Qwerty@123', type: 'Customer' },
 ]
 
 const ADMIN_DEMO = {
   branch: 'Administrator',
   id: 'admin@gmail.com',
-  password: 'ADD_ADMIN_PASSWORD',
+  password: 'Qwerty@123456',
 }
 
 export default function HomePage({
@@ -936,7 +936,7 @@ export default function HomePage({
               <img className="login-logo-image" src="/Narayana-Logo.png" alt="Narayana Schools" />
             </div>
             <p className="eyebrow">SECURE SCHOOL PORTAL</p>
-            <h1>Welcome back</h1>
+            {/* <h1>Welcome back</h1> */}
             <p className="subtitle">
               Select your branch, then sign in with the credentials provided by your school.
             </p>
