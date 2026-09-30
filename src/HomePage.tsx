@@ -124,12 +124,13 @@ export const DEFAULT_HOME: any = {
     enabled: true,
   },
   footer: {
-    tagline: 'School-specific uniform shopping for parents & students. Shop school-approved uniforms, packages and essentials in one simple place.',
+    tagline:
+      'School-specific uniform shopping for parents & students. Shop school-approved uniforms, packages and essentials in one simple place.',
     shopTitle: 'Shop',
     helpTitle: 'Help',
     informationTitle: 'Information',
     copyright: '© 2026 Artisan. All rights reserved.',
-    credit: 'Developed with ❤️ by Avantro Technologies.' ,
+    credit: 'Developed with ❤️ by Avantro Technologies.',
     secondary: 'School-specific shopping • Secure access',
   },
 }
