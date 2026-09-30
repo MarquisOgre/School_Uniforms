@@ -1019,6 +1019,7 @@ function Products({
         express_shipping: boolean | null
         image_url: string | null
         image_gallery: string[] | null
+        color_image_map: Record<string, string> | null
         base_price: number | null
         offer_price: number | null
         discount_percentage: number | null
