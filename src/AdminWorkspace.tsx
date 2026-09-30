@@ -631,6 +631,120 @@ function Branches() {
   )
 }
 
+
+type BulkToolsProps = {
+  title: string
+  description: string
+  demoLabel: string
+  exportLabel: string
+  accept?: string
+  importing?: boolean
+  canExport?: boolean
+  onDemo: () => void
+  onExport: () => void
+  onImport: (file: File) => void
+}
+
+function BulkTools({
+  title,
+  description,
+  demoLabel,
+  exportLabel,
+  accept = '.xlsx,.xls,.csv',
+  importing = false,
+  canExport = true,
+  onDemo,
+  onExport,
+  onImport,
+}: BulkToolsProps) {
+  const [open, setOpen] = useState(false)
+
+  const handleFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) onImport(file)
+  }
+
+  return (
+    <>
+      <button className="secondary-button" onClick={() => setOpen(true)}>
+        <Upload size={15} /> Import / Export
+      </button>
+
+      {open ? (
+        <div className="workspace-modal">
+          <div className="workspace-modal-card" style={{ maxWidth: 820 }}>
+            <div className="workspace-modal-header">
+              <div>
+                <h2>{title}</h2>
+                <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 15 }}>{description}</p>
+              </div>
+            </div>
+            <button
+              className="workspace-close"
+              onClick={() => !importing && setOpen(false)}
+              aria-label="Close"
+              disabled={importing}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="workspace-form" style={{ gap: 18 }}>
+              <div className="workspace-note">
+                <strong>Download Demo File</strong>
+                <br />
+                Use the demo Excel file as the starting point. Keep the column names unchanged.
+                <div style={{ marginTop: 12 }}>
+                  <button type="button" className="secondary-button" onClick={onDemo}>
+                    <Download size={15} /> {demoLabel}
+                  </button>
+                </div>
+              </div>
+
+              <div className="workspace-note">
+                <strong>Export Current Data</strong>
+                <br />
+                Download the records currently stored in the database as an Excel file.
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={onExport}
+                    disabled={!canExport || importing}
+                  >
+                    <Download size={15} /> {exportLabel}
+                  </button>
+                </div>
+              </div>
+
+              <div className="workspace-note">
+                <strong>Import Data</strong>
+                <br />
+                Upload a completed Excel or CSV file to import or update records in bulk.
+                <div style={{ marginTop: 12 }}>
+                  <label
+                    className="secondary-button"
+                    style={{ cursor: importing ? 'wait' : 'pointer' }}
+                  >
+                    <Upload size={15} /> {importing ? 'Importing...' : 'Choose Excel File'}
+                    <input
+                      type="file"
+                      accept={accept}
+                      onChange={handleFile}
+                      disabled={importing}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  )
+}
+
 function Products({
   productSlug,
   branchId,
