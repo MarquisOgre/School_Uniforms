@@ -36,7 +36,7 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
     description: 'Manage branches, contact details and active status.',
   },
   products: {
-    title: 'Products & Variants',
+    title: 'Products',
     description: 'Manage individual uniform products, sizes, SKUs and prices.',
   },
   packages: {
@@ -1025,7 +1025,7 @@ function Products({
     ]
     const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
     const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, sheet, 'Products & Variants')
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Products')
     XLSX.writeFile(workbook, 'Products_Variants_Import_Template.xlsx')
   }
 
@@ -1099,7 +1099,7 @@ function Products({
     })
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, sheet, 'Products & Variants')
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Products')
     XLSX.writeFile(
       workbook,
       `Products_Variants_Export_${new Date().toISOString().slice(0, 10)}.xlsx`,
@@ -1297,7 +1297,7 @@ function Products({
               />
             </div>
             <BulkTools
-              title="Excel Bulk Import / Export — Products & Variants"
+              title="Excel Bulk Import / Export — Products"
               description="Download a template, export your current products, or upload products in bulk."
               demoLabel="Download Product Template"
               exportLabel="Download Products"
