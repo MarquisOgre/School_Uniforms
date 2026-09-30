@@ -277,26 +277,54 @@ function Branches() {
     setError('')
     const [productsResult, packagesResult] = await Promise.all([
       dbFrom('products').select('id,name,status,base_price,offer_price,branch_id').order('name'),
-      dbFrom('uniform_packages').select('id,name,status,base_price,offer_price,branch_id').order('name'),
+      dbFrom('uniform_packages')
+        .select('id,name,status,base_price,offer_price,branch_id')
+        .order('name'),
     ])
     if (productsResult.error || packagesResult.error) {
-      setError(productsResult.error?.message || packagesResult.error?.message || 'Unable to load branch catalog.')
+      setError(
+        productsResult.error?.message ||
+          packagesResult.error?.message ||
+          'Unable to load branch catalog.',
+      )
       setCatalogLoading(false)
       return
     }
     const [productLinks, packageLinks] = await Promise.all([
-      dbFrom('branch_products').select('product_id,is_visible,branch_price').eq('branch_id', branch.id),
-      dbFrom('branch_packages').select('package_id,is_visible,branch_price').eq('branch_id', branch.id),
+      dbFrom('branch_products')
+        .select('product_id,is_visible,branch_price')
+        .eq('branch_id', branch.id),
+      dbFrom('branch_packages')
+        .select('package_id,is_visible,branch_price')
+        .eq('branch_id', branch.id),
     ])
     if (productLinks.error || packageLinks.error) {
-      setError(productLinks.error?.message || packageLinks.error?.message || 'Unable to load branch catalog assignments.')
+      setError(
+        productLinks.error?.message ||
+          packageLinks.error?.message ||
+          'Unable to load branch catalog assignments.',
+      )
       setCatalogLoading(false)
       return
     }
-    const productMap = Object.fromEntries((productLinks.data || []).map((x: any) => [x.product_id, x]))
-    const packageMap = Object.fromEntries((packageLinks.data || []).map((x: any) => [x.package_id, x]))
-    setCatalogProducts((productsResult.data || []).map((p: any) => ({ ...p, assigned: Boolean(productMap[p.id]?.is_visible) })))
-    setCatalogPackages((packagesResult.data || []).map((p: any) => ({ ...p, assigned: Boolean(packageMap[p.id]?.is_visible) })))
+    const productMap = Object.fromEntries(
+      (productLinks.data || []).map((x: any) => [x.product_id, x]),
+    )
+    const packageMap = Object.fromEntries(
+      (packageLinks.data || []).map((x: any) => [x.package_id, x]),
+    )
+    setCatalogProducts(
+      (productsResult.data || []).map((p: any) => ({
+        ...p,
+        assigned: Boolean(productMap[p.id]?.is_visible),
+      })),
+    )
+    setCatalogPackages(
+      (packagesResult.data || []).map((p: any) => ({
+        ...p,
+        assigned: Boolean(packageMap[p.id]?.is_visible),
+      })),
+    )
     setCatalogLoading(false)
   }
 
@@ -305,40 +333,84 @@ function Branches() {
     setCatalogSaving(true)
     setError('')
     const branchId = catalogBranch.id
-    const productRows = catalogProducts.filter((p) => p.assigned).map((p) => ({
-      branch_id: branchId, product_id: p.id, branch_price: Number(p.offer_price ?? p.base_price ?? 0), is_visible: true,
-    }))
-    const packageRows = catalogPackages.filter((p) => p.assigned).map((p) => ({
-      branch_id: branchId, package_id: p.id, branch_price: Number(p.offer_price ?? p.base_price ?? 0), is_visible: true,
-    }))
+    const productRows = catalogProducts
+      .filter((p) => p.assigned)
+      .map((p) => ({
+        branch_id: branchId,
+        product_id: p.id,
+        branch_price: Number(p.offer_price ?? p.base_price ?? 0),
+        is_visible: true,
+      }))
+    const packageRows = catalogPackages
+      .filter((p) => p.assigned)
+      .map((p) => ({
+        branch_id: branchId,
+        package_id: p.id,
+        branch_price: Number(p.offer_price ?? p.base_price ?? 0),
+        is_visible: true,
+      }))
     const [existingProducts, existingPackages] = await Promise.all([
       dbFrom('branch_products').select('product_id').eq('branch_id', branchId),
       dbFrom('branch_packages').select('package_id').eq('branch_id', branchId),
     ])
     if (existingProducts.error || existingPackages.error) {
-      setError(existingProducts.error?.message || existingPackages.error?.message || 'Unable to load existing catalog.')
+      setError(
+        existingProducts.error?.message ||
+          existingPackages.error?.message ||
+          'Unable to load existing catalog.',
+      )
       setCatalogSaving(false)
       return
     }
     const wantedProductIds = new Set(productRows.map((x) => x.product_id))
     const wantedPackageIds = new Set(packageRows.map((x) => x.package_id))
-    const removeProductIds = (existingProducts.data || []).map((x: any) => x.product_id).filter((id: string) => !wantedProductIds.has(id))
-    const removePackageIds = (existingPackages.data || []).map((x: any) => x.package_id).filter((id: string) => !wantedPackageIds.has(id))
+    const removeProductIds = (existingProducts.data || [])
+      .map((x: any) => x.product_id)
+      .filter((id: string) => !wantedProductIds.has(id))
+    const removePackageIds = (existingPackages.data || [])
+      .map((x: any) => x.package_id)
+      .filter((id: string) => !wantedPackageIds.has(id))
     if (removeProductIds.length) {
-      const r = await dbFrom('branch_products').delete().eq('branch_id', branchId).in('product_id', removeProductIds)
-      if (r.error) { setError(r.error.message); setCatalogSaving(false); return }
+      const r = await dbFrom('branch_products')
+        .delete()
+        .eq('branch_id', branchId)
+        .in('product_id', removeProductIds)
+      if (r.error) {
+        setError(r.error.message)
+        setCatalogSaving(false)
+        return
+      }
     }
     if (removePackageIds.length) {
-      const r = await dbFrom('branch_packages').delete().eq('branch_id', branchId).in('package_id', removePackageIds)
-      if (r.error) { setError(r.error.message); setCatalogSaving(false); return }
+      const r = await dbFrom('branch_packages')
+        .delete()
+        .eq('branch_id', branchId)
+        .in('package_id', removePackageIds)
+      if (r.error) {
+        setError(r.error.message)
+        setCatalogSaving(false)
+        return
+      }
     }
     if (productRows.length) {
-      const r = await dbFrom('branch_products').upsert(productRows, { onConflict: 'branch_id,product_id' })
-      if (r.error) { setError(r.error.message); setCatalogSaving(false); return }
+      const r = await dbFrom('branch_products').upsert(productRows, {
+        onConflict: 'branch_id,product_id',
+      })
+      if (r.error) {
+        setError(r.error.message)
+        setCatalogSaving(false)
+        return
+      }
     }
     if (packageRows.length) {
-      const r = await dbFrom('branch_packages').upsert(packageRows, { onConflict: 'branch_id,package_id' })
-      if (r.error) { setError(r.error.message); setCatalogSaving(false); return }
+      const r = await dbFrom('branch_packages').upsert(packageRows, {
+        onConflict: 'branch_id,package_id',
+      })
+      if (r.error) {
+        setError(r.error.message)
+        setCatalogSaving(false)
+        return
+      }
     }
     setCatalogSaving(false)
     setCatalogBranch(null)
@@ -591,26 +663,70 @@ function Branches() {
                 <h3 style={{ margin: '0 0 10px' }}>Products</h3>
                 <div style={{ display: 'grid', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
                   {catalogProducts.map((product) => (
-                    <label key={product.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-                      <input type="checkbox" checked={product.assigned} onChange={(e) => setCatalogProducts((current) => current.map((x) => x.id === product.id ? { ...x, assigned: e.target.checked } : x))} />
+                    <label
+                      key={product.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: 10,
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 8,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={product.assigned}
+                        onChange={(e) =>
+                          setCatalogProducts((current) =>
+                            current.map((x) =>
+                              x.id === product.id ? { ...x, assigned: e.target.checked } : x,
+                            ),
+                          )
+                        }
+                      />
                       <span style={{ flex: 1 }}>{product.name}</span>
                       <small>{product.status}</small>
                     </label>
                   ))}
-                  {!catalogProducts.length && <div className="workspace-empty">No products available.</div>}
+                  {!catalogProducts.length && (
+                    <div className="workspace-empty">No products available.</div>
+                  )}
                 </div>
               </div>
               <div>
                 <h3 style={{ margin: '0 0 10px' }}>Uniform Packages</h3>
                 <div style={{ display: 'grid', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
                   {catalogPackages.map((pkg) => (
-                    <label key={pkg.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-                      <input type="checkbox" checked={pkg.assigned} onChange={(e) => setCatalogPackages((current) => current.map((x) => x.id === pkg.id ? { ...x, assigned: e.target.checked } : x))} />
+                    <label
+                      key={pkg.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: 10,
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 8,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={pkg.assigned}
+                        onChange={(e) =>
+                          setCatalogPackages((current) =>
+                            current.map((x) =>
+                              x.id === pkg.id ? { ...x, assigned: e.target.checked } : x,
+                            ),
+                          )
+                        }
+                      />
                       <span style={{ flex: 1 }}>{pkg.name}</span>
                       <small>{pkg.status}</small>
                     </label>
                   ))}
-                  {!catalogPackages.length && <div className="workspace-empty">No packages available.</div>}
+                  {!catalogPackages.length && (
+                    <div className="workspace-empty">No packages available.</div>
+                  )}
                 </div>
               </div>
             </div>
