@@ -382,9 +382,7 @@ function Branches() {
             .replace(/[^a-z0-9]+/g, '_')
             .replace(/^_|_$/g, '')
           row[normalizedKey] =
-            value instanceof Date
-              ? value.toISOString().slice(0, 10)
-              : String(value ?? '').trim()
+            value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? '').trim()
         })
 
         const payload = {
@@ -397,7 +395,10 @@ function Branches() {
           postal_code: String(row.postal_code || '').trim() || null,
           phone: String(row.phone || '').trim() || null,
           email: String(row.email || '').trim() || null,
-          status: String(row.status || 'active').trim().toLowerCase() || 'active',
+          status:
+            String(row.status || 'active')
+              .trim()
+              .toLowerCase() || 'active',
         }
 
         if (!payload.name || !payload.code) {
@@ -447,10 +448,7 @@ function Branches() {
   return (
     <>
       <Toolbar onRefresh={load}>
-        <button
-          className="secondary-button"
-          onClick={downloadBranchTemplate}
-        >
+        <button className="secondary-button" onClick={downloadBranchTemplate}>
           <Download size={15} /> Demo File
         </button>
         <label className="secondary-button" style={{ cursor: importing ? 'wait' : 'pointer' }}>
@@ -561,7 +559,6 @@ function Branches() {
     </>
   )
 }
-
 
 function Products({
   productSlug,
