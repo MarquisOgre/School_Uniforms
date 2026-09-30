@@ -4561,6 +4561,47 @@ function ParentStudents() {
     })
   }
 
+  const openEditParent = async (parent: any) => {
+    if (!supabase) return
+    setError('')
+    const { data: links, error: linksError } = await dbFrom('parent_student_links')
+      .select('student_id')
+      .eq('parent_user_id', parent.id)
+
+    if (linksError) {
+      setError(linksError.message)
+      return
+    }
+
+    const childIds = (links || []).map((x: any) => x.student_id)
+    const children = students
+      .filter((s: any) => childIds.includes(s.id))
+      .map((s: any) => ({
+        ...s,
+        student_id: s.id,
+        branch_id: s.branch_id || parent.branch_id,
+        student_code: s.student_code || '',
+        full_name: s.full_name || '',
+        father_name: s.father_name || parent.full_name || '',
+        class_name: s.class_name || '',
+        section: s.section || '',
+        gender: s.gender || '',
+        date_of_birth: s.date_of_birth || '',
+      }))
+
+    setParentEditing({
+      editMode: true,
+      id: parent.id,
+      branch_id: parent.branch_id || '',
+      full_name: parent.full_name || '',
+      login_id: parent.login_id || '',
+      phone: parent.phone || '',
+      password: '',
+      confirm_password: '',
+      children: children.length ? children : [emptyChild(parent.branch_id || '')],
+    })
+  }
+
   const openEditStudent = async (student: any) => {
     if (!supabase) return
     setError('')
@@ -5034,6 +5075,7 @@ function ParentStudents() {
                     <th>Children</th>
                     <th>Phone</th>
                     <th>Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -5050,12 +5092,20 @@ function ParentStudents() {
                           <td>{childNames.length ? childNames.join(', ') : '—'}</td>
                           <td>{p.phone || '—'}</td>
                           <td>{p.status || '—'}</td>
+                          <td>
+                            <button
+                              className="table-action-button"
+                              onClick={() => openEditParent(p)}
+                            >
+                              Edit / Add Child
+                            </button>
+                          </td>
                         </tr>
                       )
                     })
                   ) : (
                     <tr>
-                      <td colSpan={6}>No Parent accounts created yet.</td>
+                      <td colSpan={7}>No Parent accounts created yet.</td>
                     </tr>
                   )}
                 </tbody>
