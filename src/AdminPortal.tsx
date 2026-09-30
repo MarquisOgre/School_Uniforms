@@ -328,7 +328,10 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     })
     setResetLoading(false)
     if (resetError) setError(resetError.message)
-    else window.alert('Password reset email sent to ' + targetEmail + '. Please check the admin inbox.')
+    else
+      window.alert(
+        'Password reset email sent to ' + targetEmail + '. Please check the admin inbox.',
+      )
   }
 
   const [tool, setTool] = useState<AdminTool>('home')
@@ -493,12 +496,26 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
           <h1>Reset Admin Password</h1>
           <p>Enter a new password for the administrator account.</p>
           <label>New Password</label>
-          <input type="password" value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} autoComplete="new-password" />
+          <input
+            type="password"
+            value={resetPassword}
+            onChange={(e) => setResetPassword(e.target.value)}
+            autoComplete="new-password"
+          />
           <label>Confirm Password</label>
-          <input type="password" value={resetConfirm} onChange={(e) => setResetConfirm(e.target.value)} autoComplete="new-password" />
+          <input
+            type="password"
+            value={resetConfirm}
+            onChange={(e) => setResetConfirm(e.target.value)}
+            autoComplete="new-password"
+          />
           {error && <p className="login-error">{error}</p>}
           {resetMessage && <p className="form-success">{resetMessage}</p>}
-          <button className="primary-button" onClick={() => void changeAdminPassword()} disabled={resetLoading || !resetPassword || !resetConfirm}>
+          <button
+            className="primary-button"
+            onClick={() => void changeAdminPassword()}
+            disabled={resetLoading || !resetPassword || !resetConfirm}
+          >
             {resetLoading ? 'UPDATING...' : 'UPDATE PASSWORD'}
           </button>
         </div>
@@ -540,7 +557,13 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
           >
             {loading ? 'SIGNING IN...' : 'ADMIN LOGIN'}
           </button>
-          <button type="button" className="text-button" onClick={() => void requestAdminPasswordReset()} disabled={resetLoading} style={{ marginTop: 14 }}>
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => void requestAdminPasswordReset()}
+            disabled={resetLoading}
+            style={{ marginTop: 14 }}
+          >
             {resetLoading ? 'SENDING...' : 'Forgot Password?'}
           </button>
         </div>
