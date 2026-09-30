@@ -47,7 +47,7 @@ const ADMIN_NAV: Array<{
 }> = [
   { key: 'home', label: 'Homepage', icon: Home },
   { key: 'branches', label: 'Branches', icon: Building2 },
-  { key: 'products', label: 'Products & Variants', icon: ShoppingBag },
+  { key: 'products', label: 'Products', icon: ShoppingBag },
   { key: 'packages', label: 'Uniform Packages', icon: Package },
   { key: 'orders', label: 'Orders & Payments', icon: ClipboardList },
   { key: 'inventory', label: 'Inventory', icon: ClipboardList },
