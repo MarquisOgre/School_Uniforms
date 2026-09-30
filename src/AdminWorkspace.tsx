@@ -997,28 +997,28 @@ function Products({
   }
 
   const downloadProductTemplate = () => {
-    const headers = ['Branch ID', 'Product Name', 'Category ID', 'Product Type', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status']
-    const sample = [branchId || '', 'Sample Shirt', categories[0]?.id || '', 'Shirt', 'unisex', 1000, 10, 900, 'active']
+    const headers = ['Product Name', 'Category ID', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status', 'SKU', 'Size', 'Color', 'Variant Name', 'Variant Price']
+    const sample = ['Sample Shirt', categories[0]?.id || '', 'unisex', 1000, 10, 900, 'active', 'SAMPLE-S', 'S', '', 'Sample Shirt - Size S', 900]
     const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
     const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, sheet, 'Products')
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Products & Variants')
     XLSX.writeFile(workbook, 'Products_Variants_Import_Template.xlsx')
   }
 
   const exportProducts = () => {
-    const headers = ['Product', 'Category', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status']
-    const values = rows.map((p) => [
-      p.name || '',
-      categories.find((c) => c.id === p.category_id)?.name || '',
-      formatGender(p.gender),
-      Number(p.base_price || 0),
-      Number(p.discount_percentage || 0),
-      Number(p.offer_price ?? p.base_price ?? 0),
-      p.status || 'active',
-    ])
+    const headers = ['Product', 'Category', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status', 'SKU', 'Size', 'Color', 'Variant Name', 'Variant Price']
+    const values: any[][] = []
+    rows.forEach((p) => {
+      const productVariants = variants.filter((v) => v.product_id === p.id)
+      if (!productVariants.length) {
+        values.push([p.name || '', categories.find((c) => c.id === p.category_id)?.name || '', formatGender(p.gender), Number(p.base_price || 0), Number(p.discount_percentage || 0), Number(p.offer_price ?? p.base_price ?? 0), p.status || 'active', '', '', '', '', ''])
+      } else {
+        productVariants.forEach((v) => values.push([p.name || '', categories.find((c) => c.id === p.category_id)?.name || '', formatGender(p.gender), Number(p.base_price || 0), Number(p.discount_percentage || 0), Number(p.offer_price ?? p.base_price ?? 0), p.status || 'active', v.sku || '', v.size_label || '', v.color || '', v.variant_name || '', Number(v.price ?? p.base_price ?? 0)]))
+      }
+    })
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, sheet, 'Products')
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Products & Variants')
     XLSX.writeFile(workbook, `Products_Variants_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
@@ -1028,42 +1028,63 @@ function Products({
     setError('')
     try {
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const raw = XLSX.utils.sheet_to_json<any>(sheet, { defval: '' })
+      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
       if (!raw.length) throw new Error('The Excel file contains no product records.')
       let success = 0
+      let variantSuccess = 0
       const errors: string[] = []
       for (let index = 0; index < raw.length; index += 1) {
         const r = raw[index]
+        const name = String(r['Product Name'] ?? r.Product ?? r.product_name ?? r.name ?? '').trim()
+        if (!name) { errors.push(`Row ${index + 2}: Product Name is required.`); continue }
+        const gender = String(r.Gender ?? r.gender ?? 'unisex').trim().toLowerCase()
         const payload = {
-          branch_id: branchId,
-          name: String(r['Product Name'] ?? r.product_name ?? r.name ?? '').trim(),
+          name,
           category_id: String(r['Category ID'] ?? r.category_id ?? '').trim() || null,
-          product_type: String(r['Product Type'] ?? r.product_type ?? '').trim() || null,
-          gender: String(r.Gender ?? r.gender ?? 'unisex').trim().toLowerCase() || 'unisex',
+          gender: ['boys', 'girls', 'unisex'].includes(gender) ? gender : 'unisex',
           base_price: Number(r['Base Price'] ?? r.base_price ?? 0),
           discount_percentage: Number(r['Discount (%)'] ?? r.discount_percentage ?? 0),
-          offer_price:
-            r['Offer Price'] === '' || r.offer_price === ''
-              ? null
-              : Number(r['Offer Price'] ?? r.offer_price ?? 0),
+          offer_price: r['Offer Price'] === '' || r.offer_price === '' ? null : Number(r['Offer Price'] ?? r.offer_price ?? 0),
           status: String(r.Status ?? r.status ?? 'active').trim().toLowerCase() || 'active',
         }
-        if (!payload.name) {
-          errors.push(`Row ${index + 2}: Product Name is required.`)
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        const productResult = await dbFrom('products').upsert({ ...payload, slug }, { onConflict: 'slug' }).select('id').single()
+        if (productResult.error || !productResult.data?.id) {
+          errors.push(`Row ${index + 2}: ${productResult.error?.message || 'Unable to save product.'}`)
           continue
         }
-        if (!['boys', 'girls', 'unisex'].includes(payload.gender)) payload.gender = 'unisex'
-        const slug = payload.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-        const result = await dbFrom('products').upsert(
-          { ...payload, slug },
-          { onConflict: 'branch_id,slug' },
-        ).select('id').single()
-        if (result.error) errors.push(`Row ${index + 2}: ${result.error.message}`)
-        else success += 1
+        const productId = productResult.data.id
+        const branchResult = await dbFrom('branch_products').upsert(
+          { branch_id: branchId, product_id: productId, branch_price: Number(payload.offer_price ?? payload.base_price ?? 0), is_visible: payload.status === 'active' },
+          { onConflict: 'branch_id,product_id' },
+        )
+        if (branchResult.error) {
+          errors.push(`Row ${index + 2}: Product saved but branch catalog update failed: ${branchResult.error.message}`)
+          continue
+        }
+        success += 1
+        const sku = String(r.SKU ?? r.sku ?? '').trim()
+        if (sku) {
+          const variantResult = await dbFrom('product_variants').upsert(
+            {
+              product_id: productId,
+              sku,
+              size_label: String(r.Size ?? r.size ?? '').trim() || null,
+              color: String(r.Color ?? r.color ?? '').trim() || null,
+              variant_name: String(r['Variant Name'] ?? r.variant_name ?? '').trim() || null,
+              price: Number(r['Variant Price'] ?? r.variant_price ?? payload.offer_price ?? payload.base_price ?? 0),
+              status: payload.status,
+            },
+            { onConflict: 'sku' },
+          ).select('id').single()
+          if (variantResult.error) errors.push(`Row ${index + 2}: Product saved but variant failed: ${variantResult.error.message}`)
+          else variantSuccess += 1
+        }
       }
       await load()
-      setError(errors.length ? `Imported ${success} product(s). ${errors.length} row(s) failed. ${errors.slice(0, 5).join(' | ')}` : `Successfully imported ${success} product(s).`)
+      setError(errors.length
+        ? `Imported ${success} product row(s) and ${variantSuccess} variant(s). ${errors.length} row(s) failed. ${errors.slice(0, 5).join(' | ')}`
+        : `Successfully imported ${success} product row(s) and ${variantSuccess} variant(s).`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to import products.')
     } finally {
