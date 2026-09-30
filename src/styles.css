@@ -625,7 +625,7 @@ a {
   border-radius: 9px;
   padding: 9px 11px;
   display: grid !important;
-  grid-template-columns: minmax(120px, 1fr) minmax(150px, 1.25fr) minmax(120px, 1fr) !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr) !important;
   align-items: center;
   gap: 10px;
   text-align: left;
@@ -638,6 +638,8 @@ a {
 }
 .demo-credential-row span {
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 .demo-credential-row small,
 .demo-credential-row strong {
@@ -649,6 +651,10 @@ a {
   margin-bottom: 3px;
 }
 .demo-credential-row strong {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   font-size: 10px;
   overflow: hidden;
   text-overflow: ellipsis;
