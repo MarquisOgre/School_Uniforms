@@ -1022,15 +1022,26 @@ export default function HomePage({
                     className="demo-credential-row"
                     key={demo.id}
                     onClick={() => {
-                      const selected = branches.find((x) => x.name.toLowerCase() === demo.branch.toLowerCase())
+                      const selected = branches.find(
+                        (x) => x.name.toLowerCase() === demo.branch.toLowerCase(),
+                      )
                       if (selected) setBranch(selected.id)
                       setParentId(demo.id)
                       setPassword(demo.password)
                     }}
                   >
-                    <span><small>Branch</small><strong>{demo.branch}</strong></span>
-                    <span><small>Student / Parent ID</small><strong>{demo.id}</strong></span>
-                    <span><small>Password</small><strong>{demo.password}</strong></span>
+                    <span>
+                      <small>Branch</small>
+                      <strong>{demo.branch}</strong>
+                    </span>
+                    <span>
+                      <small>Student / Parent ID</small>
+                      <strong>{demo.id}</strong>
+                    </span>
+                    <span>
+                      <small>Password</small>
+                      <strong>{demo.password}</strong>
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1044,9 +1055,18 @@ export default function HomePage({
                   onAdmin()
                 }}
               >
-                <span><small>Portal</small><strong>{ADMIN_DEMO.branch}</strong></span>
-                <span><small>Admin Login</small><strong>{ADMIN_DEMO.id}</strong></span>
-                <span><small>Password</small><strong>{ADMIN_DEMO.password}</strong></span>
+                <span>
+                  <small>Portal</small>
+                  <strong>{ADMIN_DEMO.branch}</strong>
+                </span>
+                <span>
+                  <small>Admin Login</small>
+                  <strong>{ADMIN_DEMO.id}</strong>
+                </span>
+                <span>
+                  <small>Password</small>
+                  <strong>{ADMIN_DEMO.password}</strong>
+                </span>
               </button>
             </div>
 

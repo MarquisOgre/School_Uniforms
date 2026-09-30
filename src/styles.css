@@ -608,7 +608,7 @@ a {
   color: #9a7623;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .16em;
+  letter-spacing: 0.16em;
   margin-bottom: 7px;
 }
 .demo-credentials-grid {
