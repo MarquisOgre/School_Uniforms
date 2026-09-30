@@ -3885,6 +3885,19 @@ a {
   color: #fff;
   padding: 45px max(22px, calc((100% - 1290px) / 2)) 20px;
 }
+.exact-footer .footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.exact-footer .footer-brand .brand-logo {
+  width: clamp(150px, 11vw, 185px);
+}
+.exact-footer .footer-brand p {
+  max-width: 250px;
+  line-height: 1.55;
+}
 .exact-footer .brand-logo {
   filter: brightness(0) invert(1);
   width: 155px;
