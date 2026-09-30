@@ -493,7 +493,6 @@ function Branches() {
         </Panel>
       )}
 
-
       {editing && (
         <EditModal
           title={editing.id ? 'Edit Branch' : 'Add Branch'}
@@ -556,7 +555,6 @@ function Branches() {
     </>
   )
 }
-
 
 type BulkToolsProps = {
   title: string
@@ -997,8 +995,34 @@ function Products({
   }
 
   const downloadProductTemplate = () => {
-    const headers = ['Product Name', 'Category ID', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status', 'SKU', 'Size', 'Color', 'Variant Name', 'Variant Price']
-    const sample = ['Sample Shirt', categories[0]?.id || '', 'unisex', 1000, 10, 900, 'active', 'SAMPLE-S', 'S', '', 'Sample Shirt - Size S', 900]
+    const headers = [
+      'Product Name',
+      'Category ID',
+      'Gender',
+      'Base Price',
+      'Discount (%)',
+      'Offer Price',
+      'Status',
+      'SKU',
+      'Size',
+      'Color',
+      'Variant Name',
+      'Variant Price',
+    ]
+    const sample = [
+      'Sample Shirt',
+      categories[0]?.id || '',
+      'unisex',
+      1000,
+      10,
+      900,
+      'active',
+      'SAMPLE-S',
+      'S',
+      '',
+      'Sample Shirt - Size S',
+      900,
+    ]
     const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Products & Variants')
@@ -1006,10 +1030,27 @@ function Products({
   }
 
   const exportProducts = async () => {
-    const headers = ['Product', 'Category', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status', 'SKU', 'Size', 'Color', 'Variant Name', 'Variant Price']
+    const headers = [
+      'Product',
+      'Category',
+      'Gender',
+      'Base Price',
+      'Discount (%)',
+      'Offer Price',
+      'Status',
+      'SKU',
+      'Size',
+      'Color',
+      'Variant Name',
+      'Variant Price',
+    ]
     const productIds = rows.map((p) => p.id).filter(Boolean)
     const variantResult = productIds.length
-      ? await dbFrom('product_variants').select('id,product_id,sku,size_label,color,variant_name,price,status').in('product_id', productIds).order('product_id').order('size_label')
+      ? await dbFrom('product_variants')
+          .select('id,product_id,sku,size_label,color,variant_name,price,status')
+          .in('product_id', productIds)
+          .order('product_id')
+          .order('size_label')
       : { data: [], error: null }
     if (variantResult.error) {
       setError(variantResult.error.message)
@@ -1023,15 +1064,46 @@ function Products({
     rows.forEach((p) => {
       const productVariants = variantMap[p.id] || []
       if (!productVariants.length) {
-        values.push([p.name || '', categories.find((c) => c.id === p.category_id)?.name || '', formatGender(p.gender), Number(p.base_price || 0), Number(p.discount_percentage || 0), Number(p.offer_price ?? p.base_price ?? 0), p.status || 'active', '', '', '', '', ''])
+        values.push([
+          p.name || '',
+          categories.find((c) => c.id === p.category_id)?.name || '',
+          formatGender(p.gender),
+          Number(p.base_price || 0),
+          Number(p.discount_percentage || 0),
+          Number(p.offer_price ?? p.base_price ?? 0),
+          p.status || 'active',
+          '',
+          '',
+          '',
+          '',
+          '',
+        ])
       } else {
-        productVariants.forEach((v) => values.push([p.name || '', categories.find((c) => c.id === p.category_id)?.name || '', formatGender(p.gender), Number(p.base_price || 0), Number(p.discount_percentage || 0), Number(p.offer_price ?? p.base_price ?? 0), p.status || 'active', v.sku || '', v.size_label || '', v.color || '', v.variant_name || '', Number(v.price ?? p.base_price ?? 0)]))
+        productVariants.forEach((v) =>
+          values.push([
+            p.name || '',
+            categories.find((c) => c.id === p.category_id)?.name || '',
+            formatGender(p.gender),
+            Number(p.base_price || 0),
+            Number(p.discount_percentage || 0),
+            Number(p.offer_price ?? p.base_price ?? 0),
+            p.status || 'active',
+            v.sku || '',
+            v.size_label || '',
+            v.color || '',
+            v.variant_name || '',
+            Number(v.price ?? p.base_price ?? 0),
+          ]),
+        )
       }
     })
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Products & Variants')
-    XLSX.writeFile(workbook, `Products_Variants_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(
+      workbook,
+      `Products_Variants_Export_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    )
   }
 
   const importProducts = async (file: File) => {
@@ -1040,7 +1112,9 @@ function Products({
     setError('')
     try {
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
-      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
+      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], {
+        defval: '',
+      })
       if (!raw.length) throw new Error('The Excel file contains no product records.')
       let success = 0
       let variantSuccess = 0
@@ -1048,8 +1122,13 @@ function Products({
       for (let index = 0; index < raw.length; index += 1) {
         const r = raw[index]
         const name = String(r['Product Name'] ?? r.Product ?? r.product_name ?? r.name ?? '').trim()
-        if (!name) { errors.push(`Row ${index + 2}: Product Name is required.`); continue }
-        const gender = String(r.Gender ?? r.gender ?? 'unisex').trim().toLowerCase()
+        if (!name) {
+          errors.push(`Row ${index + 2}: Product Name is required.`)
+          continue
+        }
+        const gender = String(r.Gender ?? r.gender ?? 'unisex')
+          .trim()
+          .toLowerCase()
         const payload = {
           branch_id: branchId,
           name,
@@ -1057,47 +1136,82 @@ function Products({
           gender: ['boys', 'girls', 'unisex'].includes(gender) ? gender : 'unisex',
           base_price: Number(r['Base Price'] ?? r.base_price ?? 0),
           discount_percentage: Number(r['Discount (%)'] ?? r.discount_percentage ?? 0),
-          offer_price: r['Offer Price'] === '' || r.offer_price === '' ? null : Number(r['Offer Price'] ?? r.offer_price ?? 0),
-          status: String(r.Status ?? r.status ?? 'active').trim().toLowerCase() || 'active',
+          offer_price:
+            r['Offer Price'] === '' || r.offer_price === ''
+              ? null
+              : Number(r['Offer Price'] ?? r.offer_price ?? 0),
+          status:
+            String(r.Status ?? r.status ?? 'active')
+              .trim()
+              .toLowerCase() || 'active',
         }
-        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-        const productResult = await dbFrom('products').upsert({ ...payload, slug }, { onConflict: 'branch_id,slug' }).select('id').single()
+        const slug = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+        const productResult = await dbFrom('products')
+          .upsert({ ...payload, slug }, { onConflict: 'branch_id,slug' })
+          .select('id')
+          .single()
         if (productResult.error || !productResult.data?.id) {
-          errors.push(`Row ${index + 2}: ${productResult.error?.message || 'Unable to save product.'}`)
+          errors.push(
+            `Row ${index + 2}: ${productResult.error?.message || 'Unable to save product.'}`,
+          )
           continue
         }
         const productId = productResult.data.id
         const branchResult = await dbFrom('branch_products').upsert(
-          { branch_id: branchId, product_id: productId, branch_price: Number(payload.offer_price ?? payload.base_price ?? 0), is_visible: payload.status === 'active' },
+          {
+            branch_id: branchId,
+            product_id: productId,
+            branch_price: Number(payload.offer_price ?? payload.base_price ?? 0),
+            is_visible: payload.status === 'active',
+          },
           { onConflict: 'branch_id,product_id' },
         )
         if (branchResult.error) {
-          errors.push(`Row ${index + 2}: Product saved but branch catalog update failed: ${branchResult.error.message}`)
+          errors.push(
+            `Row ${index + 2}: Product saved but branch catalog update failed: ${branchResult.error.message}`,
+          )
           continue
         }
         success += 1
         const sku = String(r.SKU ?? r.sku ?? '').trim()
         if (sku) {
-          const variantResult = await dbFrom('product_variants').upsert(
-            {
-              product_id: productId,
-              sku,
-              size_label: String(r.Size ?? r.size ?? '').trim() || null,
-              color: String(r.Color ?? r.color ?? '').trim() || null,
-              variant_name: String(r['Variant Name'] ?? r.variant_name ?? '').trim() || null,
-              price: Number(r['Variant Price'] ?? r.variant_price ?? payload.offer_price ?? payload.base_price ?? 0),
-              status: payload.status,
-            },
-            { onConflict: 'sku' },
-          ).select('id').single()
-          if (variantResult.error) errors.push(`Row ${index + 2}: Product saved but variant failed: ${variantResult.error.message}`)
+          const variantResult = await dbFrom('product_variants')
+            .upsert(
+              {
+                product_id: productId,
+                sku,
+                size_label: String(r.Size ?? r.size ?? '').trim() || null,
+                color: String(r.Color ?? r.color ?? '').trim() || null,
+                variant_name: String(r['Variant Name'] ?? r.variant_name ?? '').trim() || null,
+                price: Number(
+                  r['Variant Price'] ??
+                    r.variant_price ??
+                    payload.offer_price ??
+                    payload.base_price ??
+                    0,
+                ),
+                status: payload.status,
+              },
+              { onConflict: 'sku' },
+            )
+            .select('id')
+            .single()
+          if (variantResult.error)
+            errors.push(
+              `Row ${index + 2}: Product saved but variant failed: ${variantResult.error.message}`,
+            )
           else variantSuccess += 1
         }
       }
       await load()
-      setError(errors.length
-        ? `Imported ${success} product row(s) and ${variantSuccess} variant(s). ${errors.length} row(s) failed. ${errors.slice(0, 5).join(' | ')}`
-        : `Successfully imported ${success} product row(s) and ${variantSuccess} variant(s).`)
+      setError(
+        errors.length
+          ? `Imported ${success} product row(s) and ${variantSuccess} variant(s). ${errors.length} row(s) failed. ${errors.slice(0, 5).join(' | ')}`
+          : `Successfully imported ${success} product row(s) and ${variantSuccess} variant(s).`,
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to import products.')
     } finally {
@@ -2470,7 +2584,15 @@ function Packages({
   }
 
   const exportPackages = () => {
-    const headers = ['Package', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Items', 'Status']
+    const headers = [
+      'Package',
+      'Gender',
+      'Base Price',
+      'Discount (%)',
+      'Offer Price',
+      'Items',
+      'Status',
+    ]
     const values = rows.map((p) => [
       p.name || '',
       formatGender(p.gender),
@@ -2483,7 +2605,10 @@ function Packages({
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Uniform Packages')
-    XLSX.writeFile(workbook, `Uniform_Packages_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(
+      workbook,
+      `Uniform_Packages_Export_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    )
   }
 
   const importPackages = async (file: File) => {
@@ -2492,7 +2617,9 @@ function Packages({
     setError('')
     try {
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
-      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
+      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], {
+        defval: '',
+      })
       if (!raw.length) throw new Error('The Excel file contains no package records.')
       let success = 0
       const errors: string[] = []
@@ -2504,23 +2631,39 @@ function Packages({
           errors.push(`Row ${i + 2}: Package Name is required.`)
           continue
         }
-        const genderRaw = String(r.Gender ?? r.gender ?? 'unisex').trim().toLowerCase()
+        const genderRaw = String(r.Gender ?? r.gender ?? 'unisex')
+          .trim()
+          .toLowerCase()
         const gender = ['boys', 'girls', 'unisex'].includes(genderRaw) ? genderRaw : 'unisex'
-        const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-        const discount = Math.min(100, Math.max(0, Number(r['Discount (%)'] ?? r.discount_percentage ?? 0)))
-        const result = await dbFrom('uniform_packages').upsert({
-          branch_id: branchId,
-          name,
-          slug: baseSlug,
-          gender,
-          description: String(r.Description ?? r.description ?? '').trim() || null,
-          discount_percentage: discount,
-          base_price: 0,
-          offer_price: 0,
-          status: ['active', 'inactive', 'suspended'].includes(String(r.Status ?? r.status ?? 'active').toLowerCase())
-            ? String(r.Status ?? r.status ?? 'active').toLowerCase()
-            : 'active',
-        }, { onConflict: 'branch_id,slug' }).select('id').single()
+        const baseSlug = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+        const discount = Math.min(
+          100,
+          Math.max(0, Number(r['Discount (%)'] ?? r.discount_percentage ?? 0)),
+        )
+        const result = await dbFrom('uniform_packages')
+          .upsert(
+            {
+              branch_id: branchId,
+              name,
+              slug: baseSlug,
+              gender,
+              description: String(r.Description ?? r.description ?? '').trim() || null,
+              discount_percentage: discount,
+              base_price: 0,
+              offer_price: 0,
+              status: ['active', 'inactive', 'suspended'].includes(
+                String(r.Status ?? r.status ?? 'active').toLowerCase(),
+              )
+                ? String(r.Status ?? r.status ?? 'active').toLowerCase()
+                : 'active',
+            },
+            { onConflict: 'branch_id,slug' },
+          )
+          .select('id')
+          .single()
 
         if (result.error || !result.data?.id) {
           errors.push(`Row ${i + 2}: ${result.error?.message || 'Unable to save package.'}`)
@@ -2531,7 +2674,10 @@ function Packages({
         const itemText = String(r.Items ?? r.items ?? '').trim()
         if (itemText) {
           await dbFrom('package_items').delete().eq('package_id', packageId)
-          const names = itemText.split(',').map((value) => value.replace(/ × \d+$/, '').trim()).filter(Boolean)
+          const names = itemText
+            .split(',')
+            .map((value) => value.replace(/ × \d+$/, '').trim())
+            .filter(Boolean)
           const packageRows: any[] = []
           let basePrice = 0
 
@@ -2542,7 +2688,9 @@ function Packages({
               .ilike('name', names[itemIndex])
               .maybeSingle()
             if (!match.data?.id) {
-              errors.push(`Row ${i + 2}: Product "${names[itemIndex]}" was not found in this branch.`)
+              errors.push(
+                `Row ${i + 2}: Product "${names[itemIndex]}" was not found in this branch.`,
+              )
               continue
             }
             const variantsResult = await dbFrom('product_variants')
@@ -2564,26 +2712,38 @@ function Packages({
 
           if (packageRows.length) {
             const itemsResult = await dbFrom('package_items').insert(packageRows)
-            if (itemsResult.error) errors.push(`Row ${i + 2}: Package items failed: ${itemsResult.error.message}`)
+            if (itemsResult.error)
+              errors.push(`Row ${i + 2}: Package items failed: ${itemsResult.error.message}`)
           }
 
           const offerPrice = Math.max(0, basePrice * (1 - discount / 100))
-          const priceResult = await dbFrom('uniform_packages').update({ base_price: basePrice, offer_price: offerPrice }).eq('id', packageId)
-          if (priceResult.error) errors.push(`Row ${i + 2}: Package price update failed: ${priceResult.error.message}`)
+          const priceResult = await dbFrom('uniform_packages')
+            .update({ base_price: basePrice, offer_price: offerPrice })
+            .eq('id', packageId)
+          if (priceResult.error)
+            errors.push(`Row ${i + 2}: Package price update failed: ${priceResult.error.message}`)
         }
 
         const branchResult = await dbFrom('branch_packages').upsert(
-          { branch_id: branchId, package_id: packageId, branch_price: Number(r['Offer Price'] ?? r.offer_price ?? 0), is_visible: String(r.Status ?? r.status ?? 'active').toLowerCase() === 'active' },
+          {
+            branch_id: branchId,
+            package_id: packageId,
+            branch_price: Number(r['Offer Price'] ?? r.offer_price ?? 0),
+            is_visible: String(r.Status ?? r.status ?? 'active').toLowerCase() === 'active',
+          },
           { onConflict: 'branch_id,package_id' },
         )
-        if (branchResult.error) errors.push(`Row ${i + 2}: Branch package link failed: ${branchResult.error.message}`)
+        if (branchResult.error)
+          errors.push(`Row ${i + 2}: Branch package link failed: ${branchResult.error.message}`)
         else success += 1
       }
 
       await load()
-      setError(errors.length
-        ? `Imported ${success} package(s). ${errors.length} issue(s). ${errors.slice(0, 5).join(' | ')}`
-        : `Successfully imported ${success} package(s).`)
+      setError(
+        errors.length
+          ? `Imported ${success} package(s). ${errors.length} issue(s). ${errors.slice(0, 5).join(' | ')}`
+          : `Successfully imported ${success} package(s).`,
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to import uniform packages.')
     } finally {
@@ -3659,7 +3819,14 @@ function InventoryAdmin() {
   }
   const exportInventory = () => {
     const headers = ['Branch', 'Product', 'SKU', 'Size', 'Quantity on Hand', 'Reorder Level']
-    const values = rows.map((r) => [r.branch_name || '', r.product_name || '', r.sku || '', r.size || '', Number(r.quantity_on_hand || 0), Number(r.reorder_level || 0)])
+    const values = rows.map((r) => [
+      r.branch_name || '',
+      r.product_name || '',
+      r.sku || '',
+      r.size || '',
+      Number(r.quantity_on_hand || 0),
+      Number(r.reorder_level || 0),
+    ])
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Inventory')
@@ -3671,7 +3838,9 @@ function InventoryAdmin() {
     setError('')
     try {
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
-      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
+      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], {
+        defval: '',
+      })
       if (!raw.length) throw new Error('The Excel file contains no inventory records.')
       let success = 0
       const errors: string[] = []
@@ -3680,25 +3849,51 @@ function InventoryAdmin() {
         const branchText = String(r.Branch ?? r.branch ?? '').trim()
         const productText = String(r.Product ?? r.product ?? '').trim()
         const sku = String(r.SKU ?? r.sku ?? '').trim()
-        const branch = (await dbFrom('branches').select('id').or(`name.ilike.%${branchText}%,id.eq.${branchText}`).maybeSingle()).data
-        const product = (await dbFrom('products').select('id').eq('branch_id', branch?.id).ilike('name', productText).maybeSingle()).data
-        const variant = product ? (await dbFrom('product_variants').select('id').eq('product_id', product.id).eq('sku', sku).maybeSingle()).data : null
+        const branch = (
+          await dbFrom('branches')
+            .select('id')
+            .or(`name.ilike.%${branchText}%,id.eq.${branchText}`)
+            .maybeSingle()
+        ).data
+        const product = (
+          await dbFrom('products')
+            .select('id')
+            .eq('branch_id', branch?.id)
+            .ilike('name', productText)
+            .maybeSingle()
+        ).data
+        const variant = product
+          ? (
+              await dbFrom('product_variants')
+                .select('id')
+                .eq('product_id', product.id)
+                .eq('sku', sku)
+                .maybeSingle()
+            ).data
+          : null
         if (!branch?.id || !product?.id || !variant?.id) {
           errors.push(`Row ${i + 2}: Branch, Product and SKU must match existing records.`)
           continue
         }
-        const result = await dbFrom('branch_inventory').upsert({
-          branch_id: branch.id,
-          product_id: product.id,
-          variant_id: variant.id,
-          quantity_on_hand: Number(r['Quantity on Hand'] ?? r.quantity_on_hand ?? 0),
-          reorder_level: Number(r['Reorder Level'] ?? r.reorder_level ?? 0),
-        }, { onConflict: 'branch_id,variant_id' })
+        const result = await dbFrom('branch_inventory').upsert(
+          {
+            branch_id: branch.id,
+            product_id: product.id,
+            variant_id: variant.id,
+            quantity_on_hand: Number(r['Quantity on Hand'] ?? r.quantity_on_hand ?? 0),
+            reorder_level: Number(r['Reorder Level'] ?? r.reorder_level ?? 0),
+          },
+          { onConflict: 'branch_id,variant_id' },
+        )
         if (result.error) errors.push(`Row ${i + 2}: ${result.error.message}`)
         else success += 1
       }
       await load()
-      setError(errors.length ? `Imported ${success} inventory row(s). ${errors.length} failed. ${errors.slice(0,5).join(' | ')}` : `Successfully imported ${success} inventory row(s).`)
+      setError(
+        errors.length
+          ? `Imported ${success} inventory row(s). ${errors.length} failed. ${errors.slice(0, 5).join(' | ')}`
+          : `Successfully imported ${success} inventory row(s).`,
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to import inventory.')
     } finally {
@@ -4483,18 +4678,60 @@ function ParentStudents() {
   }
 
   const exportParentsStudents = () => {
-    const headers = ['Branch', 'Parent ID', 'Parent Name', 'Phone', 'Student Code', 'Student Name', 'Class', 'Section', 'Gender', 'DOB', 'Status']
+    const headers = [
+      'Branch',
+      'Parent ID',
+      'Parent Name',
+      'Phone',
+      'Student Code',
+      'Student Name',
+      'Class',
+      'Section',
+      'Gender',
+      'DOB',
+      'Status',
+    ]
     const values: any[][] = []
     parents.forEach((p) => {
       const childIds = parentChildren[p.id] || []
       const children = students.filter((s) => childIds.includes(s.id))
-      if (!children.length) values.push([branches.find((b) => b.id === p.branch_id)?.name || '', p.login_id || '', p.full_name || '', p.phone || '', '', '', '', '', '', '', p.status || ''])
-      children.forEach((s) => values.push([branches.find((b) => b.id === p.branch_id)?.name || '', p.login_id || '', p.full_name || '', p.phone || '', s.student_code || '', s.full_name || '', s.class_name || '', s.section || '', s.gender || '', s.date_of_birth || '', s.status || '']))
+      if (!children.length)
+        values.push([
+          branches.find((b) => b.id === p.branch_id)?.name || '',
+          p.login_id || '',
+          p.full_name || '',
+          p.phone || '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          p.status || '',
+        ])
+      children.forEach((s) =>
+        values.push([
+          branches.find((b) => b.id === p.branch_id)?.name || '',
+          p.login_id || '',
+          p.full_name || '',
+          p.phone || '',
+          s.student_code || '',
+          s.full_name || '',
+          s.class_name || '',
+          s.section || '',
+          s.gender || '',
+          s.date_of_birth || '',
+          s.status || '',
+        ]),
+      )
     })
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Parents & Students')
-    XLSX.writeFile(workbook, `Parents_Students_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(
+      workbook,
+      `Parents_Students_Export_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    )
   }
 
   const filteredParents = parents.filter((p) =>
@@ -4804,8 +5041,6 @@ function ParentStudents() {
           </div>
         </EditModal>
       )}
-
-
 
       {studentEditing && (
         <EditModal
