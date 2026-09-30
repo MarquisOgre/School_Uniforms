@@ -11650,3 +11650,56 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Final demo login layout: one full-width row per login, three columns */
+.login-card-large .demo-credentials-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 7px !important;
+  width: 100% !important;
+}
+
+.login-card-large .demo-credential-row {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 8px 10px !important;
+}
+
+.login-card-large .demo-credential-row > span {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.login-card-large .demo-credential-row small,
+.login-card-large .demo-credential-row strong {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.login-card-large .demo-credential-row strong {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+}
+
+@media (max-width: 640px) {
+  .login-card-large .demo-credentials-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .login-card-large .demo-credential-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr) !important;
+  }
+}
