@@ -1005,11 +1005,23 @@ function Products({
     XLSX.writeFile(workbook, 'Products_Variants_Import_Template.xlsx')
   }
 
-  const exportProducts = () => {
+  const exportProducts = async () => {
     const headers = ['Product', 'Category', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status', 'SKU', 'Size', 'Color', 'Variant Name', 'Variant Price']
+    const productIds = rows.map((p) => p.id).filter(Boolean)
+    const variantResult = productIds.length
+      ? await dbFrom('product_variants').select('id,product_id,sku,size_label,color,variant_name,price,status').in('product_id', productIds).order('product_id').order('size_label')
+      : { data: [], error: null }
+    if (variantResult.error) {
+      setError(variantResult.error.message)
+      return
+    }
+    const variantMap: Record<string, any[]> = {}
+    ;(variantResult.data || []).forEach((v: any) => {
+      variantMap[v.product_id] = [...(variantMap[v.product_id] || []), v]
+    })
     const values: any[][] = []
     rows.forEach((p) => {
-      const productVariants = variants.filter((v) => v.product_id === p.id)
+      const productVariants = variantMap[p.id] || []
       if (!productVariants.length) {
         values.push([p.name || '', categories.find((c) => c.id === p.category_id)?.name || '', formatGender(p.gender), Number(p.base_price || 0), Number(p.discount_percentage || 0), Number(p.offer_price ?? p.base_price ?? 0), p.status || 'active', '', '', '', '', ''])
       } else {
@@ -1039,6 +1051,7 @@ function Products({
         if (!name) { errors.push(`Row ${index + 2}: Product Name is required.`); continue }
         const gender = String(r.Gender ?? r.gender ?? 'unisex').trim().toLowerCase()
         const payload = {
+          branch_id: branchId,
           name,
           category_id: String(r['Category ID'] ?? r.category_id ?? '').trim() || null,
           gender: ['boys', 'girls', 'unisex'].includes(gender) ? gender : 'unisex',
@@ -1048,7 +1061,7 @@ function Products({
           status: String(r.Status ?? r.status ?? 'active').trim().toLowerCase() || 'active',
         }
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-        const productResult = await dbFrom('products').upsert({ ...payload, slug }, { onConflict: 'slug' }).select('id').single()
+        const productResult = await dbFrom('products').upsert({ ...payload, slug }, { onConflict: 'branch_id,slug' }).select('id').single()
         if (productResult.error || !productResult.data?.id) {
           errors.push(`Row ${index + 2}: ${productResult.error?.message || 'Unable to save product.'}`)
           continue
