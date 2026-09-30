@@ -95,7 +95,7 @@ function AdminSidebar({
       </nav>
       <button
         type="button"
-        className="admin-sidebar-logout"
+        className="admin-sidebar-change-password"
         onClick={() => onNavigate('change-password')}
       >
         <KeyRound size={17} />
