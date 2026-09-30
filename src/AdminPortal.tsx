@@ -247,13 +247,13 @@ function MediaLibrary() {
 
 function AdminPortal({ onBack }: { onBack: () => void }) {
   const [email, setEmail] = useState(() => {
-    try {
-      const raw = sessionStorage.getItem('school_uniform_admin_demo_prefill')
-      return raw ? JSON.parse(raw)?.email || '' : ''
-    } catch {
-      return ''
-    }
-  }),
+      try {
+        const raw = sessionStorage.getItem('school_uniform_admin_demo_prefill')
+        return raw ? JSON.parse(raw)?.email || '' : ''
+      } catch {
+        return ''
+      }
+    }),
     [password, setPassword] = useState(() => {
       try {
         const raw = sessionStorage.getItem('school_uniform_admin_demo_prefill')
