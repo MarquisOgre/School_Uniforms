@@ -416,7 +416,9 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     [admin, setAdmin] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState(''),
-    [recoveryMode, setRecoveryMode] = useState(() => window.location.hash.includes('type=recovery')),
+    [recoveryMode, setRecoveryMode] = useState(() =>
+      window.location.hash.includes('type=recovery'),
+    ),
     [resetPassword, setResetPassword] = useState(''),
     [resetConfirm, setResetConfirm] = useState(''),
     [resetMessage, setResetMessage] = useState(''),
