@@ -1970,14 +1970,31 @@ function ProductEditorScreen({
     else setError('All Color × Size combinations already exist.')
   }
 
-  const removeColor = (color: string) => {
+  const removeColor = async (color: string) => {
+    const confirmed = window.confirm(
+      `Remove the ${color} color and all of its saved Color × Size variants? This cannot be undone.`,
+    )
+    if (!confirmed) return
+
     const normalized = color.toLowerCase()
+    const existingIds = variants
+      .filter(
+        (variant) =>
+          variant.id && String(variant.color || '').trim().toLowerCase() === normalized,
+      )
+      .map((variant) => variant.id)
+
+    if (existingIds.length && supabase) {
+      const result = await dbFrom('product_variants').delete().in('id', existingIds)
+      if (result.error) {
+        setError(result.error.message)
+        return
+      }
+    }
+
     setVariants((current) =>
       current.filter(
-        (variant) =>
-          String(variant.color || '')
-            .trim()
-            .toLowerCase() !== normalized,
+        (variant) => String(variant.color || '').trim().toLowerCase() !== normalized,
       ),
     )
     const map = { ...(editing.color_image_map || {}) }
