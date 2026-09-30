@@ -2461,21 +2461,31 @@ function Packages({
     setLoading(false)
   }
   const downloadPackageTemplate = () => {
-    const headers = ['Branch ID', 'Package Name', 'Gender', 'Discount (%)', 'Description', 'Status']
-    const sample = [branchId || '', 'Sample Package', 'unisex', 10, 'Package description', 'active']
+    const headers = ['Package Name', 'Gender', 'Discount (%)', 'Description', 'Status', 'Items']
+    const sample = ['Sample Package', 'unisex', 10, 'Package description', 'active', 'Sample Shirt']
     const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Uniform Packages')
     XLSX.writeFile(workbook, 'Uniform_Packages_Import_Template.xlsx')
   }
+
   const exportPackages = () => {
     const headers = ['Package', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Items', 'Status']
-    const values = rows.map((p) => [p.name || '', formatGender(p.gender), Number(p.base_price || 0), Number(p.discount_percentage || 0), Number(p.offer_price || 0), (p.item_names || []).join(', '), p.status || 'active'])
+    const values = rows.map((p) => [
+      p.name || '',
+      formatGender(p.gender),
+      Number(p.base_price || 0),
+      Number(p.discount_percentage || 0),
+      Number(p.offer_price || 0),
+      (p.item_names || []).join(', '),
+      p.status || 'active',
+    ])
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Uniform Packages')
     XLSX.writeFile(workbook, `Uniform_Packages_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
+
   const importPackages = async (file: File) => {
     if (!supabase || bulkImporting || !branchId) return
     setBulkImporting(true)
@@ -2486,25 +2496,99 @@ function Packages({
       if (!raw.length) throw new Error('The Excel file contains no package records.')
       let success = 0
       const errors: string[] = []
-      for (let i=0;i<raw.length;i+=1) {
-        const r=raw[i]
-        const name=String(r['Package Name'] ?? r.package_name ?? r.name ?? '').trim()
-        if (!name) { errors.push(`Row ${i+2}: Package Name is required.`); continue }
-        const baseSlug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')
-        const result=await dbFrom('uniform_packages').upsert({
-          branch_id:branchId,name,slug:baseSlug,gender:String(r.Gender ?? r.gender ?? 'unisex').toLowerCase(),
-          description:String(r.Description ?? r.description ?? '').trim()||null,
-          discount_percentage:Number(r['Discount (%)'] ?? r.discount_percentage ?? 0),
-          base_price:0,offer_price:0,status:String(r.Status ?? r.status ?? 'active').toLowerCase()
-        },{onConflict:'branch_id,slug'}).select('id').single()
-        if(result.error) errors.push(`Row ${i+2}: ${result.error.message}`)
+
+      for (let i = 0; i < raw.length; i += 1) {
+        const r = raw[i]
+        const name = String(r['Package Name'] ?? r.Package ?? r.package_name ?? r.name ?? '').trim()
+        if (!name) {
+          errors.push(`Row ${i + 2}: Package Name is required.`)
+          continue
+        }
+        const genderRaw = String(r.Gender ?? r.gender ?? 'unisex').trim().toLowerCase()
+        const gender = ['boys', 'girls', 'unisex'].includes(genderRaw) ? genderRaw : 'unisex'
+        const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        const discount = Math.min(100, Math.max(0, Number(r['Discount (%)'] ?? r.discount_percentage ?? 0)))
+        const result = await dbFrom('uniform_packages').upsert({
+          branch_id: branchId,
+          name,
+          slug: baseSlug,
+          gender,
+          description: String(r.Description ?? r.description ?? '').trim() || null,
+          discount_percentage: discount,
+          base_price: 0,
+          offer_price: 0,
+          status: ['active', 'inactive', 'suspended'].includes(String(r.Status ?? r.status ?? 'active').toLowerCase())
+            ? String(r.Status ?? r.status ?? 'active').toLowerCase()
+            : 'active',
+        }, { onConflict: 'branch_id,slug' }).select('id').single()
+
+        if (result.error || !result.data?.id) {
+          errors.push(`Row ${i + 2}: ${result.error?.message || 'Unable to save package.'}`)
+          continue
+        }
+
+        const packageId = result.data.id
+        const itemText = String(r.Items ?? r.items ?? '').trim()
+        if (itemText) {
+          await dbFrom('package_items').delete().eq('package_id', packageId)
+          const names = itemText.split(',').map((value) => value.replace(/ × \\d+$/, '').trim()).filter(Boolean)
+          const packageRows: any[] = []
+          let basePrice = 0
+
+          for (let itemIndex = 0; itemIndex < names.length; itemIndex += 1) {
+            const match = await dbFrom('products')
+              .select('id,name,base_price')
+              .eq('branch_id', branchId)
+              .ilike('name', names[itemIndex])
+              .maybeSingle()
+            if (!match.data?.id) {
+              errors.push(`Row ${i + 2}: Product "${names[itemIndex]}" was not found in this branch.`)
+              continue
+            }
+            const variantsResult = await dbFrom('product_variants')
+              .select('id')
+              .eq('product_id', match.data.id)
+              .eq('status', 'active')
+            packageRows.push({
+              package_id: packageId,
+              product_id: match.data.id,
+              quantity: 1,
+              is_required: true,
+              requires_size: true,
+              selection_group: null,
+              sort_order: itemIndex,
+              variant_ids: (variantsResult.data || []).map((v: any) => v.id),
+            })
+            basePrice += Number(match.data.base_price || 0)
+          }
+
+          if (packageRows.length) {
+            const itemsResult = await dbFrom('package_items').insert(packageRows)
+            if (itemsResult.error) errors.push(`Row ${i + 2}: Package items failed: ${itemsResult.error.message}`)
+          }
+
+          const offerPrice = Math.max(0, basePrice * (1 - discount / 100))
+          const priceResult = await dbFrom('uniform_packages').update({ base_price: basePrice, offer_price: offerPrice }).eq('id', packageId)
+          if (priceResult.error) errors.push(`Row ${i + 2}: Package price update failed: ${priceResult.error.message}`)
+        }
+
+        const branchResult = await dbFrom('branch_packages').upsert(
+          { branch_id: branchId, package_id: packageId, branch_price: Number(r['Offer Price'] ?? r.offer_price ?? 0), is_visible: String(r.Status ?? r.status ?? 'active').toLowerCase() === 'active' },
+          { onConflict: 'branch_id,package_id' },
+        )
+        if (branchResult.error) errors.push(`Row ${i + 2}: Branch package link failed: ${branchResult.error.message}`)
         else success += 1
       }
+
       await load()
-      setError(errors.length ? `Imported ${success} package(s). ${errors.length} failed. ${errors.slice(0,5).join(' | ')}` : `Successfully imported ${success} package(s).`)
-    } catch(e) {
+      setError(errors.length
+        ? `Imported ${success} package(s). ${errors.length} issue(s). ${errors.slice(0, 5).join(' | ')}`
+        : `Successfully imported ${success} package(s).`)
+    } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to import uniform packages.')
-    } finally { setBulkImporting(false) }
+    } finally {
+      setBulkImporting(false)
+    }
   }
 
   const loadItems = async (packageId: string) => {
