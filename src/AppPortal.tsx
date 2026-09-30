@@ -773,7 +773,6 @@ function Packages({
       const p = await client
         .from('uniform_packages')
         .select('id,name,description,gender,image_url,base_price,offer_price,discount_percentage')
-        .eq('branch_id', branchId)
         .in('id', packageIds)
         .eq('status', 'active')
         .order('name')
@@ -991,7 +990,6 @@ function Products({
       const p = await client
         .from('products')
         .select('*')
-        .eq('branch_id', branchId)
         .in('id', ids)
         .eq('status', 'active')
         .order('name')
