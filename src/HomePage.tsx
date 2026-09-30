@@ -124,12 +124,12 @@ export const DEFAULT_HOME: any = {
     enabled: true,
   },
   footer: {
-    tagline: 'School uniforms, made simple.',
+    tagline: 'School-specific uniform shopping for parents & students.' ,
     shopTitle: 'Shop',
     helpTitle: 'Help',
     informationTitle: 'Information',
     copyright: '© 2026 Artisan. All rights reserved.',
-    credit: 'Developed by Dexorzo Creations.',
+    credit: 'Developed with ❤️ by Avantro Technologies.' ,
     secondary: 'School-specific shopping • Secure access',
   },
 }
