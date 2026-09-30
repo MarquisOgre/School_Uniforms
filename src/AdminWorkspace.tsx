@@ -2053,76 +2053,6 @@ function PackageEditorScreen({
         </div>
       </section>
 
-      <section className="product-editor-card">
-        <div className="product-editor-section-title">Colors &amp; Color Images</div>
-        <div className="workspace-note" style={{ marginTop: 10 }}>
-          Define colors, map each color to its exact image, then generate the Color × Size variants.
-        </div>
-        <div className="product-editor-grid product-editor-grid-2" style={{ marginTop: 16 }}>
-          <label className="workspace-field">
-            <span>Add Color</span>
-            <input
-              value={newColor}
-              placeholder="e.g. Green"
-              onChange={(e) => setNewColor(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addColor()
-                }
-              }}
-            />
-          </label>
-          <div style={{ display: 'flex', alignItems: 'end' }}>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={addColor}
-              disabled={!newColor.trim()}
-            >
-              <Plus size={15} /> Add Color
-            </button>
-          </div>
-        </div>
-        {currentColors.length ? (
-          <div style={{ display: 'grid', gap: 14, marginTop: 16 }}>
-            {currentColors.map((color) => (
-              <div
-                key={color}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '140px minmax(220px, 1fr) auto',
-                  gap: 14,
-                  alignItems: 'center',
-                  padding: 12,
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 10,
-                }}
-              >
-                <strong>{color}</strong>
-                <ImagePicker
-                  value={String(editing.color_image_map?.[color] || '')}
-                  folder="products"
-                  alt={color + ' product image'}
-                  onChange={(v) => setColorImage(color, v)}
-                />
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => removeColor(color)}
-                >
-                  <Trash2 size={14} /> Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="workspace-empty" style={{ marginTop: 14 }}>
-            No colors mapped yet. Add Green, Blue, Yellow, Red, etc.
-          </div>
-        )}
-      </section>
-
       <section className="product-editor-card product-variants-card">
         <div className="product-variants-heading">
           <div className="product-editor-section-title">Package Items</div>
@@ -2542,6 +2472,76 @@ function ProductEditorScreen({
             onChange={(v) => setEditing({ ...editing, image_gallery: v })}
           />
         </div>
+      </section>
+
+      <section className="product-editor-card">
+        <div className="product-editor-section-title">Colors &amp; Color Images</div>
+        <div className="workspace-note" style={{ marginTop: 10 }}>
+          Define colors, map each color to its exact image, then generate the Color × Size variants.
+        </div>
+        <div className="product-editor-grid product-editor-grid-2" style={{ marginTop: 16 }}>
+          <label className="workspace-field">
+            <span>Add Color</span>
+            <input
+              value={newColor}
+              placeholder="e.g. Green"
+              onChange={(e) => setNewColor(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addColor()
+                }
+              }}
+            />
+          </label>
+          <div style={{ display: 'flex', alignItems: 'end' }}>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={addColor}
+              disabled={!newColor.trim()}
+            >
+              <Plus size={15} /> Add Color
+            </button>
+          </div>
+        </div>
+        {currentColors.length ? (
+          <div style={{ display: 'grid', gap: 14, marginTop: 16 }}>
+            {currentColors.map((color) => (
+              <div
+                key={color}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '140px minmax(220px, 1fr) auto',
+                  gap: 14,
+                  alignItems: 'center',
+                  padding: 12,
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 10,
+                }}
+              >
+                <strong>{color}</strong>
+                <ImagePicker
+                  value={String(editing.color_image_map?.[color] || '')}
+                  folder="products"
+                  alt={color + ' product image'}
+                  onChange={(v) => setColorImage(color, v)}
+                />
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => removeColor(color)}
+                >
+                  <Trash2 size={14} /> Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="workspace-empty" style={{ marginTop: 14 }}>
+            No colors mapped yet. Add Green, Blue, Yellow, Red, etc.
+          </div>
+        )}
       </section>
 
       <section className="product-editor-card product-variants-card">
