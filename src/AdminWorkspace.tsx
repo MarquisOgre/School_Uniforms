@@ -493,7 +493,6 @@ function Branches() {
         </Panel>
       )}
 
-
       {editing && (
         <EditModal
           title={editing.id ? 'Edit Branch' : 'Add Branch'}
@@ -556,7 +555,6 @@ function Branches() {
     </>
   )
 }
-
 
 type BulkToolsProps = {
   title: string
@@ -997,8 +995,28 @@ function Products({
   }
 
   const downloadProductTemplate = () => {
-    const headers = ['Branch ID', 'Product Name', 'Category ID', 'Product Type', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status']
-    const sample = [branchId || '', 'Sample Shirt', categories[0]?.id || '', 'Shirt', 'unisex', 1000, 10, 900, 'active']
+    const headers = [
+      'Branch ID',
+      'Product Name',
+      'Category ID',
+      'Product Type',
+      'Gender',
+      'Base Price',
+      'Discount (%)',
+      'Offer Price',
+      'Status',
+    ]
+    const sample = [
+      branchId || '',
+      'Sample Shirt',
+      categories[0]?.id || '',
+      'Shirt',
+      'unisex',
+      1000,
+      10,
+      900,
+      'active',
+    ]
     const sheet = XLSX.utils.aoa_to_sheet([headers, sample])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Products')
@@ -1006,7 +1024,15 @@ function Products({
   }
 
   const exportProducts = () => {
-    const headers = ['Product', 'Category', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Status']
+    const headers = [
+      'Product',
+      'Category',
+      'Gender',
+      'Base Price',
+      'Discount (%)',
+      'Offer Price',
+      'Status',
+    ]
     const values = rows.map((p) => [
       p.name || '',
       categories.find((c) => c.id === p.category_id)?.name || '',
@@ -1019,7 +1045,10 @@ function Products({
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Products')
-    XLSX.writeFile(workbook, `Products_Variants_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(
+      workbook,
+      `Products_Variants_Export_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    )
   }
 
   const importProducts = async (file: File) => {
@@ -1040,30 +1069,43 @@ function Products({
           name: String(r['Product Name'] ?? r.product_name ?? r.name ?? '').trim(),
           category_id: String(r['Category ID'] ?? r.category_id ?? '').trim() || null,
           product_type: String(r['Product Type'] ?? r.product_type ?? '').trim() || null,
-          gender: String(r.Gender ?? r.gender ?? 'unisex').trim().toLowerCase() || 'unisex',
+          gender:
+            String(r.Gender ?? r.gender ?? 'unisex')
+              .trim()
+              .toLowerCase() || 'unisex',
           base_price: Number(r['Base Price'] ?? r.base_price ?? 0),
           discount_percentage: Number(r['Discount (%)'] ?? r.discount_percentage ?? 0),
           offer_price:
             r['Offer Price'] === '' || r.offer_price === ''
               ? null
               : Number(r['Offer Price'] ?? r.offer_price ?? 0),
-          status: String(r.Status ?? r.status ?? 'active').trim().toLowerCase() || 'active',
+          status:
+            String(r.Status ?? r.status ?? 'active')
+              .trim()
+              .toLowerCase() || 'active',
         }
         if (!payload.name) {
           errors.push(`Row ${index + 2}: Product Name is required.`)
           continue
         }
         if (!['boys', 'girls', 'unisex'].includes(payload.gender)) payload.gender = 'unisex'
-        const slug = payload.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-        const result = await dbFrom('products').upsert(
-          { ...payload, slug },
-          { onConflict: 'branch_id,slug' },
-        ).select('id').single()
+        const slug = payload.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+        const result = await dbFrom('products')
+          .upsert({ ...payload, slug }, { onConflict: 'branch_id,slug' })
+          .select('id')
+          .single()
         if (result.error) errors.push(`Row ${index + 2}: ${result.error.message}`)
         else success += 1
       }
       await load()
-      setError(errors.length ? `Imported ${success} product(s). ${errors.length} row(s) failed. ${errors.slice(0, 5).join(' | ')}` : `Successfully imported ${success} product(s).`)
+      setError(
+        errors.length
+          ? `Imported ${success} product(s). ${errors.length} row(s) failed. ${errors.slice(0, 5).join(' | ')}`
+          : `Successfully imported ${success} product(s).`,
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to import products.')
     } finally {
@@ -2435,12 +2477,31 @@ function Packages({
     XLSX.writeFile(workbook, 'Uniform_Packages_Import_Template.xlsx')
   }
   const exportPackages = () => {
-    const headers = ['Package', 'Gender', 'Base Price', 'Discount (%)', 'Offer Price', 'Items', 'Status']
-    const values = rows.map((p) => [p.name || '', formatGender(p.gender), Number(p.base_price || 0), Number(p.discount_percentage || 0), Number(p.offer_price || 0), (p.item_names || []).join(', '), p.status || 'active'])
+    const headers = [
+      'Package',
+      'Gender',
+      'Base Price',
+      'Discount (%)',
+      'Offer Price',
+      'Items',
+      'Status',
+    ]
+    const values = rows.map((p) => [
+      p.name || '',
+      formatGender(p.gender),
+      Number(p.base_price || 0),
+      Number(p.discount_percentage || 0),
+      Number(p.offer_price || 0),
+      (p.item_names || []).join(', '),
+      p.status || 'active',
+    ])
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Uniform Packages')
-    XLSX.writeFile(workbook, `Uniform_Packages_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(
+      workbook,
+      `Uniform_Packages_Export_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    )
   }
   const importPackages = async (file: File) => {
     if (!supabase || bulkImporting || !branchId) return
@@ -2448,29 +2509,54 @@ function Packages({
     setError('')
     try {
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
-      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
+      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], {
+        defval: '',
+      })
       if (!raw.length) throw new Error('The Excel file contains no package records.')
       let success = 0
       const errors: string[] = []
-      for (let i=0;i<raw.length;i+=1) {
-        const r=raw[i]
-        const name=String(r['Package Name'] ?? r.package_name ?? r.name ?? '').trim()
-        if (!name) { errors.push(`Row ${i+2}: Package Name is required.`); continue }
-        const baseSlug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')
-        const result=await dbFrom('uniform_packages').upsert({
-          branch_id:branchId,name,slug:baseSlug,gender:String(r.Gender ?? r.gender ?? 'unisex').toLowerCase(),
-          description:String(r.Description ?? r.description ?? '').trim()||null,
-          discount_percentage:Number(r['Discount (%)'] ?? r.discount_percentage ?? 0),
-          base_price:0,offer_price:0,status:String(r.Status ?? r.status ?? 'active').toLowerCase()
-        },{onConflict:'branch_id,slug'}).select('id').single()
-        if(result.error) errors.push(`Row ${i+2}: ${result.error.message}`)
+      for (let i = 0; i < raw.length; i += 1) {
+        const r = raw[i]
+        const name = String(r['Package Name'] ?? r.package_name ?? r.name ?? '').trim()
+        if (!name) {
+          errors.push(`Row ${i + 2}: Package Name is required.`)
+          continue
+        }
+        const baseSlug = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+        const result = await dbFrom('uniform_packages')
+          .upsert(
+            {
+              branch_id: branchId,
+              name,
+              slug: baseSlug,
+              gender: String(r.Gender ?? r.gender ?? 'unisex').toLowerCase(),
+              description: String(r.Description ?? r.description ?? '').trim() || null,
+              discount_percentage: Number(r['Discount (%)'] ?? r.discount_percentage ?? 0),
+              base_price: 0,
+              offer_price: 0,
+              status: String(r.Status ?? r.status ?? 'active').toLowerCase(),
+            },
+            { onConflict: 'branch_id,slug' },
+          )
+          .select('id')
+          .single()
+        if (result.error) errors.push(`Row ${i + 2}: ${result.error.message}`)
         else success += 1
       }
       await load()
-      setError(errors.length ? `Imported ${success} package(s). ${errors.length} failed. ${errors.slice(0,5).join(' | ')}` : `Successfully imported ${success} package(s).`)
-    } catch(e) {
+      setError(
+        errors.length
+          ? `Imported ${success} package(s). ${errors.length} failed. ${errors.slice(0, 5).join(' | ')}`
+          : `Successfully imported ${success} package(s).`,
+      )
+    } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to import uniform packages.')
-    } finally { setBulkImporting(false) }
+    } finally {
+      setBulkImporting(false)
+    }
   }
 
   const loadItems = async (packageId: string) => {
@@ -3541,7 +3627,14 @@ function InventoryAdmin() {
   }
   const exportInventory = () => {
     const headers = ['Branch', 'Product', 'SKU', 'Size', 'Quantity on Hand', 'Reorder Level']
-    const values = rows.map((r) => [r.branch_name || '', r.product_name || '', r.sku || '', r.size || '', Number(r.quantity_on_hand || 0), Number(r.reorder_level || 0)])
+    const values = rows.map((r) => [
+      r.branch_name || '',
+      r.product_name || '',
+      r.sku || '',
+      r.size || '',
+      Number(r.quantity_on_hand || 0),
+      Number(r.reorder_level || 0),
+    ])
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Inventory')
@@ -3553,7 +3646,9 @@ function InventoryAdmin() {
     setError('')
     try {
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true })
-      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
+      const raw = XLSX.utils.sheet_to_json<any>(workbook.Sheets[workbook.SheetNames[0]], {
+        defval: '',
+      })
       if (!raw.length) throw new Error('The Excel file contains no inventory records.')
       let success = 0
       const errors: string[] = []
@@ -3562,25 +3657,51 @@ function InventoryAdmin() {
         const branchText = String(r.Branch ?? r.branch ?? '').trim()
         const productText = String(r.Product ?? r.product ?? '').trim()
         const sku = String(r.SKU ?? r.sku ?? '').trim()
-        const branch = (await dbFrom('branches').select('id').or(`name.ilike.%${branchText}%,id.eq.${branchText}`).maybeSingle()).data
-        const product = (await dbFrom('products').select('id').eq('branch_id', branch?.id).ilike('name', productText).maybeSingle()).data
-        const variant = product ? (await dbFrom('product_variants').select('id').eq('product_id', product.id).eq('sku', sku).maybeSingle()).data : null
+        const branch = (
+          await dbFrom('branches')
+            .select('id')
+            .or(`name.ilike.%${branchText}%,id.eq.${branchText}`)
+            .maybeSingle()
+        ).data
+        const product = (
+          await dbFrom('products')
+            .select('id')
+            .eq('branch_id', branch?.id)
+            .ilike('name', productText)
+            .maybeSingle()
+        ).data
+        const variant = product
+          ? (
+              await dbFrom('product_variants')
+                .select('id')
+                .eq('product_id', product.id)
+                .eq('sku', sku)
+                .maybeSingle()
+            ).data
+          : null
         if (!branch?.id || !product?.id || !variant?.id) {
           errors.push(`Row ${i + 2}: Branch, Product and SKU must match existing records.`)
           continue
         }
-        const result = await dbFrom('branch_inventory').upsert({
-          branch_id: branch.id,
-          product_id: product.id,
-          variant_id: variant.id,
-          quantity_on_hand: Number(r['Quantity on Hand'] ?? r.quantity_on_hand ?? 0),
-          reorder_level: Number(r['Reorder Level'] ?? r.reorder_level ?? 0),
-        }, { onConflict: 'branch_id,variant_id' })
+        const result = await dbFrom('branch_inventory').upsert(
+          {
+            branch_id: branch.id,
+            product_id: product.id,
+            variant_id: variant.id,
+            quantity_on_hand: Number(r['Quantity on Hand'] ?? r.quantity_on_hand ?? 0),
+            reorder_level: Number(r['Reorder Level'] ?? r.reorder_level ?? 0),
+          },
+          { onConflict: 'branch_id,variant_id' },
+        )
         if (result.error) errors.push(`Row ${i + 2}: ${result.error.message}`)
         else success += 1
       }
       await load()
-      setError(errors.length ? `Imported ${success} inventory row(s). ${errors.length} failed. ${errors.slice(0,5).join(' | ')}` : `Successfully imported ${success} inventory row(s).`)
+      setError(
+        errors.length
+          ? `Imported ${success} inventory row(s). ${errors.length} failed. ${errors.slice(0, 5).join(' | ')}`
+          : `Successfully imported ${success} inventory row(s).`,
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to import inventory.')
     } finally {
@@ -4363,18 +4484,60 @@ function ParentStudents() {
   }
 
   const exportParentsStudents = () => {
-    const headers = ['Branch', 'Parent ID', 'Parent Name', 'Phone', 'Student Code', 'Student Name', 'Class', 'Section', 'Gender', 'DOB', 'Status']
+    const headers = [
+      'Branch',
+      'Parent ID',
+      'Parent Name',
+      'Phone',
+      'Student Code',
+      'Student Name',
+      'Class',
+      'Section',
+      'Gender',
+      'DOB',
+      'Status',
+    ]
     const values: any[][] = []
     parents.forEach((p) => {
       const childIds = parentChildren[p.id] || []
       const children = students.filter((s) => childIds.includes(s.id))
-      if (!children.length) values.push([branches.find((b) => b.id === p.branch_id)?.name || '', p.login_id || '', p.full_name || '', p.phone || '', '', '', '', '', '', '', p.status || ''])
-      children.forEach((s) => values.push([branches.find((b) => b.id === p.branch_id)?.name || '', p.login_id || '', p.full_name || '', p.phone || '', s.student_code || '', s.full_name || '', s.class_name || '', s.section || '', s.gender || '', s.date_of_birth || '', s.status || '']))
+      if (!children.length)
+        values.push([
+          branches.find((b) => b.id === p.branch_id)?.name || '',
+          p.login_id || '',
+          p.full_name || '',
+          p.phone || '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          p.status || '',
+        ])
+      children.forEach((s) =>
+        values.push([
+          branches.find((b) => b.id === p.branch_id)?.name || '',
+          p.login_id || '',
+          p.full_name || '',
+          p.phone || '',
+          s.student_code || '',
+          s.full_name || '',
+          s.class_name || '',
+          s.section || '',
+          s.gender || '',
+          s.date_of_birth || '',
+          s.status || '',
+        ]),
+      )
     })
     const sheet = XLSX.utils.aoa_to_sheet([headers, ...values])
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Parents & Students')
-    XLSX.writeFile(workbook, `Parents_Students_Export_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(
+      workbook,
+      `Parents_Students_Export_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    )
   }
 
   const filteredParents = parents.filter((p) =>
@@ -4421,7 +4584,10 @@ function ParentStudents() {
           canExport={parents.length > 0 || students.length > 0}
           onDemo={downloadBulkTemplate}
           onExport={exportParentsStudents}
-          onImport={(file) => { openBulkImport(); void handleBulkFile(file) }}
+          onImport={(file) => {
+            openBulkImport()
+            void handleBulkFile(file)
+          }}
         />
         <button className="primary-button" onClick={openNewParent}>
           <Plus size={15} /> Add Parent
