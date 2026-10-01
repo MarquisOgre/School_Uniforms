@@ -629,11 +629,14 @@ function Invoices() {
   const [rows, setRows] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [error, setError] = useState('')
   const load = async () => {
     setLoading(true)
+    setError('')
     const r = await db('invoices').select('*').order('issued_at', { ascending: false }).limit(100)
     if (r.error) {
       setRows([])
+      setError(r.error.message)
       setLoading(false)
       return
     }
@@ -741,6 +744,7 @@ function Invoices() {
           />
         </div>
       </div>
+      {error && <p className="workspace-error">Unable to load invoices: {error}</p>}
       {loading ? (
         <div className="workspace-empty">Loading invoices...</div>
       ) : !visible.length ? (
