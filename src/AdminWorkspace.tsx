@@ -108,7 +108,7 @@ export default function AdminWorkspace({
   return (
     <div className="admin-workspace">
       <main className={`workspace-body workspace-${module}`}>
-        {module !== 'reports' && (
+        {module !== 'reports' && module !== 'settings' && (
           <>
             {(module === 'products' || module === 'packages') && (
               <div className="admin-branch-context">
@@ -6906,13 +6906,6 @@ function SystemConfigurationPanel({
           <h2>{title}</h2>
           <p className="workspace-muted">{description}</p>
         </div>
-        <button
-          className="secondary-button"
-          onClick={() => void load()}
-          disabled={loading || saving}
-        >
-          <RefreshCw size={14} /> Refresh
-        </button>
       </div>
       {error && <ErrorBox text={error} />}
       {loading ? (
@@ -6992,9 +6985,6 @@ function BranchShippingSettings() {
             Commerce &amp; CMS.
           </p>
         </div>
-        <button className="secondary-button" onClick={() => void load()} disabled={loading}>
-          <RefreshCw size={14} /> Refresh
-        </button>
       </div>
       <ErrorBox text={error} />
       {loading ? (
@@ -7234,7 +7224,16 @@ function Settings() {
   const [section, setSection] = useState<SettingsSection>('general')
 
   return (
-    <div className="settings-center">
+    <div className="workspace-body">
+      <div className="workspace-heading">
+        <div>
+          <h1>Settings</h1>
+          <p>Configure secure payment gateway and application settings.</p>
+        </div>
+        <button className="secondary-button" onClick={() => window.location.reload()}>
+          <RefreshCw size={15} /> Refresh
+        </button>
+      </div>
       <div className="admin-module-tabs settings-module-tabs">
         {SETTINGS_SECTIONS.map((item) => (
           <button
@@ -7247,6 +7246,363 @@ function Settings() {
           </button>
         ))}
       </div>
+
+      <div className="settings-tab-content">
+        {section === 'general' && (
+          <SystemConfigurationPanel
+            settingKey="general"
+            title="General Settings"
+            description="Store identity and regional defaults used across the storefront and administration."
+          >
+            {(v, update) => (
+              <>
+                <Field
+                  label="Store Name"
+                  value={v.site_name}
+                  onChange={(x) => update('site_name', x)}
+                />
+                <Field
+                  label="Support Email"
+                  value={v.support_email}
+                  onChange={(x) => update('support_email', x)}
+                />
+                <Field
+                  label="Support Phone"
+                  value={v.support_phone}
+                  onChange={(x) => update('support_phone', x)}
+                />
+                <Select
+                  label="Currency"
+                  value={v.currency}
+                  options={['INR', 'USD']}
+                  onChange={(x) => update('currency', x)}
+                />
+                <Select
+                  label="Timezone"
+                  value={v.timezone}
+                  options={['Asia/Kolkata', 'UTC']}
+                  onChange={(x) => update('timezone', x)}
+                />
+              </>
+            )}
+          </SystemConfigurationPanel>
+        )}
+
+        {section === 'payments' && <RazorpaySettingsPanel />}
+        {section === 'tax' && <TaxSettings />}
+        {section === 'shipping' && <BranchShippingSettings />}
+        {section === 'branding' && <SiteBrandingSettings />}
+        {section === 'email' && <EmailConfigSettings />}
+
+        {section === 'notifications' && (
+          <SystemConfigurationPanel
+            settingKey="notifications"
+            title="Notifications"
+            description="Control operational email notifications. Customer-facing transactional emails remain tied to actual order events."
+          >
+            {(v, update) => (
+              <>
+                {[
+                  ['new_order_email', 'New order notification'],
+                  ['payment_success_email', 'Payment success notification'],
+                  ['payment_failure_email', 'Payment failure notification'],
+                  ['refund_email', 'Refund notification'],
+                  ['low_stock_email', 'Low stock notification'],
+                  ['customer_signup_email', 'New customer notification'],
+                ].map(([key, label]) => (
+                  <label className="workspace-field" key={key}>
+                    <span>{label}</span>
+                    <label className="admin-inline-check">
+                      <input
+                        type="checkbox"
+                        checked={!!v[key]}
+                        onChange={(e) => update(key, e.target.checked)}
+                      />{' '}
+                      Enabled
+                    </label>
+                  </label>
+                ))}
+              </>
+            )}
+          </SystemConfigurationPanel>
+        )}
+
+        {section === 'orders' && (
+          <SystemConfigurationPanel
+            settingKey="orders"
+            title="Order Settings"
+            description="Configure order numbering and lifecycle defaults. Actual orders and payments remain in Orders &amp; Payments."
+          >
+            {(v, update) => (
+              <>
+                <Field
+                  label="Order Prefix"
+                  value={v.prefix}
+                  onChange={(x) => update('prefix', x)}
+                />
+                <Field
+                  label="Starting Number"
+                  value={String(v.starting_number)}
+                  onChange={(x) => update('starting_number', Number(x) || 0)}
+                />
+                <Select
+                  label="Allow Cancellation Before"
+                  value={v.allow_cancel_before}
+                  options={['pending', 'processing', 'confirmed']}
+                  onChange={(x) => update('allow_cancel_before', x)}
+                />
+                <label className="workspace-field">
+                  <span>Auto-confirm paid orders</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.auto_confirm_paid}
+                      onChange={(e) => update('auto_confirm_paid', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Require order notes</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.notes_required}
+                      onChange={(e) => update('notes_required', e.target.checked)}
+                    />{' '}
+                    Required
+                  </label>
+                </label>
+              </>
+            )}
+          </SystemConfigurationPanel>
+        )}
+
+        {section === 'customers' && (
+          <SystemConfigurationPanel
+            settingKey="customers"
+            title="Customer Settings"
+            description="Parent accounts can have multiple children. Browsing packages and products does not require a child selection."
+          >
+            {(v, update) => (
+              <>
+                <label className="workspace-field">
+                  <span>Allow multiple children per parent</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.allow_multiple_children}
+                      onChange={(e) => update('allow_multiple_children', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Require phone number</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.require_phone}
+                      onChange={(e) => update('require_phone', e.target.checked)}
+                    />{' '}
+                    Required
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Allow saved address book</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.allow_address_book}
+                      onChange={(e) => update('allow_address_book', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Allow guest checkout</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.allow_guest_checkout}
+                      onChange={(e) => update('allow_guest_checkout', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+              </>
+            )}
+          </SystemConfigurationPanel>
+        )}
+
+        {section === 'checkout' && (
+          <SystemConfigurationPanel
+            settingKey="checkout"
+            title="Checkout Settings"
+            description="Configure checkout behaviour without duplicating payment or order operations."
+          >
+            {(v, update) => (
+              <>
+                <label className="workspace-field">
+                  <span>Require student on checkout</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.require_student}
+                      onChange={(e) => update('require_student', e.target.checked)}
+                    />{' '}
+                    Required
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Allow customer order notes</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.allow_order_notes}
+                      onChange={(e) => update('allow_order_notes', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Show tax breakdown</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.show_tax_breakdown}
+                      onChange={(e) => update('show_tax_breakdown', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Show shipping estimate</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.show_shipping_estimate}
+                      onChange={(e) => update('show_shipping_estimate', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <Field
+                  label="Minimum Order Value"
+                  value={String(v.minimum_order_value)}
+                  onChange={(x) => update('minimum_order_value', Number(x) || 0)}
+                />
+              </>
+            )}
+          </SystemConfigurationPanel>
+        )}
+
+        {section === 'security' && (
+          <SystemConfigurationPanel
+            settingKey="security"
+            title="Security Settings"
+            description="Administrative session and password controls. Authentication itself remains managed by Supabase Auth."
+          >
+            {(v, update) => (
+              <>
+                <Field
+                  label="Session Timeout (minutes)"
+                  value={String(v.session_timeout_minutes)}
+                  onChange={(x) => update('session_timeout_minutes', Number(x) || 60)}
+                />
+                <Field
+                  label="Maximum Login Attempts"
+                  value={String(v.max_login_attempts)}
+                  onChange={(x) => update('max_login_attempts', Number(x) || 5)}
+                />
+                <label className="workspace-field">
+                  <span>Require strong passwords</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.require_strong_password}
+                      onChange={(e) => update('require_strong_password', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Require admin 2FA</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.admin_2fa_required}
+                      onChange={(e) => update('admin_2fa_required', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+              </>
+            )}
+          </SystemConfigurationPanel>
+        )}
+
+        {section === 'advanced' && (
+          <SystemConfigurationPanel
+            settingKey="advanced"
+            title="Advanced Settings"
+            description="System-level feature flags. Keep debug mode disabled in production."
+          >
+            {(v, update) => (
+              <>
+                <label className="workspace-field">
+                  <span>Maintenance mode</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.maintenance_mode}
+                      onChange={(e) => update('maintenance_mode', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>AI customer support</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.enable_ai_support}
+                      onChange={(e) => update('enable_ai_support', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>AI uniform assistant</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.enable_ai_uniform_assistant}
+                      onChange={(e) => update('enable_ai_uniform_assistant', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+                <label className="workspace-field">
+                  <span>Debug mode</span>
+                  <label className="admin-inline-check">
+                    <input
+                      type="checkbox"
+                      checked={!!v.debug_mode}
+                      onChange={(e) => update('debug_mode', e.target.checked)}
+                    />{' '}
+                    Enabled
+                  </label>
+                </label>
+              </>
+            )}
+          </SystemConfigurationPanel>
+        )}
+      </div>
+    </div>
+  )
+}
+
 
       <div className="settings-tab-content">
         {section === 'general' && (
