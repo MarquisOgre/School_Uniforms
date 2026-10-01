@@ -617,12 +617,15 @@ function Invoices() {
 }
 
 function Marketing() {
-  const [promos, setPromos] = useState<any[]>([]),
-    [products, setProducts] = useState<any[]>([]),
-    [msg, setMsg] = useState('')
-  const [name, setName] = useState(''),
-    [value, setValue] = useState('10'),
-    [type, setType] = useState('percentage')
+  const [promos, setPromos] = useState<any[]>([])
+  const [products, setProducts] = useState<any[]>([])
+  const [name, setName] = useState('')
+  const [value, setValue] = useState('10')
+  const [type, setType] = useState('percentage')
+  const [source, setSource] = useState('')
+  const [target, setTarget] = useState('')
+  const [relation, setRelation] = useState('related')
+  const [msg, setMsg] = useState('')
   const load = async () => {
     const [p, pr] = await Promise.all([
       db('promotions').select('*').order('created_at', { ascending: false }),
@@ -631,113 +634,48 @@ function Marketing() {
     setPromos(p.data ?? [])
     setProducts(pr.data ?? [])
   }
-  useEffect(() => {
-    void load()
-  }, [])
+  useEffect(() => { void load() }, [])
   const addPromo = async () => {
     if (!name.trim()) return
-    const r = await db('promotions').insert({
-      name: name.trim(),
-      promotion_type: type,
-      value: Number(value) || 0,
-    })
+    const r = await db('promotions').insert({ name: name.trim(), promotion_type: type, value: Number(value) || 0 })
     if (r.error) setMsg(r.error.message)
-    else {
-      setName('')
-      setMsg('Promotion created.')
-      void load()
-    }
+    else { setName(''); setMsg('Promotion created.'); void load() }
   }
   const relate = async () => {
-    if (products.length < 2) return
+    if (!source || !target || source === target) { setMsg('Select two different products.'); return }
     const r = await db('product_relations').upsert(
-      {
-        product_id: products[0].id,
-        related_product_id: products[1].id,
-        relation_type: 'related',
-        sort_order: 0,
-      },
+      { product_id: source, related_product_id: target, relation_type: relation, sort_order: 0 },
       { onConflict: 'product_id,related_product_id,relation_type' },
     )
-    setMsg(
-      r.error
-        ? r.error.message
-        : 'Sample related-product link created. Edit product merchandising to add more.',
-    )
+    setMsg(r.error ? r.error.message : 'Product merchandising link saved.')
   }
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3>
-          <SparkleIcon /> Scheduled Promotions
-        </h3>
+        <h3><Plus size={17} /> Promotions</h3>
+        <p>Create native percentage, fixed-value and free-shipping promotions. Date windows and usage limits are stored in the database.</p>
         <div className="cms-field-grid">
-          <label>
-            Name
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Back to School Offer"
-            />
-          </label>
-          <label>
-            Type
-            <select value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="percentage">Percentage</option>
-              <option value="fixed">Fixed</option>
-              <option value="free_shipping">Free Shipping</option>
-            </select>
-          </label>
-          <label>
-            Value
-            <input type="number" value={value} onChange={(e) => setValue(e.target.value)} />
-          </label>
+          <label>Name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Back to School Offer" /></label>
+          <label>Type<select value={type} onChange={(e) => setType(e.target.value)}><option value="percentage">Percentage</option><option value="fixed">Fixed</option><option value="free_shipping">Free Shipping</option></select></label>
+          <label>Value<input type="number" min="0" value={value} onChange={(e) => setValue(e.target.value)} /></label>
         </div>
-        <button className="primary-button" onClick={() => void addPromo()}>
-          <Save size={15} /> Create Promotion
-        </button>
-        {msg && <p className="form-success">{msg}</p>}
-        <div className="enterprise-list">
-          {promos.map((p) => (
-            <div className="enterprise-list-row" key={p.id}>
-              <span>
-                {p.name}
-                <small>
-                  {p.promotion_type} · {p.value}
-                </small>
-              </span>
-              <span>{p.enabled ? 'Active' : 'Disabled'}</span>
-            </div>
-          ))}
-        </div>
+        <button className="primary-button" onClick={() => void addPromo()}><Save size={15} /> Create Promotion</button>
+        <div className="enterprise-list">{promos.map((p) => <div className="enterprise-list-row" key={p.id}><span>{p.name}<small>{p.promotion_type} · {p.value}</small></span><span>{p.enabled ? 'Active' : 'Disabled'}</span></div>)}</div>
       </div>
       <div className="enterprise-card">
-        <h3>
-          <Archive size={17} /> Product Merchandising
-        </h3>
-        <p>
-          Related products, upsells and cross-sells are stored natively and can be rendered on the
-          storefront.
-        </p>
-        <button
-          className="secondary-button"
-          onClick={() => void relate()}
-          disabled={products.length < 2}
-        >
-          <Plus size={15} /> Create Related Link
-        </button>
-        <div className="enterprise-list">
-          {products.slice(0, 8).map((p) => (
-            <div className="enterprise-list-row" key={p.id}>
-              {p.name}
-            </div>
-          ))}
+        <h3><Archive size={17} /> Product Merchandising</h3>
+        <p>Configure native related products, upsells and cross-sells.</p>
+        <div className="cms-field-grid">
+          <label>Product<select value={source} onChange={(e) => setSource(e.target.value)}><option value="">Select product</option>{products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+          <label>Target Product<select value={target} onChange={(e) => setTarget(e.target.value)}><option value="">Select target</option>{products.filter((p) => p.id !== source).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+          <label>Relationship<select value={relation} onChange={(e) => setRelation(e.target.value)}><option value="related">Related</option><option value="upsell">Upsell</option><option value="cross_sell">Cross-sell</option></select></label>
         </div>
+        <button className="secondary-button" onClick={() => void relate()}><Plus size={15} /> Save Relationship</button>
+        {msg && <p className="form-success">{msg}</p>}
       </div>
     </section>
   )
 }
-
 function SparkleIcon() {
   return <Plus size={17} />
 }
