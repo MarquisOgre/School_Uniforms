@@ -138,6 +138,7 @@ export default function CheckoutFlow({
   const [settings, setSettings] = useState<any>(null)
   const [paymentSettingsError, setPaymentSettingsError] = useState('')
   const [shippingRate, setShippingRate] = useState(0)
+  const [shippingResolved, setShippingResolved] = useState(false)
   const [shippingFreeAbove, setShippingFreeAbove] = useState(0)
   const [shippingMethodName, setShippingMethodName] = useState('Standard Delivery')
   const [couponCode, setCouponCode] = useState('')
@@ -341,6 +342,7 @@ export default function CheckoutFlow({
       })
       if (!cancelled && result.data) {
         setShippingRate(Number(result.data.rate || 0))
+        setShippingResolved(true)
         setShippingMethodName(result.data.method || 'Standard Delivery')
         setShippingFreeAbove(0)
       }
@@ -382,7 +384,7 @@ export default function CheckoutFlow({
     const fee = shippingRate > 0 ? shippingRate : Number(settings?.shipping_fee || 0)
     const freeAbove = shippingFreeAbove || Number(settings?.free_shipping_above || 0)
     return fee > 0 && (!freeAbove || total < freeAbove) ? fee : 0
-  }, [shippingRate, shippingFreeAbove, settings, total])
+  }, [shippingRate, shippingResolved, shippingFreeAbove, settings, total])
   const payable = Math.max(0, total + effectiveShipping - couponDiscount)
   const upiUri = useMemo(() => {
     if (!settings?.upi_enabled || !settings?.upi_id) return ''
