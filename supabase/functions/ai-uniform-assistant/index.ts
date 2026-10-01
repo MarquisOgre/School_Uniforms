@@ -14,8 +14,11 @@ type Body = {
   productQuery?: string | null
 }
 
+const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '')
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+
   try {
     const body = (await req.json()) as Body
     if (!body.branchId || !body.message?.trim()) {
@@ -24,9 +27,26 @@ Deno.serve(async (req) => {
 
     const secretKeys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}')
     const serviceKey = secretKeys.default ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (!serviceKey) throw new Error('Supabase secret key is not configured')
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, serviceKey)
 
-    const className = body.className?.trim() || null
+    let className = body.className?.trim() || null
+    if (!className) {
+      const { data: branch } = await supabase.from('branches').select('school_id').eq('id', body.branchId).maybeSingle()
+      if (branch?.school_id) {
+        const { data: classes } = await supabase
+          .from('uniform_classes')
+          .select('name,normalized_name')
+          .eq('school_id', branch.school_id)
+          .eq('status', 'active')
+        const messageNorm = normalize(body.message)
+        const match = (classes ?? [])
+          .sort((a: any, b: any) => String(b.name).length - String(a.name).length)
+          .find((c: any) => messageNorm.includes(normalize(c.name)) || messageNorm.includes(c.normalized_name))
+        if (match) className = match.name
+      }
+    }
+
     let catalog: any[] = []
     if (className) {
       const { data, error } = await supabase.rpc('get_uniform_ai_catalog', {
@@ -40,32 +60,28 @@ Deno.serve(async (req) => {
     }
 
     const provider = (Deno.env.get('AI_PROVIDER') || 'openrouter').toLowerCase()
-    const apiKey = provider === 'openai'
-      ? Deno.env.get('OPENAI_API_KEY')
-      : Deno.env.get('OPENROUTER_API_KEY')
+    const apiKey = provider === 'openai' ? Deno.env.get('OPENAI_API_KEY') : Deno.env.get('OPENROUTER_API_KEY')
     const endpoint = provider === 'openai'
       ? 'https://api.openai.com/v1/chat/completions'
       : 'https://openrouter.ai/api/v1/chat/completions'
     const model = Deno.env.get('AI_MODEL') || (provider === 'openai' ? 'gpt-4o-mini' : 'openrouter/free')
 
     if (!apiKey) {
-      return Response.json({
-        error: 'AI provider is not configured.',
-        needsSetup: true,
-      }, { status: 503, headers: cors })
+      return Response.json({ error: 'AI provider is not configured.', needsSetup: true }, { status: 503, headers: cors })
     }
 
     const system = `You are the School Uniform AI Assistant.
-Your job is to help parents identify the correct uniform products and sizes.
+Help parents identify the correct uniform products and sizes.
 Never invent a product, class mapping, size, stock quantity, or measurement.
 Use only the supplied catalog data.
-Class determines which products are eligible; measurements determine size.
-If the class is missing, ask for the class.
-If measurements are missing and a reliable size cannot be selected, ask for the relevant measurement (for example chest for a shirt, waist for trousers/skirt, foot length for shoes).
-Only recommend a variant when it exists in the supplied catalog and quantity_on_hand is greater than zero.
-If measurement ranges are absent, say that the school size chart has not been configured yet rather than guessing.
-Explain recommendations briefly and mention that final fit can vary by garment.
-Catalog JSON follows:${JSON.stringify(catalog)}`
+Class determines eligible products; measurements determine size.
+If class is missing, ask for the class. If the relevant measurement is missing, ask for it.
+Only recommend a variant when it exists in the catalog and quantity_on_hand > 0.
+If measurement ranges are absent, say the school size chart has not been configured yet instead of guessing.
+Do not claim that class alone guarantees a size.
+Keep the response concise and parent-friendly.
+Detected class: ${className ?? 'not detected'}.
+Catalog JSON:${JSON.stringify(catalog)}`
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -95,6 +111,7 @@ Catalog JSON follows:${JSON.stringify(catalog)}`
 
     return Response.json({
       reply: result?.choices?.[0]?.message?.content || 'I could not generate a response.',
+      className,
       catalogCount: catalog.length,
       provider,
       model,
