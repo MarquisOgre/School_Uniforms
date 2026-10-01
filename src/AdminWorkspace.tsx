@@ -16,6 +16,7 @@ import * as XLSX from 'xlsx'
 import { supabase } from './lib/supabase'
 import EmailConfigSettings from './EmailConfigSettings'
 import SiteBrandingSettings from './SiteBrandingSettings'
+import TaxSettings from './TaxSettings'
 
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
 
@@ -7207,6 +7208,7 @@ function Settings() {
           </>
         )}
       </Panel>
+      <TaxSettings />
       <SiteBrandingSettings />
       <EmailConfigSettings />
       <BranchPaymentSettings />
