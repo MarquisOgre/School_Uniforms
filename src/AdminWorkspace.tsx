@@ -157,6 +157,13 @@ export default function AdminWorkspace({
                     <RefreshCw size={15} /> Refresh
                   </button>
                 </div>
+              ) : module === 'settings' ? (
+                <button
+                  className="secondary-button"
+                  onClick={() => window.location.reload()}
+                >
+                  <RefreshCw size={15} /> Refresh
+                </button>
               ) : module === 'orders' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
                   <div className="toolbar-search">
@@ -7231,19 +7238,6 @@ function Settings() {
 
   return (
     <div className="settings-center">
-      <div className="workspace-heading">
-        <div>
-          <h1>Settings</h1>
-          <p>
-            Configure the school store. Transactions, customer records, inventory and CMS content
-            stay in their dedicated modules.
-          </p>
-        </div>
-        <button className="secondary-button" onClick={() => window.location.reload()}>
-          <RefreshCw size={15} /> Refresh
-        </button>
-      </div>
-
       <div className="admin-module-tabs settings-module-tabs">
         {SETTINGS_SECTIONS.map((item) => (
           <button
