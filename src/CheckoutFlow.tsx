@@ -827,7 +827,9 @@ export default function CheckoutFlow({
 
                 <div className="school-payment-total">
                   <span>Shipping · {shippingMethodName}</span>
-                  <strong>{effectiveShipping ? '₹' + effectiveShipping.toLocaleString('en-IN') : 'FREE'}</strong>
+                  <strong>
+                    {effectiveShipping ? '₹' + effectiveShipping.toLocaleString('en-IN') : 'FREE'}
+                  </strong>
                 </div>
                 <div className="school-payment-total">
                   <span>Payable</span>

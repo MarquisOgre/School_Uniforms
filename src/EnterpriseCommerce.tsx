@@ -106,7 +106,10 @@ function Payments() {
       setMessage(r.error.message)
       return
     }
-    const orderUpdate = await db('orders').update({ status: 'confirmed' }).eq('id', p.order_id).in('status', ['pending'])
+    const orderUpdate = await db('orders')
+      .update({ status: 'confirmed' })
+      .eq('id', p.order_id)
+      .in('status', ['pending'])
     if (orderUpdate.error) {
       setMessage(orderUpdate.error.message)
       return
@@ -744,13 +747,23 @@ function Content() {
     void load()
   }, [])
   const openNew = () => {
-    setEditing({ title: '', slug: '', excerpt: '', body: '', status: 'draft', content: { blocks: [] } })
+    setEditing({
+      title: '',
+      slug: '',
+      excerpt: '',
+      body: '',
+      status: 'draft',
+      content: { blocks: [] },
+    })
   }
   const openExisting = (row: any) => {
     const blocks = Array.isArray(row.content?.blocks) ? row.content.blocks : []
     setEditing({
       ...row,
-      body: blocks.map((b: any) => b.text || '').filter(Boolean).join('\n\n'),
+      body: blocks
+        .map((b: any) => b.text || '')
+        .filter(Boolean)
+        .join('\n\n'),
       slug: row.slug || '',
     })
   }
@@ -800,7 +813,9 @@ function Content() {
       <div className="enterprise-card">
         <div className="enterprise-card-head">
           <div>
-            <h3><LayoutTemplate size={17} /> Pages & Blog</h3>
+            <h3>
+              <LayoutTemplate size={17} /> Pages & Blog
+            </h3>
             <span>Create, edit, publish and unpublish native CMS content.</span>
           </div>
           <div className="inline-form">
@@ -808,14 +823,30 @@ function Content() {
               <option value="page">Page</option>
               <option value="post">Blog Post</option>
             </select>
-            <button className="primary-button" onClick={openNew}><Plus size={15} /> New</button>
+            <button className="primary-button" onClick={openNew}>
+              <Plus size={15} /> New
+            </button>
           </div>
         </div>
         {msg && <p className="form-success">{msg}</p>}
         <div className="enterprise-list">
-          {[...pages.map((x) => ({ ...x, _kind: 'Page' })), ...posts.map((x) => ({ ...x, _kind: 'Post' }))].map((x) => (
-            <button key={x.id} onClick={() => { setKind(x._kind === 'Post' ? 'post' : 'page'); openExisting(x) }}>
-              <span>{x.title}<small>{x._kind} · {x.status} · /{x.slug}</small></span>
+          {[
+            ...pages.map((x) => ({ ...x, _kind: 'Page' })),
+            ...posts.map((x) => ({ ...x, _kind: 'Post' })),
+          ].map((x) => (
+            <button
+              key={x.id}
+              onClick={() => {
+                setKind(x._kind === 'Post' ? 'post' : 'page')
+                openExisting(x)
+              }}
+            >
+              <span>
+                {x.title}
+                <small>
+                  {x._kind} · {x.status} · /{x.slug}
+                </small>
+              </span>
               <span>Edit</span>
             </button>
           ))}
@@ -824,21 +855,69 @@ function Content() {
       <div className="enterprise-card">
         {editing ? (
           <>
-            <div className="enterprise-card-head"><div><h3>Edit {kind === 'post' ? 'Blog Post' : 'Page'}</h3><span>Changes are stored in Supabase.</span></div><button className="secondary-button" onClick={() => setEditing(null)}>Close</button></div>
+            <div className="enterprise-card-head">
+              <div>
+                <h3>Edit {kind === 'post' ? 'Blog Post' : 'Page'}</h3>
+                <span>Changes are stored in Supabase.</span>
+              </div>
+              <button className="secondary-button" onClick={() => setEditing(null)}>
+                Close
+              </button>
+            </div>
             <div className="cms-field-grid">
-              <label>Title<input value={editing.title || ''} onChange={(e) => setEditing({ ...editing, title: e.target.value })} /></label>
-              <label>Slug<input value={editing.slug || ''} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} /></label>
-              <label className="full-field">Excerpt<textarea value={editing.excerpt || ''} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} /></label>
-              <label className="full-field">Content<textarea rows={12} value={editing.body || ''} onChange={(e) => setEditing({ ...editing, body: e.target.value })} placeholder="Write the page content here..." /></label>
+              <label>
+                Title
+                <input
+                  value={editing.title || ''}
+                  onChange={(e) => setEditing({ ...editing, title: e.target.value })}
+                />
+              </label>
+              <label>
+                Slug
+                <input
+                  value={editing.slug || ''}
+                  onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
+                />
+              </label>
+              <label className="full-field">
+                Excerpt
+                <textarea
+                  value={editing.excerpt || ''}
+                  onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })}
+                />
+              </label>
+              <label className="full-field">
+                Content
+                <textarea
+                  rows={12}
+                  value={editing.body || ''}
+                  onChange={(e) => setEditing({ ...editing, body: e.target.value })}
+                  placeholder="Write the page content here..."
+                />
+              </label>
             </div>
             <div className="inline-form">
-              <button className="primary-button" onClick={() => void save(false)}><Save size={15} /> Save Draft</button>
-              <button className="primary-button" onClick={() => void save(true)}><CheckCircle2 size={15} /> Publish</button>
-              {editing.id && <button className="secondary-button" onClick={() => void remove()}><XCircle size={15} /> Delete</button>}
+              <button className="primary-button" onClick={() => void save(false)}>
+                <Save size={15} /> Save Draft
+              </button>
+              <button className="primary-button" onClick={() => void save(true)}>
+                <CheckCircle2 size={15} /> Publish
+              </button>
+              {editing.id && (
+                <button className="secondary-button" onClick={() => void remove()}>
+                  <XCircle size={15} /> Delete
+                </button>
+              )}
             </div>
           </>
         ) : (
-          <><h3>Content Editor</h3><p>Select an existing page/post or click New. Published pages are available at <code>/page/slug</code> and blog posts at <code>/blog/slug</code>.</p></>
+          <>
+            <h3>Content Editor</h3>
+            <p>
+              Select an existing page/post or click New. Published pages are available at{' '}
+              <code>/page/slug</code> and blog posts at <code>/blog/slug</code>.
+            </p>
+          </>
         )}
       </div>
     </section>
