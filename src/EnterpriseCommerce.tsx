@@ -189,6 +189,7 @@ function Shipping() {
     [methods, setMethods] = useState<any[]>([]),
     [name, setName] = useState(''),
     [rate, setRate] = useState('0'),
+    [freeAbove, setFreeAbove] = useState('0'),
     [msg, setMsg] = useState('')
   const load = async () => {
     const r = await db('shipping_zones').select('*').order('name')
@@ -222,11 +223,13 @@ function Shipping() {
       zone_id: selected,
       name: 'Standard Delivery',
       rate: Number(rate) || 0,
+      free_shipping_minimum: Number(freeAbove) || null,
       method_type: 'flat_rate',
     })
     if (r.error) setMsg(r.error.message)
     else {
       setRate('0')
+      setFreeAbove('0')
       setMsg('Shipping method added.')
       void loadMethods(selected)
     }
@@ -274,6 +277,7 @@ function Shipping() {
                 onChange={(e) => setRate(e.target.value)}
                 placeholder="Rate"
               />
+              <input type="number" min="0" value={freeAbove} onChange={(e) => setFreeAbove(e.target.value)} placeholder="Free above" />
               <button className="secondary-button" onClick={() => void addMethod()}>
                 <Plus size={15} /> Add Flat Rate
               </button>
@@ -284,7 +288,7 @@ function Shipping() {
                   <span>
                     {m.name}
                     <small>
-                      ₹{Number(m.rate || 0).toFixed(2)} · {m.method_type}
+                      ₹{Number(m.rate || 0).toFixed(2)} · {m.method_type}{m.free_shipping_minimum ? ' · Free above ₹' + Number(m.free_shipping_minimum).toFixed(2) : ''}
                     </small>
                   </span>
                   <span>{m.enabled ? 'Enabled' : 'Disabled'}</span>
