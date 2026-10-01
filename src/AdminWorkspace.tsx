@@ -1363,10 +1363,7 @@ function Products({
     if (productId) {
       const assignedBranchIds: string[] = Array.from(
         new Set<string>(
-          (Array.isArray(editing.assigned_branch_ids)
-            ? editing.assigned_branch_ids
-            : []
-          )
+          (Array.isArray(editing.assigned_branch_ids) ? editing.assigned_branch_ids : [])
             .filter(Boolean)
             .map((id: unknown) => String(id)),
         ),
