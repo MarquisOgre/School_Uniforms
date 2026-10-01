@@ -1384,6 +1384,22 @@ function Products({
       const existingPriceMap: Record<string, number | null> = Object.fromEntries(
         (existingAssignments.data || []).map((x: any) => [x.branch_id, x.branch_price]),
       )
+      const existingOrderMap: Record<string, number> = Object.fromEntries(
+        (existingAssignments.data || []).map((x: any) => [x.branch_id, Number(x.sort_order ?? 0)]),
+      )
+      const orderResult = await dbFrom('branch_products')
+        .select('branch_id,sort_order')
+        .in('branch_id', assignedBranchIds)
+        .order('sort_order', { ascending: false })
+      if (orderResult.error) {
+        setError(orderResult.error.message)
+        return false
+      }
+      const maxOrderByBranch: Record<string, number> = {}
+      for (const row of orderResult.data || []) {
+        const value = Number(row.sort_order ?? 0)
+        maxOrderByBranch[row.branch_id] = Math.max(maxOrderByBranch[row.branch_id] ?? -1, value)
+      }
       const wanted = new Set(assignedBranchIds)
       const removeBranchIds = (existingAssignments.data || [])
         .map((x: any) => x.branch_id)
@@ -1405,6 +1421,9 @@ function Products({
         product_id: productId,
         branch_price:
           existingPriceMap[id] ?? Number(editing.offer_price ?? editing.base_price ?? 0),
+        sort_order:
+          existingOrderMap[id] ??
+          ((maxOrderByBranch[id] ?? -1) + 1),
         is_visible: editing.status === 'active',
       }))
       const catalogResult = await dbFrom('branch_products').upsert(catalogRows, {
