@@ -727,11 +727,11 @@ function SparkleIcon() {
 }
 
 function Content() {
-  const [pages, setPages] = useState<any[]>([]),
-    [posts, setPosts] = useState<any[]>([]),
-    [title, setTitle] = useState(''),
-    [kind, setKind] = useState<'page' | 'post'>('page'),
-    [msg, setMsg] = useState('')
+  const [pages, setPages] = useState<any[]>([])
+  const [posts, setPosts] = useState<any[]>([])
+  const [editing, setEditing] = useState<any>(null)
+  const [kind, setKind] = useState<'page' | 'post'>('page')
+  const [msg, setMsg] = useState('')
   const load = async () => {
     const [p, b] = await Promise.all([
       db('site_pages').select('*').order('updated_at', { ascending: false }),
@@ -743,72 +743,107 @@ function Content() {
   useEffect(() => {
     void load()
   }, [])
-  const add = async () => {
-    if (!title.trim()) return
-    const slug = title
+  const openNew = () => {
+    setEditing({ title: '', slug: '', excerpt: '', body: '', status: 'draft', content: { blocks: [] } })
+  }
+  const openExisting = (row: any) => {
+    const blocks = Array.isArray(row.content?.blocks) ? row.content.blocks : []
+    setEditing({
+      ...row,
+      body: blocks.map((b: any) => b.text || '').filter(Boolean).join('\n\n'),
+      slug: row.slug || '',
+    })
+  }
+  const save = async (publish = false) => {
+    if (!editing?.title?.trim()) return
+    const slug = (editing.slug || editing.title)
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
-    const table = kind === 'page' ? 'site_pages' : 'site_posts'
-    const r = await db(table).insert({
-      title: title.trim(),
+    const table = kind === 'post' ? 'site_posts' : 'site_pages'
+    const content = { blocks: [{ text: String(editing.body || '').trim() }] }
+    const payload: any = {
+      title: editing.title.trim(),
       slug,
-      content: { blocks: [] },
-      status: 'draft',
-    })
+      excerpt: editing.excerpt?.trim() || null,
+      content,
+      status: publish ? 'published' : editing.status || 'draft',
+      published_at: publish ? new Date().toISOString() : editing.published_at || null,
+      updated_at: new Date().toISOString(),
+    }
+    if (kind === 'post') payload.author_user_id = editing.author_user_id || null
+    const r = editing.id
+      ? await db(table).update(payload).eq('id', editing.id)
+      : await db(table).insert(payload)
     if (r.error) setMsg(r.error.message)
     else {
-      setTitle('')
-      setMsg('Draft created.')
+      setMsg(publish ? 'Published successfully.' : 'Saved as draft.')
+      setEditing(null)
+      void load()
+    }
+  }
+  const remove = async () => {
+    if (!editing?.id) return
+    if (!window.confirm('Delete this content item?')) return
+    const table = kind === 'post' ? 'site_posts' : 'site_pages'
+    const r = await db(table).delete().eq('id', editing.id)
+    if (r.error) setMsg(r.error.message)
+    else {
+      setEditing(null)
+      setMsg('Content deleted.')
       void load()
     }
   }
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3>
-          <LayoutTemplate size={17} /> Pages & Blog
-        </h3>
-        <p>
-          Create reusable pages and blog posts with draft/publish/schedule lifecycle. Content is
-          stored as structured JSON so the editor can grow into a page builder without replacing the
-          database.
-        </p>
-        <div className="inline-form">
-          <select value={kind} onChange={(e) => setKind(e.target.value as 'page' | 'post')}>
-            <option value="page">Page</option>
-            <option value="post">Blog Post</option>
-          </select>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
-          <button className="primary-button" onClick={() => void add()}>
-            <Plus size={15} /> Draft
-          </button>
+        <div className="enterprise-card-head">
+          <div>
+            <h3><LayoutTemplate size={17} /> Pages & Blog</h3>
+            <span>Create, edit, publish and unpublish native CMS content.</span>
+          </div>
+          <div className="inline-form">
+            <select value={kind} onChange={(e) => setKind(e.target.value as 'page' | 'post')}>
+              <option value="page">Page</option>
+              <option value="post">Blog Post</option>
+            </select>
+            <button className="primary-button" onClick={openNew}><Plus size={15} /> New</button>
+          </div>
         </div>
         {msg && <p className="form-success">{msg}</p>}
-      </div>
-      <div className="enterprise-card">
-        <h3>Content Library</h3>
         <div className="enterprise-list">
-          {[
-            ...pages.map((x) => ({ ...x, _kind: 'Page' })),
-            ...posts.map((x) => ({ ...x, _kind: 'Post' })),
-          ].map((x) => (
-            <div className="enterprise-list-row" key={x.id}>
-              <span>
-                {x.title}
-                <small>
-                  {x._kind} · {x.status} · /{x.slug}
-                </small>
-              </span>
-            </div>
+          {[...pages.map((x) => ({ ...x, _kind: 'Page' })), ...posts.map((x) => ({ ...x, _kind: 'Post' }))].map((x) => (
+            <button key={x.id} onClick={() => { setKind(x._kind === 'Post' ? 'post' : 'page'); openExisting(x) }}>
+              <span>{x.title}<small>{x._kind} · {x.status} · /{x.slug}</small></span>
+              <span>Edit</span>
+            </button>
           ))}
         </div>
+      </div>
+      <div className="enterprise-card">
+        {editing ? (
+          <>
+            <div className="enterprise-card-head"><div><h3>Edit {kind === 'post' ? 'Blog Post' : 'Page'}</h3><span>Changes are stored in Supabase.</span></div><button className="secondary-button" onClick={() => setEditing(null)}>Close</button></div>
+            <div className="cms-field-grid">
+              <label>Title<input value={editing.title || ''} onChange={(e) => setEditing({ ...editing, title: e.target.value })} /></label>
+              <label>Slug<input value={editing.slug || ''} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} /></label>
+              <label className="full-field">Excerpt<textarea value={editing.excerpt || ''} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} /></label>
+              <label className="full-field">Content<textarea rows={12} value={editing.body || ''} onChange={(e) => setEditing({ ...editing, body: e.target.value })} placeholder="Write the page content here..." /></label>
+            </div>
+            <div className="inline-form">
+              <button className="primary-button" onClick={() => void save(false)}><Save size={15} /> Save Draft</button>
+              <button className="primary-button" onClick={() => void save(true)}><CheckCircle2 size={15} /> Publish</button>
+              {editing.id && <button className="secondary-button" onClick={() => void remove()}><XCircle size={15} /> Delete</button>}
+            </div>
+          </>
+        ) : (
+          <><h3>Content Editor</h3><p>Select an existing page/post or click New. Published pages are available at <code>/page/slug</code> and blog posts at <code>/blog/slug</code>.</p></>
+        )}
       </div>
     </section>
   )
 }
-
 function SeoMenus() {
   const [menus, setMenus] = useState<any[]>([]),
     [pages, setPages] = useState<any[]>([]),
