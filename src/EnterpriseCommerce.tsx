@@ -298,12 +298,21 @@ function Fulfillment() {
     [loading, setLoading] = useState(true)
   const load = async () => {
     setLoading(true)
-    const r = await db('order_fulfillments').select('*').order('created_at', { ascending: false }).limit(100)
-    if (r.error) { setRows([]); setLoading(false); return }
+    const r = await db('order_fulfillments')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100)
+    if (r.error) {
+      setRows([])
+      setLoading(false)
+      return
+    }
     const ids = (r.data || []).map((x: any) => x.order_id).filter(Boolean)
     const o = ids.length ? await db('orders').select('id,order_number').in('id', ids) : { data: [] }
     const names = new Map((o.data || []).map((x: any) => [x.id, x.order_number]))
-    setRows((r.data || []).map((x: any) => ({ ...x, order_number: names.get(x.order_id) || x.order_id })))
+    setRows(
+      (r.data || []).map((x: any) => ({ ...x, order_number: names.get(x.order_id) || x.order_id })),
+    )
     setLoading(false)
   }
   useEffect(() => {
@@ -378,11 +387,17 @@ function Returns() {
   const load = async () => {
     setLoading(true)
     const r = await db('returns').select('*').order('created_at', { ascending: false }).limit(100)
-    if (r.error) { setRows([]); setLoading(false); return }
+    if (r.error) {
+      setRows([])
+      setLoading(false)
+      return
+    }
     const ids = (r.data || []).map((x: any) => x.order_id).filter(Boolean)
     const o = ids.length ? await db('orders').select('id,order_number').in('id', ids) : { data: [] }
     const names = new Map((o.data || []).map((x: any) => [x.id, x.order_number]))
-    setRows((r.data || []).map((x: any) => ({ ...x, order_number: names.get(x.order_id) || x.order_id })))
+    setRows(
+      (r.data || []).map((x: any) => ({ ...x, order_number: names.get(x.order_id) || x.order_id })),
+    )
     setLoading(false)
   }
   useEffect(() => {

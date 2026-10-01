@@ -313,9 +313,19 @@ export default function CheckoutFlow({
     if (!client || !branchId) return
     let cancelled = false
     const loadShipping = async () => {
-      const zone = await client.from('shipping_zones').select('id').eq('is_default', true).maybeSingle()
+      const zone = await client
+        .from('shipping_zones')
+        .select('id')
+        .eq('is_default', true)
+        .maybeSingle()
       if (zone.error || !zone.data) return
-      const methods = await client.from('shipping_methods').select('name,rate,free_shipping_minimum').eq('zone_id', zone.data.id).eq('enabled', true).order('sort_order').limit(1)
+      const methods = await client
+        .from('shipping_methods')
+        .select('name,rate,free_shipping_minimum')
+        .eq('zone_id', zone.data.id)
+        .eq('enabled', true)
+        .order('sort_order')
+        .limit(1)
       const method = methods.data?.[0]
       if (!cancelled && method) {
         setShippingRate(Number(method.rate || 0))
@@ -324,7 +334,9 @@ export default function CheckoutFlow({
       }
     }
     void loadShipping()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [branchId])
 
   useEffect(() => {
