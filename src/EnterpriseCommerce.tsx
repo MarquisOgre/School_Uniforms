@@ -80,15 +80,18 @@ export default function EnterpriseCommerce() {
 function Payments() {
   const [rows, setRows] = useState<any[]>([]),
     [loading, setLoading] = useState(true),
-    [message, setMessage] = useState('')
+    [message, setMessage] = useState(''),
+    [error, setError] = useState('')
   const load = async () => {
     setLoading(true)
+    setError('')
     const r = await db('payments')
       .select(
         'id,order_id,provider,provider_payment_id,provider_order_id,amount,currency,status,paid_at,created_at,orders(order_number,customer_user_id,grand_total)',
       )
       .order('created_at', { ascending: false })
       .limit(100)
+    if (r.error) setError(r.error.message)
     setRows(r.data ?? [])
     setLoading(false)
   }
@@ -125,6 +128,7 @@ function Payments() {
         </div>
       </div>
       {message && <p className="form-success">{message}</p>}
+      {error && <p className="workspace-error">{error}</p>}
       {loading ? (
         <div className="workspace-empty">Loading payments...</div>
       ) : (
@@ -342,7 +346,7 @@ function Fulfillment() {
             <tbody>
               {rows.map((x) => (
                 <tr key={x.id}>
-                  <td>{x.orders?.order_number || x.order_id}</td>
+                  <td>{x.order_number || x.order_id}</td>
                   <td>{x.status}</td>
                   <td>{x.carrier || '—'}</td>
                   <td>{x.tracking_number || '—'}</td>
