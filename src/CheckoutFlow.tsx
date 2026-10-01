@@ -133,15 +133,10 @@ export default function CheckoutFlow({
     'pay_at_school',
   )
   const [paymentReference, setPaymentReference] = useState('')
-  const [settings, setSettings] = useState<any>({
-    pay_at_school_enabled: true,
-    upi_enabled: false,
-    upi_id: '',
-    razorpay_enabled: false,
-    upi_payee_name: '',
-    shipping_fee: 0,
-    free_shipping_above: 0,
-  })
+  // Payment methods must remain disabled/hidden until the branch settings are loaded.
+  // Never assume Pay at School is enabled before the database response arrives.
+  const [settings, setSettings] = useState<any>(null)
+  const [paymentSettingsError, setPaymentSettingsError] = useState('')
   const [shippingRate, setShippingRate] = useState(0)
   const [shippingFreeAbove, setShippingFreeAbove] = useState(0)
   const [shippingMethodName, setShippingMethodName] = useState('Standard Delivery')
@@ -163,10 +158,32 @@ export default function CheckoutFlow({
         return
       }
 
-      const [{ data: userData, error: authError }, { data: settingsData }] = await Promise.all([
+      const [
+        { data: userData, error: authError },
+        { data: settingsData, error: settingsError },
+      ] = await Promise.all([
         client.auth.getUser(),
         client.from('branch_payment_settings').select('*').eq('branch_id', branchId).maybeSingle(),
       ])
+
+      if (!cancelled) {
+        setPaymentSettingsError(
+          settingsError?.message
+            ? 'Payment settings could not be loaded for this branch. Please contact the school.'
+            : '',
+        )
+        setSettings(
+          settingsData || {
+            pay_at_school_enabled: false,
+            upi_enabled: false,
+            upi_id: '',
+            razorpay_enabled: false,
+            upi_payee_name: '',
+            shipping_fee: 0,
+            free_shipping_above: 0,
+          },
+        )
+      }
 
       if (authError) {
         if (!cancelled)
@@ -255,7 +272,6 @@ export default function CheckoutFlow({
 
       if (cancelled) return
 
-      if (settingsData) setSettings(settingsData)
       setCheckoutStudents(resolvedStudents)
 
       if (resolvedStudents.length === 1) {
@@ -343,20 +359,42 @@ export default function CheckoutFlow({
   }, [branchId])
 
   useEffect(() => {
-    if (settings.upi_enabled && !settings.pay_at_school_enabled) setPaymentMethod('upi')
-    else if (!settings.pay_at_school_enabled && settings.razorpay_enabled)
-      setPaymentMethod('razorpay')
-    else if (!settings.pay_at_school_enabled) setPaymentMethod('upi')
-  }, [settings.upi_enabled, settings.pay_at_school_enabled])
+    if (!settings) return
+
+    const firstAvailableMethod: 'upi' | 'pay_at_school' | 'razorpay' | null =
+      settings.pay_at_school_enabled
+        ? 'pay_at_school'
+        : settings.razorpay_enabled
+          ? 'razorpay'
+          : settings.upi_enabled && settings.upi_id
+            ? 'upi'
+            : null
+
+    const currentMethodEnabled =
+      (paymentMethod === 'pay_at_school' && settings.pay_at_school_enabled) ||
+      (paymentMethod === 'razorpay' && settings.razorpay_enabled) ||
+      (paymentMethod === 'upi' && settings.upi_enabled && Boolean(settings.upi_id))
+
+    if (!currentMethodEnabled && firstAvailableMethod) {
+      setPaymentMethod(firstAvailableMethod)
+      setPaymentReference('')
+    }
+  }, [
+    settings?.pay_at_school_enabled,
+    settings?.razorpay_enabled,
+    settings?.upi_enabled,
+    settings?.upi_id,
+    paymentMethod,
+  ])
 
   const effectiveShipping = useMemo(() => {
-    const fee = shippingRate > 0 ? shippingRate : Number(settings.shipping_fee || 0)
-    const freeAbove = shippingFreeAbove || Number(settings.free_shipping_above || 0)
+    const fee = shippingRate > 0 ? shippingRate : Number(settings?.shipping_fee || 0)
+    const freeAbove = shippingFreeAbove || Number(settings?.free_shipping_above || 0)
     return fee > 0 && (!freeAbove || total < freeAbove) ? fee : 0
   }, [shippingRate, shippingFreeAbove, settings, total])
   const payable = Math.max(0, total + effectiveShipping - couponDiscount)
   const upiUri = useMemo(() => {
-    if (!settings.upi_enabled || !settings.upi_id) return ''
+    if (!settings?.upi_enabled || !settings?.upi_id) return ''
     return (
       'upi://pay?pa=' +
       encodeURIComponent(settings.upi_id) +
@@ -366,7 +404,7 @@ export default function CheckoutFlow({
       payable.toFixed(2) +
       '&cu=INR'
     )
-  }, [settings, payable])
+  }, [settings?.upi_enabled, settings?.upi_id, settings?.upi_payee_name, payable])
   const selectedStudent = checkoutStudents.find(
     (s) => s.id === (checkoutStudents.length === 1 ? checkoutStudents[0].id : studentId),
   )
@@ -420,9 +458,23 @@ export default function CheckoutFlow({
       /^[0-9]{6}$/.test(address.pincode.trim()),
   )
   const paymentValid =
-    paymentMethod === 'pay_at_school' ||
-    paymentMethod === 'razorpay' ||
-    paymentReference.trim().length >= 4
+    Boolean(settings) &&
+    !paymentSettingsError &&
+    (
+      (paymentMethod === 'pay_at_school' && settings.pay_at_school_enabled) ||
+      (paymentMethod === 'razorpay' && settings.razorpay_enabled) ||
+      (
+        paymentMethod === 'upi' &&
+        settings.upi_enabled &&
+        Boolean(settings.upi_id) &&
+        paymentReference.trim().length >= 4
+      )
+    )
+  const paymentMethodAvailable = Boolean(
+    settings?.pay_at_school_enabled ||
+      settings?.razorpay_enabled ||
+      (settings?.upi_enabled && settings?.upi_id),
+  )
 
   const applyCoupon = async () => {
     const code = couponCode.trim()
@@ -447,7 +499,20 @@ export default function CheckoutFlow({
   }
 
   const placeOrder = async () => {
-    if (!detailsValid || !paymentValid || loading) return
+    if (!detailsValid || !paymentValid || loading || !settings) return
+
+    // Re-check the selected method against the latest loaded branch configuration.
+    // This prevents a stale UI selection from reaching checkout when an admin has
+    // disabled that payment method.
+    if (
+      (paymentMethod === 'pay_at_school' && !settings.pay_at_school_enabled) ||
+      (paymentMethod === 'razorpay' && !settings.razorpay_enabled) ||
+      (paymentMethod === 'upi' && (!settings.upi_enabled || !settings.upi_id))
+    ) {
+      setError('The selected payment method is no longer available for this branch. Please select another method.')
+      return
+    }
+
     setLoading(true)
     setError('')
     try {
@@ -793,6 +858,10 @@ export default function CheckoutFlow({
               <div className="school-payment-locked">
                 <p>Please fill in your details correctly to proceed with payment.</p>
               </div>
+            ) : !settings ? (
+              <div className="school-payment-locked">
+                <p>Loading payment methods for this branch...</p>
+              </div>
             ) : (
               <>
                 {settings.pay_at_school_enabled && (
@@ -896,9 +965,7 @@ export default function CheckoutFlow({
                   disabled={
                     loading ||
                     !paymentValid ||
-                    (!settings.pay_at_school_enabled &&
-                      !settings.upi_enabled &&
-                      !settings.razorpay_enabled)
+                    !paymentMethodAvailable
                   }
                   onClick={() => void placeOrder()}
                 >
@@ -1030,22 +1097,43 @@ export default function CheckoutFlow({
       <div className="payment-card">
         <p className="eyebrow">STEP 2 OF 2</p>
         <h1>Choose payment method</h1>
-        {settings.pay_at_school_enabled && (
-          <label className="payment-option">
-            <input
-              type="radio"
-              name="payment"
-              checked={paymentMethod === 'pay_at_school'}
-              onChange={() => setPaymentMethod('pay_at_school')}
-            />
-            <ShoppingBag />
-            <div>
-              <strong>Pay at School</strong>
-              <span>Place the order now and pay through the school.</span>
-            </div>
-          </label>
-        )}
-        {settings.upi_enabled && settings.upi_id && (
+        {!settings ? (
+          <div className="school-payment-locked">
+            <p>Loading payment methods for this branch...</p>
+          </div>
+        ) : (
+          <>
+            {settings.pay_at_school_enabled && (
+              <label className="payment-option">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'pay_at_school'}
+                  onChange={() => setPaymentMethod('pay_at_school')}
+                />
+                <ShoppingBag />
+                <div>
+                  <strong>Pay at School</strong>
+                  <span>Place the order now and pay through the school.</span>
+                </div>
+              </label>
+            )}
+            {settings.razorpay_enabled && (
+              <label className="payment-option">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'razorpay'}
+                  onChange={() => setPaymentMethod('razorpay')}
+                />
+                <CreditCard />
+                <div>
+                  <strong>Pay Online with Razorpay</strong>
+                  <span>UPI, cards, net banking and other Razorpay payment methods.</span>
+                </div>
+              </label>
+            )}
+            {settings.upi_enabled && settings.upi_id && (
           <label className="payment-option">
             <input
               type="radio"
@@ -1085,10 +1173,12 @@ export default function CheckoutFlow({
             </div>
           </div>
         )}
-        {!settings.pay_at_school_enabled && !settings.upi_enabled && (
-          <div className="workspace-error">
-            No payment method is currently enabled for this branch. Please contact the school.
-          </div>
+            {settings && !paymentMethodAvailable && (
+              <div className="workspace-error">
+                No payment method is currently enabled for this branch. Please contact the school.
+              </div>
+            )}
+          </>
         )}
         {error && <div className="workspace-error">{error}</div>}
         <div className="payment-total">
@@ -1097,9 +1187,7 @@ export default function CheckoutFlow({
         </div>
         <button
           className="primary-button"
-          disabled={
-            loading || !paymentValid || (!settings.pay_at_school_enabled && !settings.upi_enabled)
-          }
+          disabled={loading || !paymentValid || !paymentMethodAvailable}
           onClick={() => void placeOrder()}
         >
           {loading ? (
