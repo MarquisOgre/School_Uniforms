@@ -1033,6 +1033,7 @@ function Products({
 }) {
   const [rows, setRows] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
+  const [branches, setBranches] = useState<any[]>([])
   const [editing, setEditing] = useState<any>(null)
   const [variants, setVariants] = useState<any[]>([])
   const [variantsLoading, setVariantsLoading] = useState(false)
@@ -1052,17 +1053,19 @@ function Products({
       setLoading(false)
       return
     }
-    const [bp, c] = await Promise.all([
+    const [bp, c, branchResult] = await Promise.all([
       dbFrom('branch_products')
         .select('product_id,branch_price,is_visible')
         .eq('branch_id', branchId)
         .eq('is_visible', true),
       dbFrom('product_categories').select('*').eq('status', 'active').order('name'),
+      dbFrom('branches').select('id,name,code,status').order('name'),
     ])
-    if (bp.error || c.error) {
+    if (bp.error || c.error || branchResult.error) {
       setRows([])
       setCategories(c.data ?? [])
-      setError(bp.error?.message || c.error?.message || '')
+      setBranches(branchResult.data ?? [])
+      setError(bp.error?.message || c.error?.message || branchResult.error?.message || '')
       setLoading(false)
       return
     }
@@ -1080,6 +1083,7 @@ function Products({
       })),
     )
     setCategories(c.data ?? [])
+    setBranches(branchResult.data ?? [])
     setError(p.error?.message || '')
     setLoading(false)
   }
@@ -1238,11 +1242,25 @@ function Products({
         return
       }
 
+      const assignmentResult = await dbFrom('branch_products')
+        .select('branch_id,is_visible,branch_price')
+        .eq('product_id', product.id)
+      if (cancelled) return
+      if (assignmentResult.error) {
+        setError(assignmentResult.error.message)
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+
       setEditing({
         ...product,
         base_price: product.base_price ?? '',
         discount_percentage: product.discount_percentage ?? '',
         offer_price: product.offer_price ?? product.base_price ?? '',
+        assigned_branch_ids: (assignmentResult.data || [])
+          .filter((x: any) => x.is_visible)
+          .map((x: any) => x.branch_id),
       })
 
       await loadVariants(product.id)
@@ -1311,7 +1329,9 @@ function Products({
         editing.color_image_map && typeof editing.color_image_map === 'object'
           ? editing.color_image_map
           : {},
-      color_order: currentColors,
+      color_order: Array.from(
+        new Set(variants.map((variant) => String(variant.color || '').trim()).filter(Boolean)),
+      ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })),
       base_price: Number(editing.base_price || 0),
       offer_price:
         editing.offer_price === '' || editing.offer_price == null
@@ -1335,15 +1355,55 @@ function Products({
 
     const productId = editing.id || result.data?.id
     if (productId) {
-      const catalogResult = await dbFrom('branch_products').upsert(
-        {
-          branch_id: branchId,
-          product_id: productId,
-          branch_price: Number(editing.offer_price ?? editing.base_price ?? 0),
-          is_visible: editing.status === 'active',
-        },
-        { onConflict: 'branch_id,product_id' },
+      const assignedBranchIds = Array.from(
+        new Set(
+          (Array.isArray(editing.assigned_branch_ids) ? editing.assigned_branch_ids : []).filter(
+            Boolean,
+          ),
+        ),
       )
+      if (!assignedBranchIds.length) {
+        setError('Assign the product to at least one branch.')
+        return false
+      }
+
+      const existingAssignments = await dbFrom('branch_products')
+        .select('branch_id,branch_price')
+        .eq('product_id', productId)
+      if (existingAssignments.error) {
+        setError(existingAssignments.error.message)
+        return false
+      }
+
+      const existingPriceMap = Object.fromEntries(
+        (existingAssignments.data || []).map((x: any) => [x.branch_id, x.branch_price]),
+      )
+      const wanted = new Set(assignedBranchIds)
+      const removeBranchIds = (existingAssignments.data || [])
+        .map((x: any) => x.branch_id)
+        .filter((id: string) => !wanted.has(id))
+
+      if (removeBranchIds.length) {
+        const removeResult = await dbFrom('branch_products')
+          .delete()
+          .eq('product_id', productId)
+          .in('branch_id', removeBranchIds)
+        if (removeResult.error) {
+          setError(removeResult.error.message)
+          return false
+        }
+      }
+
+      const catalogRows = assignedBranchIds.map((id) => ({
+        branch_id: id,
+        product_id: productId,
+        branch_price:
+          existingPriceMap[id] ?? Number(editing.offer_price ?? editing.base_price ?? 0),
+        is_visible: editing.status === 'active',
+      }))
+      const catalogResult = await dbFrom('branch_products').upsert(catalogRows, {
+        onConflict: 'branch_id,product_id',
+      })
       if (catalogResult.error) {
         setError(catalogResult.error.message)
         return false
@@ -1634,6 +1694,7 @@ function Products({
   const newProduct = () =>
     setEditing({
       branch_id: branchId,
+      assigned_branch_ids: branchId ? [branchId] : [],
       name: '',
       description: '',
       product_type: '',
@@ -1918,6 +1979,7 @@ function Products({
           variants={variants}
           setVariants={setVariants}
           variantsLoading={variantsLoading}
+          branches={branches}
           onBack={() => {
             if (window.location.pathname.startsWith('/admin/products/edit/')) {
               window.history.pushState(
@@ -2183,6 +2245,7 @@ function ProductEditorScreen({
   variants,
   setVariants,
   variantsLoading,
+  branches,
   onBack,
   onSaveProduct,
   onRefreshVariants,
@@ -2195,6 +2258,7 @@ function ProductEditorScreen({
   variants: any[]
   setVariants: (value: any[] | ((current: any[]) => any[])) => void
   variantsLoading: boolean
+  branches: any[]
   onBack: () => void
   onSaveProduct: () => Promise<boolean>
   onRefreshVariants: () => void
@@ -2519,6 +2583,66 @@ function ProductEditorScreen({
             folder="products"
             onChange={(v) => setEditing({ ...editing, image_gallery: v })}
           />
+        </div>
+      </section>
+
+      <section className="product-editor-card">
+        <div className="product-editor-section-title">Assign to Branches</div>
+        <div className="workspace-note" style={{ marginTop: 10 }}>
+          Select every branch where this same product should be available. The product and its variants remain shared.
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 10,
+            marginTop: 16,
+          }}
+        >
+          {branches.map((branch) => {
+            const assigned = Array.isArray(editing.assigned_branch_ids)
+              ? editing.assigned_branch_ids.includes(branch.id)
+              : false
+            return (
+              <label
+                key={branch.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '12px 14px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  background: assigned ? '#f8faf9' : '#fff',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={assigned}
+                  onChange={(e) => {
+                    const current = new Set(
+                      Array.isArray(editing.assigned_branch_ids)
+                        ? editing.assigned_branch_ids
+                        : [],
+                    )
+                    if (e.target.checked) current.add(branch.id)
+                    else current.delete(branch.id)
+                    setEditing({
+                      ...editing,
+                      assigned_branch_ids: Array.from(current),
+                    })
+                  }}
+                />
+                <span>
+                  <strong>{branch.name}</strong>
+                  <small style={{ display: 'block', color: '#718096', marginTop: 2 }}>
+                    {branch.code}
+                  </small>
+                </span>
+              </label>
+            )
+          })}
         </div>
       </section>
 
