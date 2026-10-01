@@ -61,9 +61,14 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
     async function load() {
       setLoading(true)
       setError('')
+
+      // A visitor can use AI chat without a branch. Persistent conversations
+      // require both an authenticated customer and a selected branch.
       const { data: userData } = await client.auth.getUser()
       const user = userData?.user
-      if (!user) {
+      if (!user || !branchId) {
+        setConversationId(null)
+        setMessages([])
         setLoading(false)
         return
       }
