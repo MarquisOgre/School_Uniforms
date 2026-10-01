@@ -867,7 +867,11 @@ function Marketing() {
         <button className="primary-button" disabled={promoSaving} onClick={() => void addPromo()}>
           <Save size={15} /> {promoSaving ? 'Creating...' : 'Create Promotion'}
         </button>
-        {promoMsg && <p className={promoMsg.startsWith('Unable') ? 'workspace-error' : 'form-success'}>{promoMsg}</p>}
+        {promoMsg && (
+          <p className={promoMsg.startsWith('Unable') ? 'workspace-error' : 'form-success'}>
+            {promoMsg}
+          </p>
+        )}
         <div className="enterprise-list">
           {promos.map((p) => (
             <div className="enterprise-list-row" key={p.id}>
