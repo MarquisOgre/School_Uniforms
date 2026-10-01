@@ -220,12 +220,33 @@ Deno.serve(async (req) => {
       gender: p.gender,
     }))
 
+    const availabilityContext = effectiveBranchId
+      ? inventory
+          .map((row: any) => {
+            const variant = variantById.get(row.variant_id)
+            const product = variant ? productById.get(variant.product_id) : null
+            if (!variant || !product) return null
+            return {
+              product: product.name,
+              variant: variant.variant_name || variant.size_label || variant.id,
+              size: variant.size_label,
+              color: variant.color,
+              quantity_on_hand: Number(row.quantity_on_hand || 0),
+            }
+          })
+          .filter(Boolean)
+      : []
+
     catalogContext = [
       effectiveBranchId
         ? `Resolved branch: ${matchedBranch?.name || 'selected branch'} (${matchedBranch?.code || ''}).`
         : 'No branch was resolved from the current visitor request.',
       'Use the following live application catalog context:',
-      JSON.stringify({ products: productContext, uniform_packages: packageContext }),
+      JSON.stringify({
+        products: productContext,
+        uniform_packages: packageContext,
+        exact_variant_inventory: availabilityContext,
+      }),
     ].join('\n')
   } catch {
     catalogContext = ''
@@ -239,7 +260,9 @@ Deno.serve(async (req) => {
     'Never reveal private customer information or another customer’s order details.',
     'The live application catalog context below is authoritative for product, variant, package, branch, and inventory questions.',
     'If earlier conversation messages claim that live catalog or inventory is unavailable, ignore that claim when the current catalog context contains the requested information.',
-    'For stock questions, use the quantity_on_hand values supplied for the matching branch and variant. A positive quantity means the variant is currently in stock; zero means out of stock.',
+    'For stock questions, use the exact_variant_inventory values supplied for the matching branch and variant. A positive quantity means the variant is currently in stock; zero means out of stock.',
+    'When answering a size or availability question, list EVERY matching size/variant explicitly from exact_variant_inventory. Never omit a size, never summarize a complete list as a shortened range, and never infer missing sizes.',
+    'If the data contains sizes 2, 3, 4, 5, and 6, your answer must explicitly write Size 2, Size 3, Size 4, Size 5, and Size 6.',
     'If a customer names a school or branch that is not an exact branch name, use the resolved branch context when one is supplied; do not ask them to repeat the product name if it is already clear.',
     'For account-specific questions that require private customer data, explain that authentication or human support is required.',
     'When uncertain, say so and offer human support rather than guessing.',
