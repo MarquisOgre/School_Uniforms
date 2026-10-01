@@ -29,7 +29,6 @@ type ModuleKey =
   | 'students'
   | 'reports'
   | 'settings'
-  | 'users'
 
 const META: Record<ModuleKey, { title: string; description: string }> = {
   branches: {
@@ -60,10 +59,6 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
   settings: {
     title: 'Settings',
     description: 'Configure secure payment gateway and application settings.',
-  },
-  users: {
-    title: 'Users & Customers',
-    description: 'View administrator and customer accounts, branch assignments and login IDs.',
   },
 }
 
@@ -246,115 +241,6 @@ function Loading() {
 }
 function ErrorBox({ text }: { text: string }) {
   return text ? <div className="workspace-error">{text}</div> : null
-}
-
-function UsersCustomers() {
-  const [users, setUsers] = useState<any[]>([])
-  const [branches, setBranches] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [search, setSearch] = useState('')
-
-  const load = async () => {
-    if (!supabase) return
-    setLoading(true)
-    setError('')
-    const [usersResult, branchesResult] = await Promise.all([
-      dbFrom('profiles')
-        .select('id,full_name,role,branch_id,login_id,phone,status,created_at')
-        .order('created_at', { ascending: false }),
-      dbFrom('branches').select('id,name,code').order('name'),
-    ])
-    if (usersResult.error || branchesResult.error) {
-      setError(
-        usersResult.error?.message || branchesResult.error?.message || 'Unable to load users.',
-      )
-      setUsers([])
-    } else {
-      const branchMap = Object.fromEntries((branchesResult.data || []).map((b: any) => [b.id, b]))
-      setBranches(branchesResult.data || [])
-      setUsers(
-        (usersResult.data || []).map((u: any) => ({
-          ...u,
-          branch_name: branchMap[u.branch_id]?.name || '—',
-          branch_code: branchMap[u.branch_id]?.code || '—',
-        })),
-      )
-    }
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    void load()
-  }, [])
-
-  const filtered = users.filter((u) => {
-    const q = search.trim().toLowerCase()
-    if (!q) return true
-    return [u.full_name, u.login_id, u.role, u.phone, u.branch_name, u.branch_code].some((value) =>
-      String(value || '')
-        .toLowerCase()
-        .includes(q),
-    )
-  })
-
-  return (
-    <>
-      <Toolbar onRefresh={load}>
-        <input
-          className="workspace-search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search users & customers"
-        />
-      </Toolbar>
-      <ErrorBox text={error} />
-      {loading ? (
-        <Loading />
-      ) : (
-        <Panel>
-          <div className="panel-heading">
-            <div>
-              <h2>Users & Customers</h2>
-              <p className="workspace-muted">
-                Administrator and customer accounts. Passwords are managed by Supabase Auth and are
-                never stored or displayed in plaintext.
-              </p>
-            </div>
-            <span className="workspace-status">{filtered.length} users</span>
-          </div>
-          <div className="workspace-table">
-            <div className="workspace-row admin-table-header users-row">
-              <strong>User</strong>
-              <span>Login ID</span>
-              <span>Role</span>
-              <span>Branch</span>
-              <span>Phone</span>
-              <span>Password</span>
-              <span>Status</span>
-            </div>
-            {filtered.map((u) => (
-              <div className="workspace-row users-row" key={u.id}>
-                <strong>{u.full_name || '—'}</strong>
-                <span>{u.login_id || '—'}</span>
-                <span>{u.role || '—'}</span>
-                <span>{u.branch_name}</span>
-                <span>{u.phone || '—'}</span>
-                <span title="Passwords cannot be read from Supabase Auth">••••••••</span>
-                <span>{u.status || '—'}</span>
-              </div>
-            ))}
-            {!filtered.length && <div className="workspace-empty">No users found.</div>}
-          </div>
-          <div className="workspace-note" style={{ marginTop: 16 }}>
-            <strong>Password:</strong> Existing passwords cannot be retrieved from Supabase Auth. If
-            a user needs a new password, use the password reset flow rather than exposing or storing
-            the existing password.
-          </div>
-        </Panel>
-      )}
-    </>
-  )
 }
 
 function Branches() {
@@ -2106,6 +1992,7 @@ function PackageEditorScreen({
   editing: any
   setEditing: (value: any) => void
   products: any[]
+  categories: any[]
   items: any[]
   onBack: () => void
   onSave: (value: any) => Promise<void>
@@ -2259,6 +2146,7 @@ function PackageEditorScreen({
               <thead>
                 <tr>
                   <th>#</th>
+                  <th>Category</th>
                   <th>Product</th>
                   <th>Quantity</th>
                   <th>Size Selection</th>
@@ -2273,6 +2161,12 @@ function PackageEditorScreen({
                   return (
                     <tr key={item.id || `item-${index}`}>
                       <td>{index + 1}</td>
+                      <td>
+                        <strong>
+                          {categories.find((c) => c.id === product?.category_id)?.name ||
+                            'Uncategorized'}
+                        </strong>
+                      </td>
                       <td>
                         <strong>{product?.name || item.product_id}</strong>
                       </td>
@@ -3355,6 +3249,7 @@ function Packages({
 }) {
   const [rows, setRows] = useState<any[]>([]),
     [products, setProducts] = useState<any[]>([]),
+    [categories, setCategories] = useState<any[]>([]),
     [items, setItems] = useState<any[]>([]),
     [editing, setEditing] = useState<any>(null),
     [itemEditing, setItemEditing] = useState<any>(null),
@@ -3371,40 +3266,50 @@ function Packages({
       setLoading(false)
       return
     }
-    const [p, x, pi] = await Promise.all([
+    const [p, x, pi, c] = await Promise.all([
       dbFrom('uniform_packages').select('*').eq('branch_id', branchId).order('name'),
       dbFrom('products')
-        .select('id,name,gender,base_price')
+        .select('id,name,gender,base_price,category_id')
         .eq('branch_id', branchId)
         .eq('status', 'active')
         .order('name'),
       dbFrom('package_items')
         .select('package_id,product_id,quantity,sort_order')
         .order('sort_order'),
+      dbFrom('product_categories').select('id,name').eq('status', 'active').order('name'),
     ])
 
     const productMap = Object.fromEntries(
       (x.data ?? []).map((product: any) => [product.id, product]),
     )
-    const packageItemsMap: Record<string, string[]> = {}
+    const categoryMap = Object.fromEntries(
+      (c.data ?? []).map((category: any) => [category.id, category]),
+    )
+    const packageItemsMap: Record<string, any[]> = {}
 
     for (const item of pi.data ?? []) {
       const product = productMap[item.product_id]
       if (!product) continue
       if (!packageItemsMap[item.package_id]) packageItemsMap[item.package_id] = []
-      packageItemsMap[item.package_id].push(
-        `${product.name}${Number(item.quantity || 1) > 1 ? ` × ${item.quantity}` : ''}`,
-      )
+      packageItemsMap[item.package_id].push({
+        product_name: product.name,
+        category_name: categoryMap[product.category_id]?.name || 'Uncategorized',
+        quantity: Number(item.quantity || 1),
+      })
     }
 
     setRows(
       (p.data ?? []).map((pkg: any) => ({
         ...pkg,
-        item_names: packageItemsMap[pkg.id] ?? [],
+        item_names: (packageItemsMap[pkg.id] ?? []).map((item) =>
+          `${item.product_name}${item.quantity > 1 ? ` × ${item.quantity}` : ''}`,
+        ),
+        item_details: packageItemsMap[pkg.id] ?? [],
       })),
     )
     setProducts(x.data ?? [])
-    setError(p.error?.message || x.error?.message || pi.error?.message || '')
+    setCategories(c.data ?? [])
+    setError(p.error?.message || x.error?.message || pi.error?.message || c.error?.message || '')
     setLoading(false)
   }
   const downloadPackageTemplate = () => {
@@ -3709,7 +3614,7 @@ function Packages({
 
       if (productIds.length) {
         const productsResult = await dbFrom('products')
-          .select('id,name,gender,base_price')
+          .select('id,name,gender,base_price,category_id')
           .in('id', productIds)
 
         if (cancelled) return
@@ -3911,7 +3816,8 @@ function Packages({
                   <strong>Package</strong>
                   <span>Gender</span>
                   <span>Base Price</span>
-                  <span>Items</span>
+                  <span>Categories</span>
+                  <span>Products Assigned</span>
                   <span>Actions</span>
                 </div>
                 {rows.map((x) => (
@@ -3920,14 +3826,30 @@ function Packages({
                     <span>{formatGender(x.gender)}</span>
                     <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
                     <span>
-                      {x.item_names?.length ? (
+                      {x.item_details?.length ? (
                         <span className="package-list-items">
-                          {x.item_names.map((name: string, index: number) => (
-                            <span key={`${x.id}-item-${index}`}>{name}</span>
+                          {Array.from(
+                            new Set(x.item_details.map((item: any) => item.category_name)),
+                          ).map((category: string) => (
+                            <span key={`${x.id}-category-${category}`}>{category}</span>
                           ))}
                         </span>
                       ) : (
-                        'No items configured'
+                        '—'
+                      )}
+                    </span>
+                    <span>
+                      {x.item_details?.length ? (
+                        <span className="package-list-items">
+                          {x.item_details.map((item: any, index: number) => (
+                            <span key={`${x.id}-product-${index}`}>
+                              <strong>{item.category_name}</strong> · {item.product_name}
+                              {item.quantity > 1 ? ` × ${item.quantity}` : ''}
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        'No products assigned'
                       )}
                     </span>
                     <button
@@ -4111,6 +4033,7 @@ function Packages({
           editing={editing}
           setEditing={setEditing}
           products={products}
+          categories={categories}
           items={items}
           onBack={() => {
             window.history.pushState(
@@ -4158,7 +4081,12 @@ function Packages({
             label="Product"
             value={itemEditing.product_id}
             options={products.map((x) => x.id)}
-            labels={Object.fromEntries(products.map((x) => [x.id, x.name]))}
+            labels={Object.fromEntries(
+              products.map((x) => [
+                x.id,
+                `${categories.find((c) => c.id === x.category_id)?.name || 'Uncategorized'} · ${x.name}`,
+              ]),
+            )}
             onChange={(v) => {
               setItemEditing({ ...itemEditing, product_id: v, variant_ids: [] })
               void loadItemVariants(v)

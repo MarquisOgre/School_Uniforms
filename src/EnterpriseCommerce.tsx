@@ -20,9 +20,7 @@ import { supabase } from './lib/supabase'
 
 const db = (table: string): any => (supabase as any)?.from(table)
 type Tab =
-  | 'payments'
   | 'shipping'
-  | 'fulfillment'
   | 'returns'
   | 'invoices'
   | 'marketing'
@@ -31,11 +29,9 @@ type Tab =
   | 'access'
 
 export default function EnterpriseCommerce() {
-  const [tab, setTab] = useState<Tab>('payments')
+  const [tab, setTab] = useState<Tab>('shipping')
   const tabs = [
-    ['payments', 'Payments'],
     ['shipping', 'Shipping'],
-    ['fulfillment', 'Fulfillment'],
     ['returns', 'Returns & Refunds'],
     ['invoices', 'Invoices'],
     ['marketing', 'Marketing'],
@@ -64,9 +60,7 @@ export default function EnterpriseCommerce() {
           </button>
         ))}
       </div>
-      {tab === 'payments' && <Payments />}
       {tab === 'shipping' && <Shipping />}
-      {tab === 'fulfillment' && <Fulfillment />}
       {tab === 'returns' && <Returns />}
       {tab === 'invoices' && <Invoices />}
       {tab === 'marketing' && <Marketing />}

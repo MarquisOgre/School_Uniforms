@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircle, Send, X } from 'lucide-react'
+import { MessageCircle, Send, X, UserRound } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
-type ChatWidgetProps = {
-  branchId?: string
-}
+type ChatWidgetProps = { branchId?: string }
 
 type Message = {
   id: string
@@ -37,10 +35,8 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
     const { data } = (supabase as any).auth.onAuthStateChange((_event: string, session: any) => {
       setAuthenticated(Boolean(session?.user))
       setCurrentUserId(session?.user?.id ?? null)
-      if (!session?.user) {
-        setConversationId(null)
-        setMessages([])
-      }
+      setConversationId(null)
+      setMessages([])
     })
     return () => {
       active = false
@@ -53,7 +49,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
     let cancelled = false
     const client = supabase as any
 
-    async function load() {
+    async function loadSupportHistory() {
       setLoading(true)
       setError('')
       const { data: userData } = await client.auth.getUser()
@@ -82,11 +78,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
       if (!conversation) {
         const created = await client
           .from('support_conversations')
-          .insert({
-            customer_user_id: user.id,
-            branch_id: branchId,
-            status: 'open',
-          })
+          .insert({ customer_user_id: user.id, branch_id: branchId, status: 'open' })
           .select('id,status,updated_at')
           .single()
         if (created.error) {
@@ -102,6 +94,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
         .select('id,sender_user_id,message,created_at')
         .eq('conversation_id', conversation.id)
         .order('created_at')
+
       if (!cancelled) {
         setConversationId(conversation.id)
         setMessages(rows ?? [])
@@ -110,7 +103,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
       }
     }
 
-    void load()
+    void loadSupportHistory()
     return () => {
       cancelled = true
     }
@@ -136,9 +129,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
         },
       )
       .subscribe()
-    return () => {
-      void client.removeChannel(channel)
-    }
+    return () => void client.removeChannel(channel)
   }, [conversationId])
 
   useEffect(() => {
@@ -147,22 +138,49 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
 
   const send = async () => {
     const text = draft.trim()
-    if (!text || !conversationId || !supabase || sending) return
+    if (!text || !branchId || !supabase || sending) return
     setSending(true)
-    const { data } = await (supabase as any).auth.getUser()
-    const user = data?.user
-    if (!user) {
-      setError('Please sign in to use chat.')
+    setError('')
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      sender_user_id: currentUserId,
+      message: text,
+      created_at: new Date().toISOString(),
+    }
+    setMessages((current) => [...current, userMessage])
+    setDraft('')
+
+    const { data, error: aiError } = await (supabase as any).functions.invoke(
+      'ai-uniform-assistant',
+      { body: { branchId, message: text } },
+    )
+
+    if (!aiError && data?.reply) {
+      setMessages((current) => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          sender_user_id: null,
+          message: data.reply,
+          created_at: new Date().toISOString(),
+        },
+      ])
       setSending(false)
       return
     }
-    const { error: sendError } = await (supabase as any).from('support_messages').insert({
-      conversation_id: conversationId,
-      sender_user_id: user.id,
-      message: text,
-    })
-    if (sendError) setError(sendError.message)
-    else setDraft('')
+
+    // Keep the existing human-support path as a fallback for authenticated parents.
+    if (authenticated && conversationId) {
+      const { error: sendError } = await (supabase as any).from('support_messages').insert({
+        conversation_id: conversationId,
+        sender_user_id: currentUserId,
+        message: text,
+      })
+      if (sendError) setError(sendError.message)
+    } else {
+      setError(aiError?.message || data?.error || 'AI assistant is temporarily unavailable.')
+    }
     setSending(false)
   }
 
@@ -178,42 +196,31 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
           <div className="chat-widget-header">
             <div>
               <strong>Chat with us</strong>
-              <span>{authenticated ? 'Support team' : 'School Uniform Support'}</span>
+              <span>AI Uniform Assistant</span>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Close chat">
               <X size={19} />
             </button>
           </div>
 
-          {!authenticated ? (
+          {!branchId ? (
             <div className="chat-login-prompt">
               <MessageCircle size={34} />
-              <h3>Need help?</h3>
-              <p>Please log in as Parent / Student to start a support chat with our team.</p>
-              <button
-                onClick={() => {
-                  setOpen(false)
-                  window.dispatchEvent(new CustomEvent('open-parent-login'))
-                }}
-              >
-                Parent / Student Login
-              </button>
-            </div>
-          ) : !branchId ? (
-            <div className="chat-login-prompt">
-              <MessageCircle size={34} />
-              <p>
-                Your branch is not selected yet. Open your branch store to start chatting with
-                support.
-              </p>
+              <p>Your branch is not selected yet. Open your branch store to start chatting.</p>
             </div>
           ) : (
             <>
+              <div className="chat-ai-note">
+                <UserRound size={15} />
+                Ask about classes, uniform products, measurements and available sizes.
+              </div>
               <div className="chat-messages">
-                {loading ? <div className="chat-status">Loading chat...</div> : null}
-                {!loading && !messages.length ? (
+                {loading ? <div className="chat-status">Loading your previous chat...</div> : null}
+                {!messages.length && !loading ? (
                   <div className="chat-status">
-                    Send us a message and our support team will reply here.
+                    Hi! Tell me the student's class and what uniform item you need. If you know
+                    the chest, waist, height or foot measurement, include it and I can check the
+                    configured size chart.
                   </div>
                 ) : null}
                 {messages.map((item) => (
@@ -221,7 +228,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
                     key={item.id}
                     className={
                       'chat-message ' +
-                      (item.sender_user_id === currentUserId
+                      (item.sender_user_id === currentUserId && item.sender_user_id
                         ? 'customer-message'
                         : 'support-message')
                     }
@@ -248,7 +255,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder="e.g. Class 5, shirt, chest 72 cm..."
                   maxLength={1000}
                 />
                 <button type="submit" disabled={!draft.trim() || sending} aria-label="Send message">
