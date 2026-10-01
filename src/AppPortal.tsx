@@ -26,6 +26,7 @@ import {
   MapPin,
   Mail,
   Phone,
+  FileText,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import type { CheckoutCartItem } from './CheckoutFlow'
@@ -1762,7 +1763,7 @@ function Orders({ students = [] }: { students?: any[] }) {
       const r = await client
         .from('orders')
         .select(
-          'id,order_number,status,subtotal,shipping_total,grand_total,currency,created_at,student_id',
+          'id,order_number,status,subtotal,shipping_total,grand_total,currency,created_at,student_id,branch_id',
         )
         .order('created_at', { ascending: false })
       if (r.error) {
@@ -1780,6 +1781,7 @@ function Orders({ students = [] }: { students?: any[] }) {
           currency: string
           created_at: string
           student_id: string | null
+          branch_id: string
         }>,
         ids = orders.map((x) => x.id)
       const ir = ids.length
@@ -1880,6 +1882,27 @@ function Orders({ students = [] }: { students?: any[] }) {
               <div className="order-card-total">
                 <span>Total</span>
                 <strong>₹{Number(x.grand_total).toLocaleString('en-IN')}</strong>
+              </div>
+              <div className="order-card-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                <button type="button" className="secondary-button" onClick={async () => {
+                  const client = supabase as any
+                  if (!client) return
+                  const invoice = await client.from('invoices').select('invoice_number,issued_at,orders(order_number,grand_total,shipping_address)').eq('order_id', x.id).maybeSingle()
+                  if (invoice.error || !invoice.data) { window.alert('Invoice is not available yet.'); return }
+                  const address = invoice.data.orders?.shipping_address || {}
+                  const w = window.open('', '_blank', 'width=900,height=700')
+                  if (!w) return
+                  w.document.write('<html><head><title>'+invoice.data.invoice_number+'</title></head><body style="font-family:Arial;padding:40px"><h1>INVOICE</h1><p><b>'+invoice.data.invoice_number+'</b></p><p>'+String(address.recipient_name||'Customer')+'<br>'+String(address.address_line1||'')+'<br>'+String(address.city||'')+' '+String(address.state||'')+' '+String(address.postal_code||'')+'</p><h2>Order '+String(invoice.data.orders?.order_number||x.order_number)+'</h2><p>Grand Total: ₹'+Number(invoice.data.orders?.grand_total||x.grand_total).toFixed(2)+'</p><script>window.print()</script></body></html>')
+                  w.document.close()
+                }}><FileText size={15}/> Invoice / PDF</button>
+                {!['cancelled','returned','refunded'].includes(x.status) ? <button type="button" className="secondary-button" onClick={async () => {
+                  const reason = window.prompt('Return reason')
+                  if (!reason) return
+                  const client = supabase as any
+                  const user = await client.auth.getUser()
+                  const result = await client.from('returns').insert({ order_id: x.id, customer_user_id: user.data.user?.id, branch_id: x.branch_id, reason, status: 'requested' })
+                  window.alert(result.error ? result.error.message : 'Return request submitted.')
+                }}><RotateCcw size={15}/> Request Return</button> : null}
               </div>
             </article>
           ))}
