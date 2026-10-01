@@ -158,10 +158,7 @@ export default function AdminWorkspace({
                   </button>
                 </div>
               ) : module === 'settings' ? (
-                <button
-                  className="secondary-button"
-                  onClick={() => window.location.reload()}
-                >
+                <button className="secondary-button" onClick={() => window.location.reload()}>
                   <RefreshCw size={15} /> Refresh
                 </button>
               ) : module === 'orders' ? (
