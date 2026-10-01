@@ -175,17 +175,28 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
     setDraft('')
 
     if (user && branchId && conversationId) {
-      const { error: sendError } = await (supabase as any).from('support_messages').insert({
-        conversation_id: conversationId,
-        sender_user_id: user.id,
-        message: text,
-      })
-      if (sendError) {
+      const { data: savedCustomerMessage, error: sendError } = await (supabase as any)
+        .from('support_messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_user_id: user.id,
+          message: text,
+        })
+        .select('id,sender_user_id,message,created_at')
+        .single()
+
+      if (sendError || !savedCustomerMessage) {
         setMessages((current) => current.filter((item) => item.id !== customerMessage.id))
-        setError(sendError.message)
+        setError(sendError?.message || 'Unable to save your message.')
         setSending(false)
         return
       }
+
+      // Replace the optimistic message with the persisted row. The realtime
+      // listener will see the same database id and will not add it again.
+      setMessages((current) =>
+        current.map((item) => (item.id === customerMessage.id ? savedCustomerMessage : item)),
+      )
     }
 
     const history: ApiMessage[] = [...messages, customerMessage].slice(-8).map((item) => ({
@@ -223,15 +234,27 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
         message: aiText,
         created_at: new Date().toISOString(),
       }
-      setMessages((current) => [...current, aiMessage])
-
       if (user && branchId && conversationId) {
-        const { error: aiInsertError } = await (supabase as any).from('support_messages').insert({
-          conversation_id: conversationId,
-          sender_user_id: null,
-          message: aiText,
-        })
-        if (aiInsertError) throw new Error(aiInsertError.message)
+        const { data: savedAiMessage, error: aiInsertError } = await (supabase as any)
+          .from('support_messages')
+          .insert({
+            conversation_id: conversationId,
+            sender_user_id: null,
+            message: aiText,
+          })
+          .select('id,sender_user_id,message,created_at')
+          .single()
+
+        if (aiInsertError || !savedAiMessage) {
+          throw new Error(aiInsertError?.message || 'Unable to save the AI response.')
+        }
+
+        // Add the persisted response once. The realtime listener receives the
+        // same id and ignores it.
+        setMessages((current) => [...current, savedAiMessage])
+      } else {
+        // Visitors do not persist messages, so add the AI response locally.
+        setMessages((current) => [...current, aiMessage])
       }
     } catch (err) {
       setMessages((current) => current.filter((item) => item.id !== customerMessage.id))
@@ -280,7 +303,8 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
                     key={item.id}
                     className={
                       'chat-message ' +
-                      (item.sender_user_id === currentUserId
+                      ((currentUserId && item.sender_user_id === currentUserId) ||
+                      (!currentUserId && item.sender_user_id === 'visitor')
                         ? 'customer-message'
                         : 'support-message')
                     }
