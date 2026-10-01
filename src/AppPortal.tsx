@@ -1314,7 +1314,8 @@ function ProductDetail({
     [color, setColor] = useState(''),
     [quantity, setQuantity] = useState(1),
     [mainImage, setMainImage] = useState(item.image || '/category-packages.jpg'),
-    [bundleSizes, setBundleSizes] = useState<Record<string, string>>({})
+    [bundleSizes, setBundleSizes] = useState<Record<string, string>>({}),
+    [relatedProducts, setRelatedProducts] = useState<any[]>([])
   const productOptions: {
     id: string
     label: string
