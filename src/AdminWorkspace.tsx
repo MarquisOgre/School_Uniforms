@@ -1937,7 +1937,8 @@ function Products({
                       Edit
                       </button>
                     </div>
-                  )
+                  </div>
+                )
                 })}
               </div>
             </Panel>
