@@ -348,7 +348,9 @@ export default function CheckoutFlow({
       }
     }
     void loadShipping()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [branchId, address.state, address.pincode, total])
 
   useEffect(() => {
