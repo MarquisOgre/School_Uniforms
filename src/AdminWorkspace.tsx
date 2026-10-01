@@ -1052,13 +1052,35 @@ function Products({
       setLoading(false)
       return
     }
-    const [p, c] = await Promise.all([
-      dbFrom('products').select('*').eq('branch_id', branchId).order('name'),
+    const [bp, c] = await Promise.all([
+      dbFrom('branch_products')
+        .select('product_id,branch_price,is_visible')
+        .eq('branch_id', branchId)
+        .eq('is_visible', true),
       dbFrom('product_categories').select('*').eq('status', 'active').order('name'),
     ])
-    setRows(p.data ?? [])
+    if (bp.error || c.error) {
+      setRows([])
+      setCategories(c.data ?? [])
+      setError(bp.error?.message || c.error?.message || '')
+      setLoading(false)
+      return
+    }
+    const productIds = (bp.data || []).map((x: any) => x.product_id)
+    const p = productIds.length
+      ? await dbFrom('products').select('*').in('id', productIds).order('name')
+      : { data: [], error: null }
+    const branchPrices = Object.fromEntries(
+      (bp.data || []).map((x: any) => [x.product_id, x.branch_price]),
+    )
+    setRows(
+      (p.data || []).map((product: any) => ({
+        ...product,
+        branch_price: branchPrices[product.id] ?? product.offer_price ?? product.base_price ?? 0,
+      })),
+    )
     setCategories(c.data ?? [])
-    setError(p.error?.message || c.error?.message || '')
+    setError(p.error?.message || '')
     setLoading(false)
   }
 
@@ -1137,58 +1159,80 @@ function Products({
       setLoading(true)
       setError('')
 
+      const linksResult = await dbFrom('branch_products')
+        .select('product_id')
+        .eq('branch_id', branchId)
+        .eq('is_visible', true)
+
+      if (cancelled) return
+      if (linksResult.error) {
+        setError(linksResult.error.message)
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+
+      const productIds = (linksResult.data || []).map((x: any) => x.product_id)
+      if (!productIds.length) {
+        setError('Product not found.')
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+
+      let product: any = null
       const slugResult = await dbFrom('products')
         .select('*')
+        .in('id', productIds)
         .eq('slug', productSlug)
-        .eq('branch_id', branchId)
         .maybeSingle()
 
       if (cancelled) return
+      if (slugResult.error) {
+        setError(slugResult.error.message)
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+      product = slugResult.data
 
-      let product = slugResult.data
-
-      if (!product && !slugResult.error && /^[0-9a-f-]{36}$/i.test(productSlug)) {
+      if (!product && /^[0-9a-f-]{36}$/i.test(productSlug)) {
         const idResult = await dbFrom('products')
           .select('*')
+          .in('id', productIds)
           .eq('id', productSlug)
-          .eq('branch_id', branchId)
           .maybeSingle()
 
         if (cancelled) return
-
         if (idResult.error) {
           setError(idResult.error.message)
           setEditing(null)
           setLoading(false)
           return
         }
-
         product = idResult.data
       }
 
-      if (!product && !slugResult.error) {
+      if (!product) {
         const nameFromSlug = decodeURIComponent(productSlug).replace(/-/g, ' ').trim()
-
         const nameResult = await dbFrom('products')
           .select('*')
-          .eq('branch_id', branchId)
+          .in('id', productIds)
           .ilike('name', nameFromSlug)
           .maybeSingle()
 
         if (cancelled) return
-
         if (nameResult.error) {
           setError(nameResult.error.message)
           setEditing(null)
           setLoading(false)
           return
         }
-
         product = nameResult.data
       }
 
-      if (slugResult.error || !product) {
-        setError(slugResult.error?.message || 'Product not found.')
+      if (!product) {
+        setError('Product not found.')
         setEditing(null)
         setLoading(false)
         return
@@ -1275,12 +1319,14 @@ function Products({
           : Number(editing.offer_price),
       discount_percentage: Number(editing.discount_percentage || 0),
       status: editing.status || 'active',
-      branch_id: branchId,
     }
 
     const result = editing.id
-      ? await dbFrom('products').update(payload).eq('id', editing.id).eq('branch_id', branchId)
-      : await dbFrom('products').insert(payload).select('id').single()
+      ? await dbFrom('products').update(payload).eq('id', editing.id)
+      : await dbFrom('products')
+          .insert({ ...payload, branch_id: branchId })
+          .select('id')
+          .single()
 
     if (result.error) {
       setError(result.error.message)
