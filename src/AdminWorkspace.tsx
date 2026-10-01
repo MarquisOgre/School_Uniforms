@@ -7230,50 +7230,34 @@ function Settings() {
   const [section, setSection] = useState<SettingsSection>('general')
 
   return (
-    <div className="settings-center">
+    <div className="workspace-body settings-center">
       <div className="workspace-heading">
-        <h1>Settings</h1>
-        <p>
-          Configure the school store. Transactions, customer records, inventory and CMS content stay
-          in their dedicated modules.
-        </p>
+        <div>
+          <h1>Settings</h1>
+          <p>
+            Configure the school store. Transactions, customer records, inventory and CMS content stay
+            in their dedicated modules.
+          </p>
+        </div>
+        <button className="secondary-button" onClick={() => window.location.reload()}>
+          <RefreshCw size={15} /> Refresh
+        </button>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '260px minmax(0,1fr)',
-          gap: 22,
-          alignItems: 'start',
-        }}
-      >
-        <aside className="workspace-panel" style={{ padding: 10, position: 'sticky', top: 12 }}>
-          {SETTINGS_SECTIONS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setSection(item.id)}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                padding: '12px 14px',
-                border: 0,
-                borderRadius: 8,
-                background: section === item.id ? '#fff1cf' : 'transparent',
-                color: '#152a2e',
-                cursor: 'pointer',
-                marginBottom: 4,
-              }}
-            >
-              <strong style={{ display: 'block', fontSize: 13 }}>{item.label}</strong>
-              <span style={{ display: 'block', fontSize: 10, opacity: 0.7, marginTop: 3 }}>
-                {item.description}
-              </span>
-            </button>
-          ))}
-        </aside>
+      <div className="admin-module-tabs settings-module-tabs">
+        {SETTINGS_SECTIONS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={section === item.id ? 'active' : ''}
+            onClick={() => setSection(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
-        <main style={{ display: 'grid', gap: 18 }}>
+      <div className="settings-tab-content">
           {section === 'general' && (
             <SystemConfigurationPanel
               settingKey="general"
@@ -7624,7 +7608,7 @@ function Settings() {
               )}
             </SystemConfigurationPanel>
           )}
-        </main>
+
       </div>
     </div>
   )
