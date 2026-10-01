@@ -33,7 +33,14 @@ Deno.serve(async (req) => {
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
 
   if (!openRouterKey || !supabaseUrl || !supabaseAnonKey) {
-    return json({ error: 'AI support is not configured on the server.' }, 500)
+    return json({
+      error: 'AI support is not configured on the server.',
+      diagnostics: {
+        openRouterApiKey: Boolean(openRouterKey),
+        supabaseUrl: Boolean(supabaseUrl),
+        supabaseAnonKey: Boolean(supabaseAnonKey),
+      },
+    }, 500)
   }
 
   // Authentication is optional: visitors can use the AI assistant before logging in.
