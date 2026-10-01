@@ -1,0 +1,6 @@
+-- AI support chat is intentionally kept behind a server-side Edge Function.
+-- No provider API key is stored in the database or frontend.
+-- Configure OPENROUTER_API_KEY as a Supabase Edge Function secret.
+-- Optional:
+--   OPENROUTER_MODEL=openrouter/free
+--   OPENROUTER_SITE_URL=<public site URL>

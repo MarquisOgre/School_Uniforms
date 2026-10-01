@@ -8088,8 +8088,8 @@ a {
 /* Keep uniform package columns aligned with the Edit action on the same row. */
 .workspace-row.package-row {
   grid-template-columns:
-    minmax(220px, 1.5fr) minmax(90px, 0.7fr) minmax(110px, 0.8fr)
-    minmax(160px, 1fr) minmax(280px, 2fr) auto;
+    minmax(260px, 2fr) minmax(100px, 0.8fr) minmax(120px, 0.9fr) minmax(180px, 1.25fr)
+    auto;
 }
 
 .workspace-row.package-row button {
@@ -8631,6 +8631,13 @@ a {
   }
 }
 
+.admin-workspace .coupon-row {
+  grid-template-columns:
+    minmax(150px, 1.35fr) minmax(130px, 1.05fr) minmax(90px, 0.8fr)
+    minmax(75px, 0.65fr) minmax(95px, 0.8fr) minmax(95px, 0.8fr)
+    minmax(95px, 0.8fr) auto;
+}
+
 .admin-workspace .payment-settings-row {
   display: grid;
   grid-template-columns:
@@ -8697,6 +8704,59 @@ a {
 
   .admin-workspace .workspace-products .product-row > button {
     justify-self: stretch;
+  }
+}
+
+/* Coupons workspace: keep page title/description on the left and actions on the right. */
+.admin-workspace .workspace-coupons {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'title toolbar'
+    'description toolbar'
+    'error error'
+    'body body';
+  align-content: start;
+  column-gap: 24px;
+}
+
+.admin-workspace .workspace-coupons > .workspace-heading {
+  display: contents;
+}
+
+.admin-workspace .workspace-coupons > .workspace-heading h1 {
+  grid-area: title;
+  margin: 4px 0 8px;
+}
+
+.admin-workspace .workspace-coupons > .workspace-heading p {
+  grid-area: description;
+  margin: 0 0 18px;
+}
+
+.admin-workspace .workspace-coupons > .workspace-toolbar {
+  grid-area: toolbar;
+  margin: 0 0 18px;
+  align-self: center;
+}
+
+.admin-workspace .workspace-coupons > .workspace-error {
+  grid-area: error;
+}
+
+.admin-workspace .workspace-coupons > .workspace-panel {
+  grid-area: body;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .admin-workspace .workspace-coupons {
+    display: block;
+  }
+
+  .admin-workspace .workspace-coupons > .workspace-toolbar {
+    margin-top: 16px;
   }
 }
 
@@ -9439,8 +9499,12 @@ a {
   right: 24px;
   bottom: 78px;
   z-index: 95;
-  width: min(360px, calc(100vw - 32px));
-  height: min(520px, calc(100vh - 110px));
+  width: min(420px, calc(100vw - 32px));
+  height: min(620px, calc(100vh - 110px));
+  min-width: 320px;
+  min-height: 420px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 96px);
   background: #fff;
   border: 1px solid #dedede;
   border-radius: 12px;
@@ -9448,6 +9512,8 @@ a {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  resize: both;
+  box-sizing: border-box;
 }
 
 .chat-widget-header {
@@ -9515,6 +9581,21 @@ a {
   font-size: 11px;
 }
 
+.chat-ai-intro {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #e7e0d7;
+  background: #fffaf0;
+  color: #667277;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.chat-ai-intro svg {
+  flex: 0 0 auto;
+  color: #2bb3a6;
+}
 .chat-messages {
   flex: 1;
   overflow-y: auto;
