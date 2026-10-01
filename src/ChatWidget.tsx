@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircle, Send, X, UserRound } from 'lucide-react'
+import { MessageCircle, Send, X, Sparkles } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
-type ChatWidgetProps = { branchId?: string }
+type ChatWidgetProps = {
+  branchId?: string
+  studentId?: string
+}
 
 type Message = {
   id: string
@@ -11,7 +14,12 @@ type Message = {
   created_at: string
 }
 
-export default function ChatWidget({ branchId }: ChatWidgetProps) {
+type ApiMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export default function ChatWidget({ branchId, studentId }: ChatWidgetProps) {
   const [open, setOpen] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -35,8 +43,10 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
     const { data } = (supabase as any).auth.onAuthStateChange((_event: string, session: any) => {
       setAuthenticated(Boolean(session?.user))
       setCurrentUserId(session?.user?.id ?? null)
-      setConversationId(null)
-      setMessages([])
+      if (!session?.user) {
+        setConversationId(null)
+        setMessages([])
+      }
     })
     return () => {
       active = false
@@ -45,21 +55,26 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
   }, [])
 
   useEffect(() => {
-    if (!open || !authenticated || !branchId || !supabase) return
+    if (!open || !supabase) return
     let cancelled = false
     const client = supabase as any
 
-    async function loadSupportHistory() {
+    async function load() {
       setLoading(true)
       setError('')
+
+      // A visitor can use AI chat without a branch. Persistent conversations
+      // require both an authenticated customer and a selected branch.
       const { data: userData } = await client.auth.getUser()
       const user = userData?.user
-      if (!user) {
+      if (!user || !branchId) {
+        setConversationId(null)
+        setMessages([])
         setLoading(false)
         return
       }
 
-      let { data: conversations, error: conversationError } = await client
+      const { data: conversations, error: conversationError } = await client
         .from('support_conversations')
         .select('id,status,updated_at')
         .eq('customer_user_id', user.id)
@@ -78,7 +93,11 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
       if (!conversation) {
         const created = await client
           .from('support_conversations')
-          .insert({ customer_user_id: user.id, branch_id: branchId, status: 'open' })
+          .insert({
+            customer_user_id: user.id,
+            branch_id: branchId,
+            status: 'open',
+          })
           .select('id,status,updated_at')
           .single()
         if (created.error) {
@@ -103,7 +122,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
       }
     }
 
-    void loadSupportHistory()
+    void load()
     return () => {
       cancelled = true
     }
@@ -129,7 +148,9 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
         },
       )
       .subscribe()
-    return () => void client.removeChannel(channel)
+    return () => {
+      void client.removeChannel(channel)
+    }
   }, [conversationId])
 
   useEffect(() => {
@@ -138,55 +159,145 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
 
   const send = async () => {
     const text = draft.trim()
-    if (!text || !branchId || !supabase || sending) return
+    if (!text || !supabase || sending) return
     setSending(true)
     setError('')
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      sender_user_id: currentUserId,
+    const { data: sessionData } = await (supabase as any).auth.getSession()
+    const user = sessionData?.session?.user || null
+    const now = new Date().toISOString()
+    const customerMessage: Message = {
+      id: 'local-' + Date.now(),
+      sender_user_id: user?.id ?? 'visitor',
       message: text,
-      created_at: new Date().toISOString(),
+      created_at: now,
     }
-    setMessages((current) => [...current, userMessage])
+    setMessages((current) => [...current, customerMessage])
     setDraft('')
 
-    const { data, error: aiError } = await (supabase as any).functions.invoke(
-      'ai-uniform-assistant',
-      { body: { branchId, message: text } },
-    )
+    if (user && branchId && conversationId) {
+      const { data: savedCustomerMessage, error: sendError } = await (supabase as any)
+        .from('support_messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_user_id: user.id,
+          message: text,
+        })
+        .select('id,sender_user_id,message,created_at')
+        .single()
 
-    if (!aiError && data?.reply) {
-      setMessages((current) => [
-        ...current,
-        {
-          id: crypto.randomUUID(),
-          sender_user_id: null,
-          message: data.reply,
-          created_at: new Date().toISOString(),
-        },
-      ])
-      setSending(false)
-      return
+      if (sendError || !savedCustomerMessage) {
+        setMessages((current) => current.filter((item) => item.id !== customerMessage.id))
+        setError(sendError?.message || 'Unable to save your message.')
+        setSending(false)
+        return
+      }
+
+      // Replace the optimistic message with the persisted row. The realtime
+      // listener will see the same database id and will not add it again.
+      setMessages((current) =>
+        current.map((item) => (item.id === customerMessage.id ? savedCustomerMessage : item)),
+      )
     }
 
-    // Keep the existing human-support path as a fallback for authenticated parents.
-    if (authenticated && conversationId) {
-      const { error: sendError } = await (supabase as any).from('support_messages').insert({
-        conversation_id: conversationId,
-        sender_user_id: currentUserId,
-        message: text,
+    const history: ApiMessage[] = [...messages, customerMessage].slice(-8).map((item) => ({
+      role: item.sender_user_id === (user?.id ?? 'visitor') ? 'user' : 'assistant',
+      content: item.message,
+    }))
+
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
+      if (!supabaseUrl || !supabaseKey) throw new Error('Chat service is not configured.')
+
+      const headers: Record<string, string> = {
+        apikey: supabaseKey,
+        'Content-Type': 'application/json',
+      }
+      if (sessionData?.session?.access_token) {
+        headers.Authorization = `Bearer ${sessionData.session.access_token}`
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/ai-support-chat`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          conversationId,
+          branchId,
+          studentId,
+          message: text,
+          history,
+        }),
       })
-      if (sendError) setError(sendError.message)
-    } else {
-      setError(aiError?.message || data?.error || 'AI assistant is temporarily unavailable.')
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result?.error || 'AI support is temporarily unavailable.')
+
+      const aiText = typeof result?.reply === 'string' ? result.reply.trim() : ''
+      if (!aiText) throw new Error('The AI returned an empty response.')
+
+      const aiMessage: Message = {
+        id: 'ai-' + Date.now(),
+        sender_user_id: null,
+        message: aiText,
+        created_at: new Date().toISOString(),
+      }
+      if (user && branchId && conversationId) {
+        const { data: savedAiMessage, error: aiInsertError } = await (supabase as any)
+          .from('support_messages')
+          .insert({
+            conversation_id: conversationId,
+            sender_user_id: null,
+            message: aiText,
+          })
+          .select('id,sender_user_id,message,created_at')
+          .single()
+
+        if (aiInsertError || !savedAiMessage) {
+          throw new Error(aiInsertError?.message || 'Unable to save the AI response.')
+        }
+
+        // Add the persisted response once. The realtime listener receives the
+        // same id and ignores it.
+        setMessages((current) => [...current, savedAiMessage])
+      } else {
+        // Visitors do not persist messages, so add the AI response locally.
+        setMessages((current) => [...current, aiMessage])
+      }
+    } catch (err) {
+      // Preserve the existing class/size AI assistant as a secondary fallback
+      // if the general OpenRouter support service is temporarily unavailable.
+      if (branchId) {
+        try {
+          const { data: fallbackData, error: fallbackError } = await (supabase as any).functions.invoke(
+            'ai-uniform-assistant',
+            { body: { branchId, studentId, message: text } },
+          )
+          if (!fallbackError && typeof fallbackData?.reply === 'string' && fallbackData.reply.trim()) {
+            setMessages((current) => [
+              ...current,
+              {
+                id: 'ai-uniform-' + Date.now(),
+                sender_user_id: null,
+                message: fallbackData.reply.trim(),
+                created_at: new Date().toISOString(),
+              },
+            ])
+            return
+          }
+        } catch {
+          // Fall through to the user-facing error below.
+        }
+      }
+      setMessages((current) => current.filter((item) => item.id !== customerMessage.id))
+      setError(err instanceof Error ? err.message : 'Unable to contact AI support.')
+    } finally {
+      setSending(false)
     }
-    setSending(false)
   }
 
   return (
     <>
-      <button className="floating-chat-button" onClick={() => setOpen(true)}>
+      <button className="floating-chat-button" onClick={() => setOpen(true)} aria-label="Open chat">
         <MessageCircle size={22} />
         <span>Chat with us</span>
       </button>
@@ -196,39 +307,35 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
           <div className="chat-widget-header">
             <div>
               <strong>Chat with us</strong>
-              <span>AI Uniform Assistant</span>
+              <span>AI Support Assistant</span>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Close chat">
               <X size={19} />
             </button>
           </div>
 
-          {!branchId ? (
-            <div className="chat-login-prompt">
-              <MessageCircle size={34} />
-              <p>Your branch is not selected yet. Open your branch store to start chatting.</p>
-            </div>
-          ) : (
-            <>
-              <div className="chat-ai-note">
-                <UserRound size={15} />
-                Ask about classes, uniform products, measurements and available sizes.
+          <div className="chat-ai-intro">
+                <Sparkles size={16} />
+                <span>AI assistant is ready. Ask about uniforms, products, orders, shipping or returns.</span>
               </div>
+
               <div className="chat-messages">
-                {loading ? <div className="chat-status">Loading your previous chat...</div> : null}
-                {!messages.length && !loading ? (
+                {loading ? <div className="chat-status">Loading chat...</div> : null}
+                {!loading && !messages.length ? (
                   <div className="chat-status">
-                    Hi! Tell me the student's class and what uniform item you need. If you know the
-                    chest, waist, height or foot measurement, include it and I can check the
-                    configured size chart.
+                    <strong>Hi! 👋</strong>
+                    <br />
+                    How can I help you today?
                   </div>
                 ) : null}
+
                 {messages.map((item) => (
                   <div
                     key={item.id}
                     className={
                       'chat-message ' +
-                      (item.sender_user_id === currentUserId && item.sender_user_id
+                      ((currentUserId && item.sender_user_id === currentUserId) ||
+                      (!currentUserId && item.sender_user_id === 'visitor')
                         ? 'customer-message'
                         : 'support-message')
                     }
@@ -242,9 +349,17 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
                     </time>
                   </div>
                 ))}
+
+                {sending ? (
+                  <div className="chat-message support-message">
+                    <p>Thinking...</p>
+                  </div>
+                ) : null}
                 <div ref={endRef} />
               </div>
+
               {error ? <div className="chat-error">{error}</div> : null}
+
               <form
                 className="chat-composer"
                 onSubmit={(e) => {
@@ -255,15 +370,14 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="e.g. Class 5, shirt, chest 72 cm..."
+                  placeholder="Ask our AI assistant..."
                   maxLength={1000}
+                  disabled={sending}
                 />
                 <button type="submit" disabled={!draft.trim() || sending} aria-label="Send message">
                   <Send size={17} />
                 </button>
               </form>
-            </>
-          )}
         </div>
       ) : null}
     </>
