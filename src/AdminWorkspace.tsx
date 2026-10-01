@@ -1375,7 +1375,7 @@ function Products({
         return false
       }
 
-      const existingPriceMap = Object.fromEntries(
+      const existingPriceMap: Record<string, number | null> = Object.fromEntries(
         (existingAssignments.data || []).map((x: any) => [x.branch_id, x.branch_price]),
       )
       const wanted = new Set(assignedBranchIds)
