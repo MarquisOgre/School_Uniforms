@@ -29,7 +29,6 @@ type ModuleKey =
   | 'students'
   | 'reports'
   | 'settings'
-  | 'users'
 
 const META: Record<ModuleKey, { title: string; description: string }> = {
   branches: {
@@ -60,10 +59,6 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
   settings: {
     title: 'Settings',
     description: 'Configure secure payment gateway and application settings.',
-  },
-  users: {
-    title: 'Users & Customers',
-    description: 'View administrator and customer accounts, branch assignments and login IDs.',
   },
 }
 
@@ -221,8 +216,6 @@ function ModuleBody({
       return <InventoryAdmin />
     case 'students':
       return <ParentStudents />
-    case 'users':
-      return <UsersCustomers />
     case 'reports':
       return <Reports />
     case 'settings':
