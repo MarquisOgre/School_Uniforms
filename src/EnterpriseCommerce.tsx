@@ -277,7 +277,13 @@ function Shipping() {
                 onChange={(e) => setRate(e.target.value)}
                 placeholder="Rate"
               />
-              <input type="number" min="0" value={freeAbove} onChange={(e) => setFreeAbove(e.target.value)} placeholder="Free above" />
+              <input
+                type="number"
+                min="0"
+                value={freeAbove}
+                onChange={(e) => setFreeAbove(e.target.value)}
+                placeholder="Free above"
+              />
               <button className="secondary-button" onClick={() => void addMethod()}>
                 <Plus size={15} /> Add Flat Rate
               </button>
@@ -288,7 +294,10 @@ function Shipping() {
                   <span>
                     {m.name}
                     <small>
-                      ₹{Number(m.rate || 0).toFixed(2)} · {m.method_type}{m.free_shipping_minimum ? ' · Free above ₹' + Number(m.free_shipping_minimum).toFixed(2) : ''}
+                      ₹{Number(m.rate || 0).toFixed(2)} · {m.method_type}
+                      {m.free_shipping_minimum
+                        ? ' · Free above ₹' + Number(m.free_shipping_minimum).toFixed(2)
+                        : ''}
                     </small>
                   </span>
                   <span>{m.enabled ? 'Enabled' : 'Disabled'}</span>
