@@ -158,13 +158,15 @@ export default function CheckoutFlow({
         return
       }
 
-      const [
-        { data: userData, error: authError },
-        { data: settingsData, error: settingsError },
-      ] = await Promise.all([
-        client.auth.getUser(),
-        client.from('branch_payment_settings').select('*').eq('branch_id', branchId).maybeSingle(),
-      ])
+      const [{ data: userData, error: authError }, { data: settingsData, error: settingsError }] =
+        await Promise.all([
+          client.auth.getUser(),
+          client
+            .from('branch_payment_settings')
+            .select('*')
+            .eq('branch_id', branchId)
+            .maybeSingle(),
+        ])
 
       if (!cancelled) {
         setPaymentSettingsError(
@@ -460,16 +462,12 @@ export default function CheckoutFlow({
   const paymentValid =
     Boolean(settings) &&
     !paymentSettingsError &&
-    (
-      (paymentMethod === 'pay_at_school' && settings.pay_at_school_enabled) ||
+    ((paymentMethod === 'pay_at_school' && settings.pay_at_school_enabled) ||
       (paymentMethod === 'razorpay' && settings.razorpay_enabled) ||
-      (
-        paymentMethod === 'upi' &&
+      (paymentMethod === 'upi' &&
         settings.upi_enabled &&
         Boolean(settings.upi_id) &&
-        paymentReference.trim().length >= 4
-      )
-    )
+        paymentReference.trim().length >= 4))
   const paymentMethodAvailable = Boolean(
     settings?.pay_at_school_enabled ||
       settings?.razorpay_enabled ||
@@ -509,7 +507,9 @@ export default function CheckoutFlow({
       (paymentMethod === 'razorpay' && !settings.razorpay_enabled) ||
       (paymentMethod === 'upi' && (!settings.upi_enabled || !settings.upi_id))
     ) {
-      setError('The selected payment method is no longer available for this branch. Please select another method.')
+      setError(
+        'The selected payment method is no longer available for this branch. Please select another method.',
+      )
       return
     }
 
@@ -962,11 +962,7 @@ export default function CheckoutFlow({
 
                 <button
                   className="primary-button school-place-order"
-                  disabled={
-                    loading ||
-                    !paymentValid ||
-                    !paymentMethodAvailable
-                  }
+                  disabled={loading || !paymentValid || !paymentMethodAvailable}
                   onClick={() => void placeOrder()}
                 >
                   {loading ? (
@@ -1134,45 +1130,50 @@ export default function CheckoutFlow({
               </label>
             )}
             {settings.upi_enabled && settings.upi_id && (
-          <label className="payment-option">
-            <input
-              type="radio"
-              name="payment"
-              checked={paymentMethod === 'upi'}
-              onChange={() => setPaymentMethod('upi')}
-            />
-            <CreditCard />
-            <div>
-              <strong>UPI Payment</strong>
-              <span>Scan the QR, pay the exact amount and enter the transaction ID.</span>
-            </div>
-          </label>
-        )}
-        {paymentMethod === 'upi' && settings.upi_enabled && (
-          <div className="upi-panel">
-            <div className="upi-qr">
-              {upiUri ? (
-                <QRCodeSVG value={upiUri} size={220} marginSize={4} title="UPI payment QR code" />
-              ) : null}
-            </div>
-            <div>
-              <strong>₹{payable.toLocaleString('en-IN')}</strong>
-              <p>UPI ID: {settings.upi_id}</p>
-              <p>{settings.upi_payee_name || 'School Uniforms'}</p>
-              <a className="upi-open-button" href={upiUri}>
-                Open UPI App
-              </a>
-              <label>
-                Transaction / reference ID<span>*</span>
+              <label className="payment-option">
                 <input
-                  value={paymentReference}
-                  onChange={(e) => setPaymentReference(e.target.value)}
-                  placeholder="Enter UPI transaction ID"
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'upi'}
+                  onChange={() => setPaymentMethod('upi')}
                 />
+                <CreditCard />
+                <div>
+                  <strong>UPI Payment</strong>
+                  <span>Scan the QR, pay the exact amount and enter the transaction ID.</span>
+                </div>
               </label>
-            </div>
-          </div>
-        )}
+            )}
+            {paymentMethod === 'upi' && settings.upi_enabled && (
+              <div className="upi-panel">
+                <div className="upi-qr">
+                  {upiUri ? (
+                    <QRCodeSVG
+                      value={upiUri}
+                      size={220}
+                      marginSize={4}
+                      title="UPI payment QR code"
+                    />
+                  ) : null}
+                </div>
+                <div>
+                  <strong>₹{payable.toLocaleString('en-IN')}</strong>
+                  <p>UPI ID: {settings.upi_id}</p>
+                  <p>{settings.upi_payee_name || 'School Uniforms'}</p>
+                  <a className="upi-open-button" href={upiUri}>
+                    Open UPI App
+                  </a>
+                  <label>
+                    Transaction / reference ID<span>*</span>
+                    <input
+                      value={paymentReference}
+                      onChange={(e) => setPaymentReference(e.target.value)}
+                      placeholder="Enter UPI transaction ID"
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
             {settings && !paymentMethodAvailable && (
               <div className="workspace-error">
                 No payment method is currently enabled for this branch. Please contact the school.

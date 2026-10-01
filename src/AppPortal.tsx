@@ -1851,7 +1851,12 @@ function Orders({ students = [] }: { students?: any[] }) {
         setLoading(false)
         return
       }
-      const fr = ids.length ? await client.from('order_fulfillments').select('order_id,status,carrier,tracking_number,tracking_url,shipped_at,delivered_at').in('order_id', ids) : { data: [], error: null }
+      const fr = ids.length
+        ? await client
+            .from('order_fulfillments')
+            .select('order_id,status,carrier,tracking_number,tracking_url,shipped_at,delivered_at')
+            .in('order_id', ids)
+        : { data: [], error: null }
       if (fr.error) {
         setError(fr.error.message)
         setLoading(false)
@@ -1859,7 +1864,12 @@ function Orders({ students = [] }: { students?: any[] }) {
       }
       const fulfillmentMap = new Map<string, any>()
       ;(fr.data || []).forEach((x: any) => fulfillmentMap.set(x.order_id, x))
-      const pr = ids.length ? await client.from('payments').select('order_id,status,provider,paid_at').in('order_id', ids) : { data: [], error: null }
+      const pr = ids.length
+        ? await client
+            .from('payments')
+            .select('order_id,status,provider,paid_at')
+            .in('order_id', ids)
+        : { data: [], error: null }
       const paymentMap = new Map<string, any>()
       ;(pr.data || []).forEach((x: any) => paymentMap.set(x.order_id, x))
       const itemMap: Record<string, any[]> = Object.fromEntries(ids.map((id) => [id, []]))
@@ -1873,7 +1883,15 @@ function Orders({ students = [] }: { students?: any[] }) {
       ).forEach((x) => {
         if (itemMap[x.order_id]) itemMap[x.order_id].push(x)
       })
-      if (!cancelled) setRows(orders.map((x) => ({ ...x, items: itemMap[x.id] || [], fulfillment: fulfillmentMap.get(x.id) || null, payment: paymentMap.get(x.id) || null })))
+      if (!cancelled)
+        setRows(
+          orders.map((x) => ({
+            ...x,
+            items: itemMap[x.id] || [],
+            fulfillment: fulfillmentMap.get(x.id) || null,
+            payment: paymentMap.get(x.id) || null,
+          })),
+        )
       setLoading(false)
     }
     void load()
@@ -1955,7 +1973,13 @@ function Orders({ students = [] }: { students?: any[] }) {
                   <Truck size={15} />
                   <span>Delivery</span>
                   <strong>{String(x.fulfillment.status).replaceAll('_', ' ')}</strong>
-                  <small>{x.fulfillment.tracking_number ? String(x.fulfillment.carrier || 'Tracking') + ': ' + String(x.fulfillment.tracking_number) : 'Tracking will appear after dispatch.'}</small>
+                  <small>
+                    {x.fulfillment.tracking_number
+                      ? String(x.fulfillment.carrier || 'Tracking') +
+                        ': ' +
+                        String(x.fulfillment.tracking_number)
+                      : 'Tracking will appear after dispatch.'}
+                  </small>
                 </div>
               ) : null}
               {x.payment ? (
