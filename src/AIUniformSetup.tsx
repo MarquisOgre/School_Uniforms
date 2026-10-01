@@ -21,7 +21,7 @@ export default function AIUniformSetup() {
   const [branches, setBranches] = useState<any[]>([])
   const [branchId, setBranchId] = useState('')
   const [groups, setGroups] = useState<GroupRow[]>([])
-  const [classes, setClasses] = useState<ClassRow[]>([])
+  const [classes, setClasses] = useState<ClassRow[]>([])\n  const [groupClassIds, setGroupClassIds] = useState<Set<string>>(new Set())
   const [selectedGroup, setSelectedGroup] = useState<GroupRow | null>(null)
   const [products, setProducts] = useState<ProductRow[]>([])
   const [assignedProducts, setAssignedProducts] = useState<Set<string>>(new Set())
@@ -167,7 +167,7 @@ export default function AIUniformSetup() {
     setMeasurements(current=>({...current,[variantId]:(current[variantId]||[]).map((m,i)=>i===index?{...m,[key]:value}:m)}))
   }
 
-  const groupClasses = selectedGroup ? classes.filter(c => (window as any).__uniformGroupClassIds?.includes(c.id)) : []
+  const groupClasses = selectedGroup ? classes.filter(c => groupClassIds.has(c.id)) : []
 
   return <div className="workspace-body">
     <div className="workspace-heading" style={{display:'flex',justifyContent:'space-between',gap:20}}>
