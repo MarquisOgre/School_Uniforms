@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase'
 
 type ChatWidgetProps = {
   branchId?: string
+  studentId?: string
 }
 
 type Message = {
@@ -18,7 +19,7 @@ type ApiMessage = {
   content: string
 }
 
-export default function ChatWidget({ branchId }: ChatWidgetProps) {
+export default function ChatWidget({ branchId, studentId }: ChatWidgetProps) {
   const [open, setOpen] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -220,7 +221,13 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
       const response = await fetch(`${supabaseUrl}/functions/v1/ai-support-chat`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ conversationId, message: text, history }),
+        body: JSON.stringify({
+          conversationId,
+          branchId,
+          studentId,
+          message: text,
+          history,
+        }),
       })
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result?.error || 'AI support is temporarily unavailable.')
