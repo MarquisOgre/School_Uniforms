@@ -379,8 +379,8 @@ function Fulfillment() {
                 <tr key={x.id}>
                   <td>{x.order_number || x.order_id}</td>
                   <td>{x.status}</td>
-                  <td>{x.carrier || '—'}</td>
-                  <td>{x.tracking_number || '—'}</td>
+                  <td><input className="admin-mini-input" value={x.carrier || ''} placeholder="Carrier" onChange={(e) => setRows((v) => v.map((r) => r.id === x.id ? { ...r, carrier: e.target.value } : r))} onBlur={() => void db('order_fulfillments').update({ carrier: x.carrier || null }).eq('id', x.id)} /></td>
+                  <td><input className="admin-mini-input" value={x.tracking_number || ''} placeholder="Tracking #" onChange={(e) => setRows((v) => v.map((r) => r.id === x.id ? { ...r, tracking_number: e.target.value } : r))} onBlur={() => void db('order_fulfillments').update({ tracking_number: x.tracking_number || null }).eq('id', x.id)} /></td>
                   <td>
                     <select value={x.status} onChange={(e) => void setStatus(x.id, e.target.value)}>
                       <option>pending</option>
