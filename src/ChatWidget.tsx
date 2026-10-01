@@ -264,6 +264,30 @@ export default function ChatWidget({ branchId, studentId }: ChatWidgetProps) {
         setMessages((current) => [...current, aiMessage])
       }
     } catch (err) {
+      // Preserve the existing class/size AI assistant as a secondary fallback
+      // if the general OpenRouter support service is temporarily unavailable.
+      if (branchId) {
+        try {
+          const { data: fallbackData, error: fallbackError } = await (supabase as any).functions.invoke(
+            'ai-uniform-assistant',
+            { body: { branchId, studentId, message: text } },
+          )
+          if (!fallbackError && typeof fallbackData?.reply === 'string' && fallbackData.reply.trim()) {
+            setMessages((current) => [
+              ...current,
+              {
+                id: 'ai-uniform-' + Date.now(),
+                sender_user_id: null,
+                message: fallbackData.reply.trim(),
+                created_at: new Date().toISOString(),
+              },
+            ])
+            return
+          }
+        } catch {
+          // Fall through to the user-facing error below.
+        }
+      }
       setMessages((current) => current.filter((item) => item.id !== customerMessage.id))
       setError(err instanceof Error ? err.message : 'Unable to contact AI support.')
     } finally {
