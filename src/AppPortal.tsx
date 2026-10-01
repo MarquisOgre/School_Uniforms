@@ -55,6 +55,7 @@ type CartItem = CheckoutCartItem & {
   expressShipping?: boolean
   imageGallery?: string[]
   colorImageMap?: Record<string, string>
+  colorOrder?: string[]
   variantOptions?: {
     id: string
     label: string
@@ -1018,6 +1019,7 @@ function Products({
         image_url: string | null
         image_gallery: string[] | null
         color_image_map: Record<string, string> | null
+        color_order: string[] | null
         base_price: number | null
         offer_price: number | null
         discount_percentage: number | null
@@ -1111,6 +1113,7 @@ function Products({
             imageGallery: Array.isArray(x.image_gallery) ? x.image_gallery : [],
             colorImageMap:
               x.color_image_map && typeof x.color_image_map === 'object' ? x.color_image_map : {},
+            colorOrder: Array.isArray(x.color_order) ? x.color_order : [],
             sizeOptions: Array.from(new Set((variantOptions[x.id] || []).map((v) => v.label))).sort(
               (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
             ),
@@ -1315,7 +1318,7 @@ function ProductDetail({
 
   const colors = Array.from(
     new Set(productOptions.map((x) => String(x.color || '').trim()).filter(Boolean)),
-  )
+  ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
   const galleryImages = Array.from(
     new Set(
       [item.image, ...(item.imageGallery || [])].filter((url): url is string => Boolean(url)),

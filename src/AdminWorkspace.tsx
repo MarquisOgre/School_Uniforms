@@ -1267,6 +1267,7 @@ function Products({
         editing.color_image_map && typeof editing.color_image_map === 'object'
           ? editing.color_image_map
           : {},
+      color_order: currentColors,
       base_price: Number(editing.base_price || 0),
       offer_price:
         editing.offer_price === '' || editing.offer_price == null
@@ -1613,6 +1614,7 @@ function Products({
       image_url: '',
       image_gallery: [],
       color_image_map: {},
+      color_order: [],
       status: 'active',
       category_id: '',
     })
@@ -2179,7 +2181,7 @@ function ProductEditorScreen({
 
   const currentColors = Array.from(
     new Set(variants.map((variant) => String(variant.color || '').trim()).filter(Boolean)),
-  )
+  ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
 
   const addColor = () => {
     const color = newColor.trim()
@@ -2206,6 +2208,8 @@ function ProductEditorScreen({
     ])
     setNewColor('')
   }
+
+
 
   const generateColorSizes = () => {
     const colors = currentColors
@@ -2527,13 +2531,15 @@ function ProductEditorScreen({
                   alt={color + ' product image'}
                   onChange={(v) => setColorImage(color, v)}
                 />
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => removeColor(color)}
-                >
-                  <Trash2 size={14} /> Remove
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => void removeColor(color)}
+                  >
+                    <Trash2 size={14} /> Remove
+                  </button>
+                </div>
               </div>
             ))}
           </div>
