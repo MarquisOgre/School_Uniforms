@@ -46,7 +46,7 @@ export default function CmsPage({ kind = 'page', slug }: { kind?: 'page' | 'post
   const blocks = Array.isArray(record.content?.blocks) ? record.content.blocks : []
   return (
     <>
-      <GlobalHeader />
+      <GlobalHeader portal="customer" title="" />
       <main className="cms-public-page">
         <div className="cms-public-inner">
           <p className="eyebrow">{kind === 'post' ? 'BLOG' : 'PAGE'}</p>
