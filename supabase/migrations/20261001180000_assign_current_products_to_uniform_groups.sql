@@ -30,21 +30,17 @@ BEGIN
         -- Boys early/primary shirt and shorts.
         OR (pr.slug='narayana-cbse-uniform-boys-half-hands-shirt-01' AND ug.code IN ('EARLY_YEARS_BOYS','PRIMARY_BOYS'))
         OR (pr.slug='narayana-cbse-uniform-shorts-01' AND ug.code IN ('EARLY_YEARS_BOYS','PRIMARY_BOYS'))
-        -- Girls shirt/skirt.
-        OR (pr.slug='narayana-cbse-uniform-girls-shirt-01' AND ug.code IN ('EARLY_YEARS_GIRLS','PRIMARY_GIRLS','SECONDARY_GIRLS'))
+        -- Girls primary/secondary shirt.
+        OR (pr.slug='narayana-cbse-uniform-girls-shirt-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
         OR (pr.slug='narayana-cbse-uniform-divider-skirt-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
         OR (pr.slug='narayana-cbse-uniform-flit-normal-skirt-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
-        -- Girls traditional/winter pieces.
+        -- Girls traditional option for VI-X.
         OR (pr.slug='narayana-cbse-uniform-chudi-set-01' AND ug.code='SECONDARY_GIRLS')
-        OR (pr.slug='narayana-cbse-uniform-grils-coat-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
-        -- Boys trousers/blazer.
+        -- Boys trousers: primary and secondary.
         OR (pr.slug='narayana-cbse-uniform-boys-elastic-pant-back-elastic-01' AND ug.code IN ('PRIMARY_BOYS','SECONDARY_BOYS'))
         OR (pr.slug='narayana-cbse-uniform-gents-pant-fix-waist-01' AND ug.code IN ('PRIMARY_BOYS','SECONDARY_BOYS'))
-        OR (pr.slug='narayana-cbse-uniform-boys-blazer-01' AND ug.code IN ('PRIMARY_BOYS','SECONDARY_BOYS'))
-        -- Full-hands shirt is shared across age ranges.
-        OR (pr.slug='narayana-cbse-uniform-boys-girls-full-hands-shirt-01' AND ug.code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS','SECONDARY_BOYS','SECONDARY_GIRLS'))
-        -- Binoform is retained as a shared school garment until the school overrides its mapping.
-        OR (pr.slug='narayana-cbse-uniform-binoform-01' AND ug.code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS'))
+        -- Senior boys shirt: VI-X.
+        OR (pr.slug='narayana-cbse-uniform-boys-girls-full-hands-shirt-01' AND ug.code='SECONDARY_BOYS')
         -- Socks are shared accessories.
         OR (pr.slug IN ('narayana-cbse-socks-3-sets-drak-grey-colour-01','narayana-socks-3-sets-01') AND ug.code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS','SECONDARY_BOYS','SECONDARY_GIRLS'))
         -- Sportswear is shared; variants are split below.
@@ -67,16 +63,16 @@ BEGIN
     JOIN public.products pr ON
       (pr.slug='narayana-cbse-uniform-boys-half-hands-shirt-01' AND ug.code IN ('EARLY_YEARS_BOYS','PRIMARY_BOYS'))
       OR (pr.slug='narayana-cbse-uniform-girls-shirt-01' AND ug.code IN ('EARLY_YEARS_GIRLS','PRIMARY_GIRLS','SECONDARY_GIRLS'))
-      OR (pr.slug='narayana-cbse-uniform-boys-girls-full-hands-shirt-01' AND ug.code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS','SECONDARY_BOYS','SECONDARY_GIRLS'))
+      OR (pr.slug='narayana-cbse-uniform-boys-girls-full-hands-shirt-01' AND ug.code='SECONDARY_BOYS')
       OR (pr.slug='narayana-cbse-uniform-shorts-01' AND ug.code IN ('EARLY_YEARS_BOYS','PRIMARY_BOYS'))
       OR (pr.slug='narayana-cbse-uniform-divider-skirt-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
       OR (pr.slug='narayana-cbse-uniform-flit-normal-skirt-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
       OR (pr.slug='narayana-cbse-uniform-chudi-set-01' AND ug.code='SECONDARY_GIRLS')
-      OR (pr.slug='narayana-cbse-uniform-binoform-01' AND ug.code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS'))
+      -- Binoform has no documented class assignment in the published Narayana guide; leave unassigned.
       OR (pr.slug='narayana-cbse-uniform-boys-elastic-pant-back-elastic-01' AND ug.code IN ('PRIMARY_BOYS','SECONDARY_BOYS'))
       OR (pr.slug='narayana-cbse-uniform-gents-pant-fix-waist-01' AND ug.code IN ('PRIMARY_BOYS','SECONDARY_BOYS'))
-      OR (pr.slug='narayana-cbse-uniform-boys-blazer-01' AND ug.code IN ('PRIMARY_BOYS','SECONDARY_BOYS'))
-      OR (pr.slug='narayana-cbse-uniform-grils-coat-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
+      -- Blazer is documented for XI-XII, outside this six-group template.
+      -- Girls coat has no documented class assignment in the published Narayana guide; leave unassigned.
       OR (pr.slug IN ('narayana-cbse-socks-3-sets-drak-grey-colour-01','narayana-socks-3-sets-01') AND ug.code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS','SECONDARY_BOYS','SECONDARY_GIRLS'))
       OR (pr.slug LIKE 'uniform-sports-t-shirt-%' AND ug.code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS','SECONDARY_BOYS','SECONDARY_GIRLS'))
       OR (pr.slug LIKE 'uniform-sports-pant-%' AND ug.code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS','SECONDARY_BOYS','SECONDARY_GIRLS'))
@@ -96,13 +92,12 @@ BEGIN
             OR (g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='PRIMARY_BOYS') AND v.size_label IN ('12','14','16','18'))))
         OR
         (p=(SELECT id FROM products WHERE slug='narayana-cbse-uniform-girls-shirt-01')
-          AND ((g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='EARLY_YEARS_GIRLS') AND v.size_label IN ('4','6','8','10'))
-            OR (g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='PRIMARY_GIRLS') AND v.size_label IN ('10','12','14'))
+          AND ((g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='PRIMARY_GIRLS') AND v.size_label IN ('10','12','14'))
             OR (g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='SECONDARY_GIRLS') AND v.size_label IN ('16','18'))))
         OR
         (p=(SELECT id FROM products WHERE slug='narayana-cbse-uniform-boys-girls-full-hands-shirt-01')
-          AND ((v.size_label IN ('4','6','8','10','12','14','16','18') AND g IN (SELECT id FROM uniform_groups WHERE school_id=school_id AND code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS')))
-            OR (v.size_label IN ('34','36','38','40','42','44','46') AND g IN (SELECT id FROM uniform_groups WHERE school_id=school_id AND code IN ('SECONDARY_BOYS','SECONDARY_GIRLS')))))
+          AND g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='SECONDARY_BOYS')
+          AND v.size_label IN ('34','36','38','40','42','44','46'))
         OR
         (p=(SELECT id FROM products WHERE slug='narayana-cbse-uniform-boys-elastic-pant-back-elastic-01')
           AND ((g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='PRIMARY_BOYS') AND v.size_label IN ('32','34','36'))
@@ -126,7 +121,7 @@ BEGIN
         OR
         (p=(SELECT id FROM products WHERE slug='narayana-cbse-uniform-grils-coat-01') AND g IN (SELECT id FROM uniform_groups WHERE school_id=school_id AND code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS')))
         OR
-        (p=(SELECT id FROM products WHERE slug='narayana-cbse-uniform-binoform-01') AND g IN (SELECT id FROM uniform_groups WHERE school_id=school_id AND code IN ('EARLY_YEARS_BOYS','EARLY_YEARS_GIRLS','PRIMARY_BOYS','PRIMARY_GIRLS')))
+        -- Binoform intentionally has no class assignment.
         OR
         (p IN (SELECT id FROM products WHERE slug IN ('narayana-cbse-socks-3-sets-drak-grey-colour-01','narayana-socks-3-sets-01')) AND g IN (SELECT id FROM uniform_groups WHERE school_id=school_id))
         OR
