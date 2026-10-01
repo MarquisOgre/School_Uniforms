@@ -2589,7 +2589,8 @@ function ProductEditorScreen({
       <section className="product-editor-card">
         <div className="product-editor-section-title">Assign to Branches</div>
         <div className="workspace-note" style={{ marginTop: 10 }}>
-          Select every branch where this same product should be available. The product and its variants remain shared.
+          Select every branch where this same product should be available. The product and its
+          variants remain shared.
         </div>
         <div
           style={{
@@ -2622,9 +2623,7 @@ function ProductEditorScreen({
                   checked={assigned}
                   onChange={(e) => {
                     const current = new Set(
-                      Array.isArray(editing.assigned_branch_ids)
-                        ? editing.assigned_branch_ids
-                        : [],
+                      Array.isArray(editing.assigned_branch_ids) ? editing.assigned_branch_ids : [],
                     )
                     if (e.target.checked) current.add(branch.id)
                     else current.delete(branch.id)
