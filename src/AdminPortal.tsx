@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Package,
   ShoppingBag,
-  Sparkles,
   MessageCircle,
   UserRound,
   ClipboardList,
@@ -37,7 +36,6 @@ type AdminTool =
   | 'students'
   | 'users'
   | 'reports'
-  | 'coupons'
   | 'support'
   | 'settings'
   | 'email-templates'
@@ -59,7 +57,6 @@ const ADMIN_NAV: Array<{
   { key: 'students', label: 'Parents & Students', icon: UserRound },
   { key: 'users', label: 'Users & Customers', icon: UserRound },
   { key: 'reports', label: 'Reports', icon: FileSpreadsheet },
-  { key: 'coupons', label: 'Coupons', icon: Sparkles },
   { key: 'support', label: 'Support Chat', icon: MessageCircle },
   { key: 'settings', label: 'Settings', icon: Settings },
   { key: 'email-templates', label: 'Email Templates', icon: Mail },
@@ -515,7 +512,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       students: '/admin/parents-students',
       users: '/admin/users',
       reports: '/admin/reports',
-      coupons: '/admin/coupons',
       support: '/admin/support',
       settings: '/admin/settings',
       'email-templates': '/admin/email-templates',
@@ -537,7 +533,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/parents-students') return 'students'
     if (path === '/admin/users') return 'users'
     if (path === '/admin/reports') return 'reports'
-    if (path === '/admin/coupons') return 'coupons'
+    if (path === '/admin/coupons') return 'commerce'
     if (path === '/admin/support') return 'support'
     if (path === '/admin/settings') return 'settings'
     if (path === '/admin/email-templates') return 'email-templates'
@@ -798,8 +794,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     tool === 'inventory' ||
     tool === 'students' ||
     tool === 'users' ||
-    tool === 'reports' ||
-    tool === 'coupons'
+    tool === 'reports'
   )
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
