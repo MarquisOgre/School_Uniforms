@@ -1997,15 +1997,13 @@ function Orders({ students = [] }: { students?: any[] }) {
                       if (!reason) return
                       const client = supabase as any
                       const user = await client.auth.getUser()
-                      const result = await client
-                        .from('returns')
-                        .insert({
-                          order_id: x.id,
-                          customer_user_id: user.data.user?.id,
-                          branch_id: x.branch_id,
-                          reason,
-                          status: 'requested',
-                        })
+                      const result = await client.from('returns').insert({
+                        order_id: x.id,
+                        customer_user_id: user.data.user?.id,
+                        branch_id: x.branch_id,
+                        reason,
+                        status: 'requested',
+                      })
                       window.alert(
                         result.error ? result.error.message : 'Return request submitted.',
                       )
