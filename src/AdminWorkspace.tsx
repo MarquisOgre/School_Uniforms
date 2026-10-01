@@ -6542,6 +6542,11 @@ function Coupons() {
       starts_at: editing.starts_at || null,
       expires_at: editing.expires_at || null,
       usage_limit: editing.usage_limit ? Number(editing.usage_limit) : null,
+      minimum_order_value: Number(editing.minimum_order_value || 0),
+      maximum_discount: editing.maximum_discount ? Number(editing.maximum_discount) : null,
+      per_customer_limit: editing.per_customer_limit ? Number(editing.per_customer_limit) : null,
+      first_order_only: !!editing.first_order_only,
+      applies_to: editing.applies_to || 'all',
       status: editing.status,
     }
     const r = editing.id
@@ -6564,6 +6569,11 @@ function Coupons() {
               description: '',
               discount_type: 'percentage',
               discount_value: 0,
+              minimum_order_value: 0,
+              maximum_discount: '',
+              per_customer_limit: '',
+              first_order_only: false,
+              applies_to: 'all',
               status: 'active',
             })
           }
@@ -6637,6 +6647,11 @@ function Coupons() {
             onChange={(v) => setEditing({ ...editing, usage_limit: v })}
             type="number"
           />
+          <Field label="Minimum Order Value" value={String(editing.minimum_order_value ?? 0)} onChange={(v) => setEditing({ ...editing, minimum_order_value: v })} type="number" />
+          <Field label="Maximum Discount" value={String(editing.maximum_discount ?? '')} onChange={(v) => setEditing({ ...editing, maximum_discount: v })} type="number" />
+          <Field label="Per Customer Limit" value={String(editing.per_customer_limit ?? '')} onChange={(v) => setEditing({ ...editing, per_customer_limit: v })} type="number" />
+          <Select label="Applies To" value={editing.applies_to || 'all'} options={['all','products','categories']} onChange={(v) => setEditing({ ...editing, applies_to: v })} />
+          <label className="workspace-field"><span>First Order Only</span><input type="checkbox" checked={!!editing.first_order_only} onChange={(e) => setEditing({ ...editing, first_order_only: e.target.checked })} /></label>
           <Select
             label="Status"
             value={editing.status}
