@@ -195,7 +195,10 @@ function Shipping() {
   const [methodType, setMethodType] = useState('flat_rate')
   const [msg, setMsg] = useState('')
   const load = async () => {
-    const r = await db('shipping_zones').select('*').order('is_default', { ascending: false }).order('name')
+    const r = await db('shipping_zones')
+      .select('*')
+      .order('is_default', { ascending: false })
+      .order('name')
     setZones(r.data ?? [])
     if (!selected && r.data?.[0]) setSelected(r.data[0].id)
   }
@@ -203,26 +206,53 @@ function Shipping() {
     const r = await db('shipping_methods').select('*').eq('zone_id', id).order('sort_order')
     setMethods(r.data ?? [])
   }
-  useEffect(() => { void load() }, [])
-  useEffect(() => { if (selected) void loadMethods(selected) }, [selected])
+  useEffect(() => {
+    void load()
+  }, [])
+  useEffect(() => {
+    if (selected) void loadMethods(selected)
+  }, [selected])
   const selectedZone = zones.find((z) => z.id === selected)
   const addZone = async () => {
     if (!name.trim()) return
-    const r = await db('shipping_zones').insert({
-      name: name.trim(),
-      states: states.split(',').map((x) => x.trim()).filter(Boolean),
-      postal_codes: postcodes.split(',').map((x) => x.trim()).filter(Boolean),
-      is_default: zones.length === 0,
-    }).select().single()
+    const r = await db('shipping_zones')
+      .insert({
+        name: name.trim(),
+        states: states
+          .split(',')
+          .map((x) => x.trim())
+          .filter(Boolean),
+        postal_codes: postcodes
+          .split(',')
+          .map((x) => x.trim())
+          .filter(Boolean),
+        is_default: zones.length === 0,
+      })
+      .select()
+      .single()
     if (r.error) setMsg(r.error.message)
-    else { setName(''); setStates(''); setPostcodes(''); setMsg('Shipping zone created.'); void load() }
+    else {
+      setName('')
+      setStates('')
+      setPostcodes('')
+      setMsg('Shipping zone created.')
+      void load()
+    }
   }
   const saveZone = async () => {
     if (!selected) return
-    const r = await db('shipping_zones').update({
-      states: states.split(',').map((x) => x.trim()).filter(Boolean),
-      postal_codes: postcodes.split(',').map((x) => x.trim()).filter(Boolean),
-    }).eq('id', selected)
+    const r = await db('shipping_zones')
+      .update({
+        states: states
+          .split(',')
+          .map((x) => x.trim())
+          .filter(Boolean),
+        postal_codes: postcodes
+          .split(',')
+          .map((x) => x.trim())
+          .filter(Boolean),
+      })
+      .eq('id', selected)
     setMsg(r.error ? r.error.message : 'Shipping zone updated.')
     void load()
   }
@@ -230,13 +260,24 @@ function Shipping() {
     if (!selected) return
     const r = await db('shipping_methods').insert({
       zone_id: selected,
-      name: methodType === 'local_pickup' ? 'Local Pickup' : methodType === 'free_shipping' ? 'Free Shipping' : 'Standard Delivery',
+      name:
+        methodType === 'local_pickup'
+          ? 'Local Pickup'
+          : methodType === 'free_shipping'
+            ? 'Free Shipping'
+            : 'Standard Delivery',
       rate: methodType === 'free_shipping' || methodType === 'local_pickup' ? 0 : Number(rate) || 0,
-      free_shipping_minimum: methodType === 'free_shipping' ? Number(freeAbove) || null : Number(freeAbove) || null,
+      free_shipping_minimum:
+        methodType === 'free_shipping' ? Number(freeAbove) || null : Number(freeAbove) || null,
       method_type: methodType,
     })
     if (r.error) setMsg(r.error.message)
-    else { setRate('0'); setFreeAbove('0'); setMsg('Shipping method added.'); void loadMethods(selected) }
+    else {
+      setRate('0')
+      setFreeAbove('0')
+      setMsg('Shipping method added.')
+      void loadMethods(selected)
+    }
   }
   useEffect(() => {
     if (!selectedZone) return
@@ -246,26 +287,119 @@ function Shipping() {
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3><Globe2 size={17} /> Shipping Zones</h3>
+        <h3>
+          <Globe2 size={17} /> Shipping Zones
+        </h3>
         <div className="cms-field-grid">
-          <label>Zone Name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Hyderabad" /></label>
-          <label>States<input value={states} onChange={(e) => setStates(e.target.value)} placeholder="Telangana" /></label>
-          <label className="full-field">Postcodes<input value={postcodes} onChange={(e) => setPostcodes(e.target.value)} placeholder="500001, 500032, 500081" /></label>
+          <label>
+            Zone Name
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Hyderabad" />
+          </label>
+          <label>
+            States
+            <input
+              value={states}
+              onChange={(e) => setStates(e.target.value)}
+              placeholder="Telangana"
+            />
+          </label>
+          <label className="full-field">
+            Postcodes
+            <input
+              value={postcodes}
+              onChange={(e) => setPostcodes(e.target.value)}
+              placeholder="500001, 500032, 500081"
+            />
+          </label>
         </div>
-        <div className="inline-form"><button className="primary-button" onClick={() => void addZone()}><Plus size={15} /> Add Zone</button>{selected && <button className="secondary-button" onClick={() => void saveZone()}>Save Zone</button>}</div>
-        <div className="enterprise-list">{zones.map((z) => <button key={z.id} className={selected === z.id ? 'selected' : ''} onClick={() => setSelected(z.id)}><span>{z.name}<small>{z.is_default ? 'Default · ' : ''}{(z.states || []).join(', ') || 'All states'}{(z.postal_codes || []).length ? ' · ' + z.postal_codes.join(', ') : ''}</small></span><span>{z.status}</span></button>)}</div>
+        <div className="inline-form">
+          <button className="primary-button" onClick={() => void addZone()}>
+            <Plus size={15} /> Add Zone
+          </button>
+          {selected && (
+            <button className="secondary-button" onClick={() => void saveZone()}>
+              Save Zone
+            </button>
+          )}
+        </div>
+        <div className="enterprise-list">
+          {zones.map((z) => (
+            <button
+              key={z.id}
+              className={selected === z.id ? 'selected' : ''}
+              onClick={() => setSelected(z.id)}
+            >
+              <span>
+                {z.name}
+                <small>
+                  {z.is_default ? 'Default · ' : ''}
+                  {(z.states || []).join(', ') || 'All states'}
+                  {(z.postal_codes || []).length ? ' · ' + z.postal_codes.join(', ') : ''}
+                </small>
+              </span>
+              <span>{z.status}</span>
+            </button>
+          ))}
+        </div>
       </div>
       <div className="enterprise-card">
-        <h3><Truck size={17} /> Shipping Methods</h3>
-        {selected ? <>
-          <div className="cms-field-grid">
-            <label>Method Type<select value={methodType} onChange={(e) => setMethodType(e.target.value)}><option value="flat_rate">Flat Rate</option><option value="free_shipping">Free Shipping</option><option value="local_pickup">Local Pickup</option></select></label>
-            <label>Rate<input type="number" min="0" value={rate} onChange={(e) => setRate(e.target.value)} disabled={methodType !== 'flat_rate'} /></label>
-            <label>Free Above<input type="number" min="0" value={freeAbove} onChange={(e) => setFreeAbove(e.target.value)} /></label>
-          </div>
-          <button className="secondary-button" onClick={() => void addMethod()}><Plus size={15} /> Add Shipping Method</button>
-          <div className="enterprise-list">{methods.map((m) => <div key={m.id} className="enterprise-list-row"><span>{m.name}<small>₹{Number(m.rate || 0).toFixed(2)} · {m.method_type}{m.free_shipping_minimum ? ' · Free above ₹' + Number(m.free_shipping_minimum).toFixed(2) : ''}</small></span><span>{m.enabled ? 'Enabled' : 'Disabled'}</span></div>)}</div>
-        </> : <div className="workspace-empty">Create or select a zone.</div>}
+        <h3>
+          <Truck size={17} /> Shipping Methods
+        </h3>
+        {selected ? (
+          <>
+            <div className="cms-field-grid">
+              <label>
+                Method Type
+                <select value={methodType} onChange={(e) => setMethodType(e.target.value)}>
+                  <option value="flat_rate">Flat Rate</option>
+                  <option value="free_shipping">Free Shipping</option>
+                  <option value="local_pickup">Local Pickup</option>
+                </select>
+              </label>
+              <label>
+                Rate
+                <input
+                  type="number"
+                  min="0"
+                  value={rate}
+                  onChange={(e) => setRate(e.target.value)}
+                  disabled={methodType !== 'flat_rate'}
+                />
+              </label>
+              <label>
+                Free Above
+                <input
+                  type="number"
+                  min="0"
+                  value={freeAbove}
+                  onChange={(e) => setFreeAbove(e.target.value)}
+                />
+              </label>
+            </div>
+            <button className="secondary-button" onClick={() => void addMethod()}>
+              <Plus size={15} /> Add Shipping Method
+            </button>
+            <div className="enterprise-list">
+              {methods.map((m) => (
+                <div key={m.id} className="enterprise-list-row">
+                  <span>
+                    {m.name}
+                    <small>
+                      ₹{Number(m.rate || 0).toFixed(2)} · {m.method_type}
+                      {m.free_shipping_minimum
+                        ? ' · Free above ₹' + Number(m.free_shipping_minimum).toFixed(2)
+                        : ''}
+                    </small>
+                  </span>
+                  <span>{m.enabled ? 'Enabled' : 'Disabled'}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="workspace-empty">Create or select a zone.</div>
+        )}
         {msg && <p className="form-success">{msg}</p>}
       </div>
     </section>
