@@ -1374,7 +1374,7 @@ function Products({
       }
 
       const existingAssignments = await dbFrom('branch_products')
-        .select('branch_id,branch_price')
+        .select('branch_id,branch_price,sort_order')
         .eq('product_id', productId)
       if (existingAssignments.error) {
         setError(existingAssignments.error.message)
