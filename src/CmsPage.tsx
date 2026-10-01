@@ -47,6 +47,7 @@ export default function CmsPage({ kind = 'page', slug }: { kind?: 'page' | 'post
   return (
     <>
       <GlobalHeader portal="customer" title="" />
+  {menuItems.length ? <nav className="cms-public-nav">{menuItems.map((item:any) => <a key={item.id} href={item.url}>{item.label}</a>)}</nav> : null}
       <main className="cms-public-page">
         <div className="cms-public-inner">
           <p className="eyebrow">{kind === 'post' ? 'BLOG' : 'PAGE'}</p>
