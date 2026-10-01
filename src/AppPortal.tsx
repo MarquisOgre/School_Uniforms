@@ -1372,6 +1372,21 @@ function ProductDetail({
   const requiredComponents = packageComponents.filter((x) => x.required && x.requiresSize)
 
   useEffect(() => {
+    let cancelled = false
+    const loadRelated = async () => {
+      const client = supabase as any
+      if (!client || item.type !== 'product' || !item.sourceId) return
+      const links = await client.from('product_relations').select('related_product_id,relation_type,sort_order').eq('product_id', item.sourceId).eq('enabled', true).order('sort_order').limit(8)
+      const ids = (links.data || []).map((x: any) => x.related_product_id).filter(Boolean)
+      if (!ids.length) { if (!cancelled) setRelatedProducts([]); return }
+      const products = await client.from('products').select('id,name,image_url,base_price,offer_price').in('id', ids).eq('status','active')
+      if (!cancelled) setRelatedProducts(products.data || [])
+    }
+    void loadRelated()
+    return () => { cancelled = true }
+  }, [item.id, item.sourceId, item.type])
+
+  useEffect(() => {
     if (item.type !== 'product') return
     const firstColor = Array.from(
       new Set(productOptions.map((x) => String(x.color || '').trim()).filter(Boolean)),
@@ -1740,6 +1755,19 @@ function ProductDetail({
         <Suspense fallback={<div className="workspace-empty">Loading reviews...</div>}>
           <ProductReviews productId={item.sourceId} />
         </Suspense>
+      ) : null}
+      {relatedProducts.length ? (
+        <section style={{ marginTop: 24 }}>
+          <div className="section-heading"><div><span className="eyebrow">SHOPPING SUGGESTIONS</span><h2>Related Products</h2></div></div>
+          <div className="product-grid">
+            {relatedProducts.map((product) => (
+              <article className="product-card" key={product.id}>
+                <img src={product.image_url || '/category-packages.jpg'} alt={product.name} />
+                <div className="product-copy"><h3>{product.name}</h3><strong>₹{Number(product.offer_price ?? product.base_price ?? 0).toLocaleString('en-IN')}</strong></div>
+              </article>
+            ))}
+          </div>
+        </section>
       ) : null}
     </div>
   )
