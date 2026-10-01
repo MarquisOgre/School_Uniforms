@@ -93,9 +93,8 @@ Deno.serve(async (req) => {
 
     let studentContext: any = null
 
-    // The portal already authenticates the parent/student. Resolve the linked
-    // student from the authenticated user first; do not rely on the visible
-    // studentId value, because a parent login ID is not necessarily a student_code.
+    // Resolve the authenticated parent's linked student first. A parent login
+    // identifier is not necessarily a student_code, so do not rely on body.studentId.
     if (userId) {
       const { data: links } = await serviceClient
         .from('parent_student_links')
@@ -111,30 +110,28 @@ Deno.serve(async (req) => {
           .in('id', linkedIds)
           .eq('status', 'active')
 
-        const sameBranchStudent =
+        const selectedStudent =
           (linkedStudents ?? []).find(
             (student: any) => !body.branchId || student.branch_id === body.branchId,
           ) ||
           (linkedStudents ?? [])[0]
 
-        if (sameBranchStudent) {
-          const studentBranch = (branches ?? []).find(
-            (b: any) => b.id === sameBranchStudent.branch_id,
-          )
+        if (selectedStudent) {
+          const studentBranch = (branches ?? []).find((b: any) => b.id === selectedStudent.branch_id)
           studentContext = {
-            student_code: sameBranchStudent.student_code,
-            full_name: sameBranchStudent.full_name,
-            class_name: sameBranchStudent.class_name,
-            section: sameBranchStudent.section,
-            gender: sameBranchStudent.gender,
-            branch: studentBranch?.name || studentBranch?.code || sameBranchStudent.branch_id,
+            student_code: selectedStudent.student_code,
+            full_name: selectedStudent.full_name,
+            class_name: selectedStudent.class_name,
+            section: selectedStudent.section,
+            gender: selectedStudent.gender,
+            branch: studentBranch?.name || studentBranch?.code || selectedStudent.branch_id,
             branch_code: studentBranch?.code || null,
           }
         }
       }
     }
 
-    // Fallback for legacy/student logins where studentId is the actual student_code.
+    // Fallback for legacy/student logins where studentId really is student_code.
     if (!studentContext && typeof body.studentId === 'string' && body.studentId.trim()) {
       const { data: matchedStudents } = await serviceClient
         .from('students')
@@ -143,21 +140,21 @@ Deno.serve(async (req) => {
         .eq('status', 'active')
         .limit(5)
 
-      const sameBranch =
+      const selectedStudent =
         (matchedStudents ?? []).find(
           (student: any) => !body.branchId || student.branch_id === body.branchId,
         ) ||
         (matchedStudents ?? [])[0]
 
-      if (sameBranch) {
-        const studentBranch = (branches ?? []).find((b: any) => b.id === sameBranch.branch_id)
+      if (selectedStudent) {
+        const studentBranch = (branches ?? []).find((b: any) => b.id === selectedStudent.branch_id)
         studentContext = {
-          student_code: sameBranch.student_code,
-          full_name: sameBranch.full_name,
-          class_name: sameBranch.class_name,
-          section: sameBranch.section,
-          gender: sameBranch.gender,
-          branch: studentBranch?.name || studentBranch?.code || sameBranch.branch_id,
+          student_code: selectedStudent.student_code,
+          full_name: selectedStudent.full_name,
+          class_name: selectedStudent.class_name,
+          section: selectedStudent.section,
+          gender: selectedStudent.gender,
+          branch: studentBranch?.name || studentBranch?.code || selectedStudent.branch_id,
           branch_code: studentBranch?.code || null,
         }
       }
@@ -353,7 +350,7 @@ Deno.serve(async (req) => {
     'When authenticated portal student context is supplied, treat the customer as the parent/guardian of that linked student and use the supplied branch, class, section, and gender when answering relevant questions.',
     'If the customer asks what uniform their child should wear, first use the supplied student context and live branch catalog/package data. Do not ask for branch or student details that are already supplied.',
     'If a customer names a school or branch that is not an exact branch name, use the resolved branch context when one is supplied; do not ask them to repeat the product name if it is already clear.',
-    'For account-specific questions that require private customer data, explain that authentication or human support is required.'
+    'For account-specific questions that require private customer data, explain that authentication or human support is required.',
     'When uncertain, say so and offer human support rather than guessing.',
     '',
     catalogContext,
