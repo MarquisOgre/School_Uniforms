@@ -25,6 +25,7 @@ const AdminWorkspace = lazy(() => import('./AdminWorkspace'))
 import { DEFAULT_HOME } from './HomePage'
 const SupportChatAdmin = lazy(() => import('./SupportChatAdmin'))
 const EmailTemplates = lazy(() => import('./EmailTemplates'))
+const EnterpriseCommerce = lazy(() => import('./EnterpriseCommerce'))
 
 type AdminTool =
   | 'home'
@@ -41,6 +42,7 @@ type AdminTool =
   | 'email-templates'
   | 'media'
   | 'change-password'
+  | 'commerce'
 
 const ADMIN_NAV: Array<{
   key: AdminTool
@@ -60,6 +62,7 @@ const ADMIN_NAV: Array<{
   { key: 'settings', label: 'Settings', icon: Settings },
   { key: 'email-templates', label: 'Email Templates', icon: Mail },
   { key: 'media', label: 'Media Library', icon: Images },
+  { key: 'commerce', label: 'Commerce & CMS', icon: ShoppingBag },
 ]
 
 function AdminSidebar({
@@ -515,6 +518,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       'email-templates': '/admin/email-templates',
       media: '/admin/media',
       'change-password': '/admin/change-password',
+      commerce: '/admin/commerce',
     }
     return paths[value]
   }
@@ -535,6 +539,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/email-templates') return 'email-templates'
     if (path === '/admin/media') return 'media'
     if (path === '/admin/change-password') return 'change-password'
+    if (path === '/admin/commerce') return 'commerce'
     return 'home'
   }
 
@@ -770,6 +775,14 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
         <Suspense fallback={<div className="workspace-empty">Loading email templates...</div>}>
           <EmailTemplates />
+        </Suspense>
+      </AdminLayout>
+    )
+  if (tool === 'commerce')
+    return (
+      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+        <Suspense fallback={<div className="workspace-empty">Loading commerce management...</div>}>
+          <EnterpriseCommerce />
         </Suspense>
       </AdminLayout>
     )
