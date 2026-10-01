@@ -12,7 +12,6 @@ import {
   UserRound,
   ClipboardList,
   LogOut,
-  Ruler,
   Settings,
   Mail,
   Upload,
@@ -52,7 +51,6 @@ const ADMIN_NAV: Array<{
   { key: 'home', label: 'Homepage', icon: Home },
   { key: 'branches', label: 'Branches', icon: Building2 },
   { key: 'products', label: 'Products', icon: ShoppingBag },
-  { key: 'ai-uniform', label: 'AI Uniform Setup', icon: Ruler },
   { key: 'packages', label: 'Uniform Packages', icon: Package },
   { key: 'orders', label: 'Orders & Payments', icon: ClipboardList },
   { key: 'inventory', label: 'Inventory', icon: ClipboardList },
@@ -520,7 +518,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       media: '/admin/media',
       'change-password': '/admin/change-password',
       commerce: '/admin/commerce',
-      'ai-uniform': '/admin/ai-uniform',
     }
     return paths[value]
   }
@@ -543,7 +540,6 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/media') return 'media'
     if (path === '/admin/change-password') return 'change-password'
     if (path === '/admin/commerce') return 'commerce'
-    if (path === '/admin/ai-uniform') return 'ai-uniform'
     return 'home'
   }
 
@@ -798,8 +794,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     tool === 'inventory' ||
     tool === 'students' ||
     tool === 'users' ||
-    tool === 'reports' ||
-    tool === 'ai-uniform'
+    tool === 'reports'
   )
     return (
       <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
