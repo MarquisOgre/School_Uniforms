@@ -8631,12 +8631,6 @@ a {
   }
 }
 
-.admin-workspace .coupon-row {
-  grid-template-columns:
-    minmax(150px, 1.35fr) minmax(130px, 1.05fr) minmax(90px, 0.8fr)
-    minmax(75px, 0.65fr) minmax(95px, 0.8fr) minmax(95px, 0.8fr)
-    minmax(95px, 0.8fr) auto;
-}
 
 .admin-workspace .payment-settings-row {
   display: grid;
@@ -8704,59 +8698,6 @@ a {
 
   .admin-workspace .workspace-products .product-row > button {
     justify-self: stretch;
-  }
-}
-
-/* Coupons workspace: keep page title/description on the left and actions on the right. */
-.admin-workspace .workspace-coupons {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'title toolbar'
-    'description toolbar'
-    'error error'
-    'body body';
-  align-content: start;
-  column-gap: 24px;
-}
-
-.admin-workspace .workspace-coupons > .workspace-heading {
-  display: contents;
-}
-
-.admin-workspace .workspace-coupons > .workspace-heading h1 {
-  grid-area: title;
-  margin: 4px 0 8px;
-}
-
-.admin-workspace .workspace-coupons > .workspace-heading p {
-  grid-area: description;
-  margin: 0 0 18px;
-}
-
-.admin-workspace .workspace-coupons > .workspace-toolbar {
-  grid-area: toolbar;
-  margin: 0 0 18px;
-  align-self: center;
-}
-
-.admin-workspace .workspace-coupons > .workspace-error {
-  grid-area: error;
-}
-
-.admin-workspace .workspace-coupons > .workspace-panel {
-  grid-area: body;
-  width: 100%;
-  min-width: 0;
-}
-
-@media (max-width: 900px) {
-  .admin-workspace .workspace-coupons {
-    display: block;
-  }
-
-  .admin-workspace .workspace-coupons > .workspace-toolbar {
-    margin-top: 16px;
   }
 }
 
