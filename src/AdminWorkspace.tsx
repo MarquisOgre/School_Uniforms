@@ -28,7 +28,6 @@ type ModuleKey =
   | 'inventory'
   | 'students'
   | 'reports'
-  | 'coupons'
   | 'settings'
   | 'users'
 
@@ -57,10 +56,6 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
   reports: {
     title: 'Reports',
     description: 'View high-level sales, orders and inventory summaries.',
-  },
-  coupons: {
-    title: 'Coupons',
-    description: 'Manage promotional discounts and branch availability.',
   },
   settings: {
     title: 'Settings',
@@ -228,8 +223,6 @@ function ModuleBody({
       return <ParentStudents />
     case 'reports':
       return <Reports />
-    case 'coupons':
-      return <Coupons />
     case 'settings':
       return <Settings />
   }
@@ -6505,188 +6498,6 @@ function Reports() {
             </div>
           </Panel>
         </>
-      )}
-    </>
-  )
-}
-
-function Coupons() {
-  const [rows, setRows] = useState<any[]>([]),
-    [usage, setUsage] = useState<Record<string, number>>({}),
-    [editing, setEditing] = useState<any>(null),
-    [error, setError] = useState('')
-  const load = async () => {
-    if (!supabase) return
-    const r = await dbFrom('coupons').select('*').order('created_at', { ascending: false })
-    setRows(r.data ?? [])
-    setError(r.error?.message || '')
-    const couponIds = (r.data ?? []).map((x: any) => x.id)
-    if (couponIds.length) {
-      const u = await dbFrom('order_coupons').select('coupon_id').in('coupon_id', couponIds)
-      const counts: Record<string, number> = {}
-      ;(u.data ?? []).forEach((x: any) => {
-        counts[x.coupon_id] = (counts[x.coupon_id] || 0) + 1
-      })
-      setUsage(counts)
-    } else setUsage({})
-  }
-  useEffect(() => {
-    void load()
-  }, [])
-  const save = async () => {
-    if (!supabase || !editing) return
-    const p = {
-      code: editing.code,
-      description: editing.description || null,
-      discount_type: editing.discount_type,
-      discount_value: Number(editing.discount_value || 0),
-      starts_at: editing.starts_at || null,
-      expires_at: editing.expires_at || null,
-      usage_limit: editing.usage_limit ? Number(editing.usage_limit) : null,
-      minimum_order_value: Number(editing.minimum_order_value || 0),
-      maximum_discount: editing.maximum_discount ? Number(editing.maximum_discount) : null,
-      per_customer_limit: editing.per_customer_limit ? Number(editing.per_customer_limit) : null,
-      first_order_only: !!editing.first_order_only,
-      applies_to: editing.applies_to || 'all',
-      status: editing.status,
-    }
-    const r = editing.id
-      ? await dbFrom('coupons').update(p).eq('id', editing.id)
-      : await dbFrom('coupons').insert(p)
-    if (r.error) setError(r.error.message)
-    else {
-      setEditing(null)
-      await load()
-    }
-  }
-  return (
-    <>
-      <Toolbar onRefresh={load}>
-        <button
-          className="primary-button"
-          onClick={() =>
-            setEditing({
-              code: '',
-              description: '',
-              discount_type: 'percentage',
-              discount_value: 0,
-              minimum_order_value: 0,
-              maximum_discount: '',
-              per_customer_limit: '',
-              first_order_only: false,
-              applies_to: 'all',
-              status: 'active',
-            })
-          }
-        >
-          <Plus size={15} /> Add Coupon
-        </button>
-      </Toolbar>
-      <ErrorBox text={error} />
-      <Panel>
-        <div className="workspace-table">
-          <div className="workspace-row admin-table-header coupon-row">
-            <strong>Coupon</strong>
-            <span>Discount Type</span>
-            <span>Value</span>
-            <span>Allowed</span>
-            <span>Used</span>
-            <span>Remaining</span>
-            <span>Status</span>
-            <span>Actions</span>
-          </div>
-          {rows.map((x) => (
-            <div className="workspace-row coupon-row" key={x.id}>
-              <strong>{x.code}</strong>
-              <span>{x.discount_type}</span>
-              <span>{x.discount_value}</span>
-              <span>{x.usage_limit == null ? 'Unlimited' : Number(x.usage_limit)}</span>
-              <span>{usage[x.id] || 0}</span>
-              <span>
-                {x.usage_limit == null
-                  ? 'Unlimited'
-                  : Math.max(Number(x.usage_limit) - (usage[x.id] || 0), 0)}
-              </span>
-              <span>{x.status}</span>
-              <button onClick={() => setEditing({ ...x })}>Edit</button>
-            </div>
-          ))}
-        </div>
-      </Panel>
-      {editing && (
-        <EditModal
-          title={editing.id ? 'Edit Coupon' : 'Add Coupon'}
-          onClose={() => setEditing(null)}
-          onSave={save}
-        >
-          <Field
-            label="Code"
-            value={editing.code}
-            onChange={(v) => setEditing({ ...editing, code: v })}
-          />
-          <Field
-            label="Description"
-            value={editing.description || ''}
-            onChange={(v) => setEditing({ ...editing, description: v })}
-            area
-          />
-          <Select
-            label="Discount Type"
-            value={editing.discount_type}
-            options={['percentage', 'fixed']}
-            onChange={(v) => setEditing({ ...editing, discount_type: v })}
-          />
-          <Field
-            label="Discount Value"
-            value={String(editing.discount_value)}
-            onChange={(v) => setEditing({ ...editing, discount_value: v })}
-            type="number"
-          />
-          <Field
-            label="Allowed Uses"
-            value={String(editing.usage_limit || '')}
-            onChange={(v) => setEditing({ ...editing, usage_limit: v })}
-            type="number"
-          />
-          <Field
-            label="Minimum Order Value"
-            value={String(editing.minimum_order_value ?? 0)}
-            onChange={(v) => setEditing({ ...editing, minimum_order_value: v })}
-            type="number"
-          />
-          <Field
-            label="Maximum Discount"
-            value={String(editing.maximum_discount ?? '')}
-            onChange={(v) => setEditing({ ...editing, maximum_discount: v })}
-            type="number"
-          />
-          <Field
-            label="Per Customer Limit"
-            value={String(editing.per_customer_limit ?? '')}
-            onChange={(v) => setEditing({ ...editing, per_customer_limit: v })}
-            type="number"
-          />
-          <Select
-            label="Applies To"
-            value={editing.applies_to || 'all'}
-            options={['all', 'products', 'categories']}
-            onChange={(v) => setEditing({ ...editing, applies_to: v })}
-          />
-          <label className="workspace-field">
-            <span>First Order Only</span>
-            <input
-              type="checkbox"
-              checked={!!editing.first_order_only}
-              onChange={(e) => setEditing({ ...editing, first_order_only: e.target.checked })}
-            />
-          </label>
-          <Select
-            label="Status"
-            value={editing.status}
-            options={['active', 'inactive', 'suspended']}
-            onChange={(v) => setEditing({ ...editing, status: v })}
-          />
-        </EditModal>
       )}
     </>
   )
