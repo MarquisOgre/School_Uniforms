@@ -1055,7 +1055,7 @@ function Products({
     }
     const [bp, c, branchResult] = await Promise.all([
       dbFrom('branch_products')
-        .select('product_id,branch_price,is_visible')
+        .select('product_id,branch_price,is_visible,sort_order')
         .eq('branch_id', branchId)
         .eq('is_visible', true),
       dbFrom('product_categories').select('*').eq('status', 'active').order('name'),
@@ -1076,11 +1076,17 @@ function Products({
     const branchPrices = Object.fromEntries(
       (bp.data || []).map((x: any) => [x.product_id, x.branch_price]),
     )
+    const branchOrder = Object.fromEntries(
+      (bp.data || []).map((x: any) => [x.product_id, Number(x.sort_order ?? 0)]),
+    )
     setRows(
-      (p.data || []).map((product: any) => ({
-        ...product,
-        branch_price: branchPrices[product.id] ?? product.offer_price ?? product.base_price ?? 0,
-      })),
+      (p.data || [])
+        .map((product: any) => ({
+          ...product,
+          branch_price: branchPrices[product.id] ?? product.offer_price ?? product.base_price ?? 0,
+          sort_order: branchOrder[product.id] ?? 0,
+        }))
+        .sort((a: any, b: any) => a.sort_order - b.sort_order),
     )
     setCategories(c.data ?? [])
     setBranches(branchResult.data ?? [])
@@ -1691,6 +1697,43 @@ function Products({
       .includes(search.toLowerCase()),
   )
 
+  const moveProduct = async (productId: string, direction: 'up' | 'down') => {
+    const index = rows.findIndex((product) => product.id === productId)
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (index < 0 || targetIndex < 0 || targetIndex >= rows.length) return
+    const ordered = [...rows].sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
+    const currentIndex = ordered.findIndex((product) => product.id === productId)
+    const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+    if (currentIndex < 0 || swapIndex < 0 || swapIndex >= ordered.length) return
+    const current = ordered[currentIndex]
+    const target = ordered[swapIndex]
+    const next = [...ordered]
+    next[currentIndex] = target
+    next[swapIndex] = current
+    const updates = next.map((product, position) => ({
+      branch_id: branchId,
+      product_id: product.id,
+      sort_order: position,
+    }))
+    const result = await dbFrom('branch_products').upsert(
+      updates.map((x) => ({
+        ...x,
+        branch_price:
+          rows.find((p) => p.id === x.product_id)?.branch_price ??
+          rows.find((p) => p.id === x.product_id)?.offer_price ??
+          rows.find((p) => p.id === x.product_id)?.base_price ??
+          0,
+        is_visible: true,
+      })),
+      { onConflict: 'branch_id,product_id' },
+    )
+    if (result.error) {
+      setError(result.error.message)
+      return
+    }
+    setRows(next.map((product, position) => ({ ...product, sort_order: position })))
+  }
+
   const newProduct = () =>
     setEditing({
       branch_id: branchId,
@@ -1841,7 +1884,7 @@ function Products({
                   <span>Offer Price</span>
                   <span>Actions</span>
                 </div>
-                {visible.map((product) => (
+                {visible.map((product) => { const rowIndex = visible.findIndex((x) => x.id === product.id); return (
                   <div className="workspace-row product-row" key={product.id}>
                     <strong>{product.name}</strong>
                     <span>
@@ -1857,7 +1900,26 @@ function Products({
                         'en-IN',
                       )}
                     </span>
-                    <button
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        disabled={rowIndex === 0}
+                        onClick={() => void moveProduct(product.id, 'up')}
+                        title="Move up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        disabled={rowIndex === visible.length - 1}
+                        onClick={() => void moveProduct(product.id, 'down')}
+                        title="Move down"
+                      >
+                        ↓
+                      </button>
+                      <button
                       onClick={() => {
                         const slug = String(product.name || 'product')
                           .toLowerCase()
@@ -1873,9 +1935,10 @@ function Products({
                       }}
                     >
                       Edit
-                    </button>
-                  </div>
-                ))}
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             </Panel>
           )}
