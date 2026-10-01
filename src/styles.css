@@ -9499,8 +9499,12 @@ a {
   right: 24px;
   bottom: 78px;
   z-index: 95;
-  width: min(360px, calc(100vw - 32px));
-  height: min(520px, calc(100vh - 110px));
+  width: min(420px, calc(100vw - 32px));
+  height: min(620px, calc(100vh - 110px));
+  min-width: 320px;
+  min-height: 420px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 96px);
   background: #fff;
   border: 1px solid #dedede;
   border-radius: 12px;
@@ -9508,6 +9512,8 @@ a {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  resize: both;
+  box-sizing: border-box;
 }
 
 .chat-widget-header {
