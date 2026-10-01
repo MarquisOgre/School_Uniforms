@@ -1159,58 +1159,80 @@ function Products({
       setLoading(true)
       setError('')
 
+      const linksResult = await dbFrom('branch_products')
+        .select('product_id')
+        .eq('branch_id', branchId)
+        .eq('is_visible', true)
+
+      if (cancelled) return
+      if (linksResult.error) {
+        setError(linksResult.error.message)
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+
+      const productIds = (linksResult.data || []).map((x: any) => x.product_id)
+      if (!productIds.length) {
+        setError('Product not found.')
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+
+      let product: any = null
       const slugResult = await dbFrom('products')
         .select('*')
+        .in('id', productIds)
         .eq('slug', productSlug)
-        .eq('branch_id', branchId)
         .maybeSingle()
 
       if (cancelled) return
+      if (slugResult.error) {
+        setError(slugResult.error.message)
+        setEditing(null)
+        setLoading(false)
+        return
+      }
+      product = slugResult.data
 
-      let product = slugResult.data
-
-      if (!product && !slugResult.error && /^[0-9a-f-]{36}$/i.test(productSlug)) {
+      if (!product && /^[0-9a-f-]{36}$/i.test(productSlug)) {
         const idResult = await dbFrom('products')
           .select('*')
+          .in('id', productIds)
           .eq('id', productSlug)
-          .eq('branch_id', branchId)
           .maybeSingle()
 
         if (cancelled) return
-
         if (idResult.error) {
           setError(idResult.error.message)
           setEditing(null)
           setLoading(false)
           return
         }
-
         product = idResult.data
       }
 
-      if (!product && !slugResult.error) {
+      if (!product) {
         const nameFromSlug = decodeURIComponent(productSlug).replace(/-/g, ' ').trim()
-
         const nameResult = await dbFrom('products')
           .select('*')
-          .eq('branch_id', branchId)
+          .in('id', productIds)
           .ilike('name', nameFromSlug)
           .maybeSingle()
 
         if (cancelled) return
-
         if (nameResult.error) {
           setError(nameResult.error.message)
           setEditing(null)
           setLoading(false)
           return
         }
-
         product = nameResult.data
       }
 
-      if (slugResult.error || !product) {
-        setError(slugResult.error?.message || 'Product not found.')
+      if (!product) {
+        setError('Product not found.')
         setEditing(null)
         setLoading(false)
         return
