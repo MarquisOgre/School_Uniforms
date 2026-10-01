@@ -1,17 +1,17 @@
--- AI Uniform Intelligence: class catalog mapping + measurement-based sizing
+-- AI Uniform Intelligence: branch catalog mapping + measurement-based sizing
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.uniform_classes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  school_id uuid NOT NULL REFERENCES public.schools(id) ON DELETE CASCADE,
+  branch_id uuid NOT NULL REFERENCES public.branches(id) ON DELETE CASCADE,
   name text NOT NULL,
   normalized_name text NOT NULL,
   sort_order integer NOT NULL DEFAULT 0,
   status public.record_status NOT NULL DEFAULT 'active',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (school_id, normalized_name),
-  UNIQUE (id, school_id)
+  UNIQUE (branch_id, normalized_name),
+  UNIQUE (id, branch_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.product_class_assignments (
@@ -25,12 +25,11 @@ CREATE TABLE IF NOT EXISTS public.product_class_assignments (
 CREATE OR REPLACE FUNCTION public.validate_product_class_assignment_scope()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, app_private
 AS $$
-DECLARE branch_school uuid; class_school uuid;
+DECLARE class_branch uuid;
 BEGIN
-  SELECT school_id INTO branch_school FROM public.branches WHERE id = NEW.branch_id;
-  SELECT school_id INTO class_school FROM public.uniform_classes WHERE id = NEW.class_id;
-  IF branch_school IS NULL OR class_school IS NULL OR branch_school <> class_school THEN
-    RAISE EXCEPTION 'Product class assignment branch and class belong to different schools';
+  SELECT branch_id INTO class_branch FROM public.uniform_classes WHERE id = NEW.class_id;
+  IF class_branch IS NULL OR class_branch <> NEW.branch_id THEN
+    RAISE EXCEPTION 'Product class assignment branch and class belong to different branches';
   END IF;
   RETURN NEW;
 END;
@@ -68,7 +67,7 @@ CREATE TABLE IF NOT EXISTS public.student_measurements (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_uniform_classes_school_order ON public.uniform_classes(school_id, sort_order, name);
+CREATE INDEX IF NOT EXISTS idx_uniform_classes_branch_order ON public.uniform_classes(branch_id, sort_order, name);
 CREATE INDEX IF NOT EXISTS idx_product_class_assignments_branch_class ON public.product_class_assignments(branch_id, class_id, product_id);
 CREATE INDEX IF NOT EXISTS idx_variant_measurements_variant_type ON public.variant_measurements(variant_id, measurement_type);
 CREATE INDEX IF NOT EXISTS idx_student_measurements_student_type ON public.student_measurements(student_id, measurement_type, measured_at DESC);
@@ -126,16 +125,16 @@ LANGUAGE sql SECURITY DEFINER SET search_path = public, app_private
 AS $$
   SELECT p.id, p.name, pc.name, p.gender, v.id, v.sku, v.size_label, v.variant_name,
          COALESCE(bi.quantity_on_hand, 0), vm.measurement_type, vm.min_value, vm.ideal_value, vm.max_value, vm.unit
-  FROM branches b
-  JOIN uniform_classes uc ON uc.school_id = b.school_id AND uc.status = 'active'
+  FROM public.branches b
+  JOIN public.uniform_classes uc ON uc.branch_id = b.id AND uc.status = 'active'
     AND (lower(uc.name) = lower(trim(p_class_name))
       OR uc.normalized_name = lower(regexp_replace(trim(p_class_name), '[^a-z0-9]+', '', 'g')))
-  JOIN product_class_assignments pca ON pca.branch_id = b.id AND pca.class_id = uc.id
-  JOIN products p ON p.id = pca.product_id AND p.status = 'active'
-  LEFT JOIN product_categories pc ON pc.id = p.category_id
-  JOIN product_variants v ON v.product_id = p.id AND v.status = 'active'
-  LEFT JOIN branch_inventory bi ON bi.branch_id = b.id AND bi.variant_id = v.id
-  LEFT JOIN variant_measurements vm ON vm.variant_id = v.id
+  JOIN public.product_class_assignments pca ON pca.branch_id = b.id AND pca.class_id = uc.id
+  JOIN public.products p ON p.id = pca.product_id AND p.status = 'active'
+  LEFT JOIN public.product_categories pc ON pc.id = p.category_id
+  JOIN public.product_variants v ON v.product_id = p.id AND v.status = 'active'
+  LEFT JOIN public.branch_inventory bi ON bi.branch_id = b.id AND bi.variant_id = v.id
+  LEFT JOIN public.variant_measurements vm ON vm.variant_id = v.id
   WHERE b.id = p_branch_id
     AND (p_gender IS NULL OR p.gender IN (p_gender, 'unisex'))
     AND (p_product_query IS NULL OR trim(p_product_query) = ''
@@ -149,8 +148,8 @@ RETURNS TABLE (class_id uuid, class_name text, sort_order integer)
 LANGUAGE sql SECURITY DEFINER SET search_path = public, app_private
 AS $$
   SELECT uc.id, uc.name, uc.sort_order
-  FROM uniform_classes uc JOIN branches b ON b.school_id = uc.school_id
-  WHERE b.id = p_branch_id AND uc.status = 'active'
+  FROM public.uniform_classes uc
+  WHERE uc.branch_id = p_branch_id AND uc.status = 'active'
     AND (lower(uc.name) = lower(trim(p_class_name))
       OR uc.normalized_name = lower(regexp_replace(trim(p_class_name), '[^a-z0-9]+', '', 'g')))
   ORDER BY uc.sort_order LIMIT 1;
