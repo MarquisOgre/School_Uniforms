@@ -144,6 +144,9 @@ export default function CheckoutFlow({
   const [couponCode, setCouponCode] = useState('')
   const [couponDiscount, setCouponDiscount] = useState(0)
   const [couponMessage, setCouponMessage] = useState('')
+  const [promotion, setPromotion] = useState<any>(null)
+  const [promotionDiscount, setPromotionDiscount] = useState(0)
+  const [promotionShippingDiscount, setPromotionShippingDiscount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successOrder, setSuccessOrder] = useState<any>(null)
@@ -387,7 +390,42 @@ export default function CheckoutFlow({
     const freeAbove = shippingFreeAbove || Number(settings?.free_shipping_above || 0)
     return fee > 0 && (!freeAbove || total < freeAbove) ? fee : 0
   }, [shippingRate, shippingResolved, shippingFreeAbove, settings, total])
-  const payable = Math.max(0, total + effectiveShipping - couponDiscount)
+  const payable = Math.max(
+    0,
+    total + effectiveShipping - couponDiscount - promotionDiscount - promotionShippingDiscount,
+  )
+  useEffect(() => {
+    const client = supabase as any
+    if (!client || !branchId || couponCode.trim()) {
+      setPromotion(null)
+      setPromotionDiscount(0)
+      setPromotionShippingDiscount(0)
+      return
+    }
+    let cancelled = false
+    client
+      .rpc('preview_school_promotion', {
+        p_branch_id: branchId,
+        p_subtotal: total,
+        p_shipping: effectiveShipping,
+      })
+      .then(({ data, error }: { data: any; error: any }) => {
+        if (cancelled) return
+        if (error || !data?.valid) {
+          setPromotion(null)
+          setPromotionDiscount(0)
+          setPromotionShippingDiscount(0)
+          return
+        }
+        setPromotion(data)
+        setPromotionDiscount(Number(data.discount || 0))
+        setPromotionShippingDiscount(Number(data.shipping_discount || 0))
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [branchId, total, effectiveShipping, couponCode])
+
   const upiUri = useMemo(() => {
     if (!settings?.upi_enabled || !settings?.upi_id) return ''
     return (
@@ -473,6 +511,10 @@ export default function CheckoutFlow({
       setCouponMessage('Enter a coupon code.')
       return
     }
+    // A manually entered coupon takes precedence over an automatic promotion.
+    setPromotion(null)
+    setPromotionDiscount(0)
+    setPromotionShippingDiscount(0)
     const client = supabase as any
     const r = await client.rpc('preview_school_coupon', { p_code: code, p_subtotal: total })
     if (r.error) {
@@ -839,11 +881,24 @@ export default function CheckoutFlow({
                   {couponMessage}
                 </small>
               )}
+              {promotion && !couponDiscount && (
+                <div className="school-payment-total">
+                  <span>{promotion.name}</span>
+                  <strong>
+                    {promotionShippingDiscount > 0
+                      ? 'FREE SHIPPING'
+                      : '-₹' + promotionDiscount.toLocaleString('en-IN')}
+                  </strong>
+                </div>
+              )}
               {couponDiscount > 0 && (
                 <div className="school-payment-total">
-                  <span>Discount</span>
+                  <span>Coupon Discount</span>
                   <strong>-₹{couponDiscount.toLocaleString('en-IN')}</strong>
                 </div>
+              )}
+              {promotion && !couponDiscount && promotion.message && (
+                <small className="form-success">{promotion.message}</small>
               )}
             </div>
 
@@ -945,7 +1000,9 @@ export default function CheckoutFlow({
                 <div className="school-payment-total">
                   <span>Shipping · {shippingMethodName}</span>
                   <strong>
-                    {effectiveShipping ? '₹' + effectiveShipping.toLocaleString('en-IN') : 'FREE'}
+                    {effectiveShipping - promotionShippingDiscount > 0
+                      ? '₹' + (effectiveShipping - promotionShippingDiscount).toLocaleString('en-IN')
+                      : 'FREE'}
                   </strong>
                 </div>
                 <div className="school-payment-total">
