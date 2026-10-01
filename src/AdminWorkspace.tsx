@@ -2209,8 +2209,6 @@ function ProductEditorScreen({
     setNewColor('')
   }
 
-
-
   const generateColorSizes = () => {
     const colors = currentColors
     const sizes = Array.from(
