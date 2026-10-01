@@ -1083,93 +1083,92 @@ function SeoMenus() {
   )
 }
 function AccessAudit() {
-  const [roles, setRoles] = useState<any[]>([]),
-    [permissions, setPermissions] = useState<any[]>([]),
-    [logs, setLogs] = useState<any[]>([]),
-    [msg, setMsg] = useState('')
+  const [roles, setRoles] = useState<any[]>([])
+  const [permissions, setPermissions] = useState<any[]>([])
+  const [profiles, setProfiles] = useState<any[]>([])
+  const [rolePermissions, setRolePermissions] = useState<any[]>([])
+  const [logs, setLogs] = useState<any[]>([])
+  const [selectedRole, setSelectedRole] = useState<any>(null)
+  const [selectedUser, setSelectedUser] = useState('')
+  const [msg, setMsg] = useState('')
   const load = async () => {
-    const [r, p, l] = await Promise.all([
+    const [r, p, u, rp, l] = await Promise.all([
       db('admin_roles').select('*').order('name'),
       db('admin_permissions').select('*').order('permission_key'),
+      db('profiles').select('id,full_name,login_id,role,status').order('full_name'),
+      db('admin_role_permissions').select('*'),
       db('audit_logs').select('*').order('created_at', { ascending: false }).limit(50),
     ])
     setRoles(r.data ?? [])
     setPermissions(p.data ?? [])
+    setProfiles(u.data ?? [])
+    setRolePermissions(rp.data ?? [])
     setLogs(l.data ?? [])
   }
-  useEffect(() => {
-    void load()
-  }, [])
+  useEffect(() => { void load() }, [])
   const addRole = async () => {
     const name = window.prompt('Role name')
-    if (!name) return
-    const r = await db('admin_roles').insert({
-      name,
-      description: 'Custom administrator role',
-      is_system: false,
-    })
+    if (!name?.trim()) return
+    const r = await db('admin_roles').insert({ name: name.trim(), description: 'Custom administrator role', is_system: false })
     setMsg(r.error ? r.error.message : 'Role created.')
     void load()
+  }
+  const togglePermission = async (permissionId: string) => {
+    if (!selectedRole) return
+    const exists = rolePermissions.some((x) => x.role_id === selectedRole.id && x.permission_id === permissionId)
+    const r = exists
+      ? await db('admin_role_permissions').delete().eq('role_id', selectedRole.id).eq('permission_id', permissionId)
+      : await db('admin_role_permissions').insert({ role_id: selectedRole.id, permission_id: permissionId })
+    if (r.error) setMsg(r.error.message)
+    else { setMsg('Permissions updated.'); void load() }
+  }
+  const assignUser = async () => {
+    if (!selectedRole || !selectedUser) return
+    const r = await db('admin_user_roles').upsert({ user_id: selectedUser, role_id: selectedRole.id }, { onConflict: 'user_id,role_id' })
+    if (r.error) setMsg(r.error.message)
+    else { setMsg('User assigned to role.'); setSelectedUser(''); void load() }
   }
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3>
-          <ShieldCheck size={17} /> Roles & Permissions
-        </h3>
-        <p>
-          Granular permission definitions are ready for administrator role assignment. Existing
-          legacy roles continue to work.
-        </p>
-        <button className="primary-button" onClick={() => void addRole()}>
-          <Users size={15} /> Add Role
-        </button>
+        <h3><ShieldCheck size={17} /> Roles & Permissions</h3>
+        <p>Create administrator roles and control individual capabilities without exposing passwords.</p>
+        <button className="primary-button" onClick={() => void addRole()}><Users size={15} /> Add Role</button>
         <div className="enterprise-list">
           {roles.map((r) => (
-            <div className="enterprise-list-row" key={r.id}>
-              <span>
-                {r.name}
-                <small>{r.description || '—'}</small>
-              </span>
-              <span>{r.is_system ? 'System' : 'Custom'}</span>
-            </div>
+            <button key={r.id} className={selectedRole?.id === r.id ? 'selected' : ''} onClick={() => setSelectedRole(r)}>
+              <span>{r.name}<small>{r.description || '—'}</small></span><span>{r.is_system ? 'System' : 'Custom'}</span>
+            </button>
           ))}
         </div>
+        {selectedRole && (
+          <div style={{ marginTop: 16 }}>
+            <strong>Permissions for {selectedRole.name}</strong>
+            <div className="enterprise-list">
+              {permissions.map((p) => {
+                const checked = rolePermissions.some((x) => x.role_id === selectedRole.id && x.permission_id === p.id)
+                return <label className="enterprise-list-row" key={p.id}><span>{p.permission_key}<small>{p.description || ''}</small></span><input type="checkbox" checked={checked} onChange={() => void togglePermission(p.id)} /></label>
+              })}
+            </div>
+            <div className="inline-form">
+              <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
+                <option value="">Select user to assign</option>
+                {profiles.filter((p) => p.status === 'active').map((p) => <option key={p.id} value={p.id}>{p.full_name || p.login_id || p.id} · {p.role}</option>)}
+              </select>
+              <button className="secondary-button" disabled={!selectedUser} onClick={() => void assignUser()}>Assign Role</button>
+            </div>
+          </div>
+        )}
         {msg && <p className="form-success">{msg}</p>}
       </div>
       <div className="enterprise-card">
-        <h3>
-          <Archive size={17} /> Audit Log
-        </h3>
-        <p>
-          Administrative actions can be recorded with actor, entity, branch and JSON details for
-          traceability.
-        </p>
-        <div className="enterprise-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Action</th>
-                <th>Entity</th>
-                <th>When</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((l) => (
-                <tr key={l.id}>
-                  <td>{l.action}</td>
-                  <td>{l.entity_type || '—'}</td>
-                  <td>{new Date(l.created_at).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <h3><Archive size={17} /> Audit Log</h3>
+        <p>Administrative actions are recorded with actor, entity, branch and JSON details for traceability.</p>
+        <div className="enterprise-table-wrap"><table><thead><tr><th>Action</th><th>Entity</th><th>When</th></tr></thead><tbody>{logs.map((l) => <tr key={l.id}><td>{l.action}</td><td>{l.entity_type || '—'}</td><td>{new Date(l.created_at).toLocaleString()}</td></tr>)}</tbody></table></div>
       </div>
     </section>
   )
 }
-
 async function audit(
   action: string,
   entity_type: string,
