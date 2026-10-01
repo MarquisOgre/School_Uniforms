@@ -3389,7 +3389,7 @@ function Packages({
       setLoading(false)
       return
     }
-    const [p, x, pi] = await Promise.all([
+    const [p, x, pi, c] = await Promise.all([
       dbFrom('uniform_packages').select('*').eq('branch_id', branchId).order('name'),
       dbFrom('products')
         .select('id,name,gender,base_price,category_id')
@@ -3737,7 +3737,7 @@ function Packages({
 
       if (productIds.length) {
         const productsResult = await dbFrom('products')
-          .select('id,name,gender,base_price')
+          .select('id,name,gender,base_price,category_id')
           .in('id', productIds)
 
         if (cancelled) return
