@@ -535,121 +535,39 @@ function Returns() {
 }
 
 function Invoices() {
-  const [rows, setRows] = useState<any[]>([]),
-    [loading, setLoading] = useState(true),
-    [search, setSearch] = useState('')
+  const [rows, setRows] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const load = async () => {
     setLoading(true)
-    const r = await db('invoices')
-      .select('*,orders(order_number,grand_total,shipping_address,customer_user_id,created_at)')
-      .order('issued_at', { ascending: false })
-      .limit(100)
-    setRows(r.data ?? [])
+    const r = await db('invoices').select('*').order('issued_at', { ascending: false }).limit(100)
+    if (r.error) { setRows([]); setLoading(false); return }
+    const ids = (r.data || []).map((x: any) => x.order_id).filter(Boolean)
+    const o = ids.length ? await db('orders').select('id,order_number,grand_total,shipping_address,customer_user_id,created_at').in('id', ids) : { data: [] }
+    const items = ids.length ? await db('order_items').select('id,order_id,quantity,unit_price,item_name_snapshot').in('order_id', ids).order('created_at') : { data: [] }
+    const orders = new Map((o.data || []).map((x: any) => [x.id, x]))
+    const itemMap = new Map<string, any[]>()
+    ;(items.data || []).forEach((item: any) => itemMap.set(item.order_id, [...(itemMap.get(item.order_id) || []), item]))
+    setRows((r.data || []).map((x: any) => ({ ...x, orders: orders.get(x.order_id) || null, order_items: itemMap.get(x.order_id) || [] })))
     setLoading(false)
   }
-  useEffect(() => {
-    void load()
-  }, [])
-  const visible = useMemo(
-    () =>
-      rows.filter(
-        (x) =>
-          !search ||
-          String(x.invoice_number).toLowerCase().includes(search.toLowerCase()) ||
-          String(x.orders?.order_number || '')
-            .toLowerCase()
-            .includes(search.toLowerCase()),
-      ),
-    [rows, search],
-  )
+  useEffect(() => { void load() }, [])
+  const visible = useMemo(() => rows.filter((x) => !search || String(x.invoice_number).toLowerCase().includes(search.toLowerCase()) || String(x.orders?.order_number || '').toLowerCase().includes(search.toLowerCase())), [rows, search])
   const printInvoice = (x: any) => {
     const address = x.orders?.shipping_address || {}
+    const rowsHtml = (x.order_items || []).map((it: any) => '<tr><td>' + String(it.item_name_snapshot || 'Item') + '</td><td>' + Number(it.quantity || 0) + '</td><td>₹' + Number(it.unit_price || 0).toFixed(2) + '</td><td>₹' + (Number(it.unit_price || 0) * Number(it.quantity || 0)).toFixed(2) + '</td></tr>').join('')
     const w = window.open('', '_blank', 'width=900,height=700')
     if (!w) return
-    w.document.write(
-      '<html><head><title>' +
-        x.invoice_number +
-        '</title><style>body{font-family:Arial;padding:40px}table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{font-size:20px;font-weight:bold}</style></head><body><h1>INVOICE</h1><p><b>' +
-        x.invoice_number +
-        '</b></p><p>' +
-        String(address.recipient_name || 'Customer') +
-        '<br>' +
-        String(address.address_line1 || '') +
-        '<br>' +
-        String(address.city || '') +
-        ' ' +
-        String(address.state || '') +
-        ' ' +
-        String(address.postal_code || '') +
-        '</p><table><tr><th>Order</th><th>Date</th><th>Total</th></tr><tr><td>' +
-        String(x.orders?.order_number || '') +
-        '</td><td>' +
-        new Date(x.issued_at).toLocaleDateString() +
-        '</td><td>₹' +
-        Number(x.orders?.grand_total || 0).toFixed(2) +
-        '</td></tr></table><p class="total">Grand Total: ₹' +
-        Number(x.orders?.grand_total || 0).toFixed(2) +
-        '</p><script>window.print()</script></body></html>',
-    )
+    w.document.write('<html><head><title>' + x.invoice_number + '</title><style>body{font-family:Arial;padding:40px}table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{font-size:20px;font-weight:bold}</style></head><body><h1>INVOICE</h1><p><b>' + x.invoice_number + '</b></p><p>' + String(address.recipient_name || 'Customer') + '<br>' + String(address.address_line1 || '') + '<br>' + String(address.city || '') + ' ' + String(address.state || '') + ' ' + String(address.postal_code || '') + '</p><table><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>' + rowsHtml + '</table><p>Order: ' + String(x.orders?.order_number || '') + ' · Date: ' + new Date(x.issued_at).toLocaleDateString() + '</p><p class="total">Grand Total: ₹' + Number(x.orders?.grand_total || 0).toFixed(2) + '</p><script>window.print()</script></body></html>')
     w.document.close()
   }
   return (
     <section className="enterprise-card">
-      <div className="enterprise-card-head">
-        <div>
-          <h3>
-            <FileText size={17} /> Invoices
-          </h3>
-          <span>
-            Invoice records are created automatically for new orders. Print or save as PDF from the
-            browser.
-          </span>
-        </div>
-        <div className="toolbar-search">
-          <Search size={15} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search invoice/order"
-          />
-        </div>
-      </div>
-      {loading ? (
-        <div className="workspace-empty">Loading invoices...</div>
-      ) : (
-        <div className="enterprise-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Order</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((x) => (
-                <tr key={x.id}>
-                  <td>{x.invoice_number}</td>
-                  <td>{x.orders?.order_number || '—'}</td>
-                  <td>₹{Number(x.orders?.grand_total || 0).toFixed(2)}</td>
-                  <td>{x.status}</td>
-                  <td>
-                    <button className="secondary-button" onClick={() => printInvoice(x)}>
-                      Print / PDF
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="enterprise-card-head"><div><h3><FileText size={17} /> Invoices</h3><span>Automatic invoice records with line-item printing and browser PDF.</span></div><div className="toolbar-search"><Search size={15} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoice/order" /></div></div>
+      {loading ? <div className="workspace-empty">Loading invoices...</div> : !visible.length ? <div className="workspace-empty">No invoices found.</div> : <div className="enterprise-table-wrap"><table><thead><tr><th>Invoice</th><th>Order</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>{visible.map((x) => <tr key={x.id}><td>{x.invoice_number}</td><td>{x.orders?.order_number || '—'}</td><td>₹{Number(x.orders?.grand_total || 0).toFixed(2)}</td><td>{x.status}</td><td><button className="secondary-button" onClick={() => printInvoice(x)}>Print / PDF</button></td></tr>)}</tbody></table></div>}
     </section>
   )
 }
-
 function Marketing() {
   const [promos, setPromos] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
