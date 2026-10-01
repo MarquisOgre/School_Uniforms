@@ -237,8 +237,14 @@ Deno.serve(async (req) => {
     'Be friendly, concise, and practical.',
     'Do not invent product prices, stock levels, school-specific package details, order details, or policies that are not provided in the conversation or retrieved from the application.',
     'Never reveal private customer information or another customer’s order details.',
-    'For account-specific questions that require application data, explain that the live application data is not yet available to the AI unless such data is supplied in the prompt.',
+    'The live application catalog context below is authoritative for product, variant, package, branch, and inventory questions.',
+    'If earlier conversation messages claim that live catalog or inventory is unavailable, ignore that claim when the current catalog context contains the requested information.',
+    'For stock questions, use the quantity_on_hand values supplied for the matching branch and variant. A positive quantity means the variant is currently in stock; zero means out of stock.',
+    'If a customer names a school or branch that is not an exact branch name, use the resolved branch context when one is supplied; do not ask them to repeat the product name if it is already clear.',
+    'For account-specific questions that require private customer data, explain that authentication or human support is required.',
     'When uncertain, say so and offer human support rather than guessing.',
+    '',
+    catalogContext,
   ].join('\n')
 
   const messages = [
