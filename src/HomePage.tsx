@@ -164,8 +164,20 @@ function Landing({ onLogin }: { onLogin: () => void }) {
     [slide, setSlide] = useState(0),
     [cartCount] = useState(0),
     [home, setHome] = useState<any>(DEFAULT_HOME),
+    [promotions, setPromotions] = useState<any[]>([]),
     [searchOpen, setSearchOpen] = useState(false),
     [search, setSearch] = useState('')
+  useEffect(() => {
+    const client = supabase as any
+    if (!client) return
+    void client
+      .from('promotions')
+      .select('id,name,description,promotion_type,value,min_order_value')
+      .is('branch_id', null)
+      .limit(3)
+      .then(({ data }: { data: any[] | null }) => setPromotions(data ?? []))
+  }, [])
+
   useEffect(() => {
     const client = supabase
     if (!client) return
@@ -278,6 +290,55 @@ function Landing({ onLogin }: { onLogin: () => void }) {
           />
         </div>
       </section>
+
+      {promotions.length > 0 && (
+        <section
+          aria-label="Current offers"
+          style={{
+            padding: '18px 24px',
+            background: '#f5efe4',
+            borderTop: '1px solid rgba(15, 35, 43, 0.08)',
+            borderBottom: '1px solid rgba(15, 35, 43, 0.08)',
+          }}
+        >
+          <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gap: 12 }}>
+            {promotions.map((promotion) => (
+              <div
+                key={promotion.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 18,
+                  padding: '16px 20px',
+                  borderRadius: 14,
+                  background: '#fff',
+                  boxShadow: '0 8px 24px rgba(15, 35, 43, 0.06)',
+                }}
+              >
+                <div>
+                  <strong style={{ display: 'block', fontSize: 18 }}>{promotion.name}</strong>
+                  <span style={{ display: 'block', marginTop: 4 }}>
+                    {promotion.description ||
+                      (promotion.promotion_type === 'free_shipping'
+                        ? 'Free shipping on eligible orders.'
+                        : promotion.promotion_type === 'percentage'
+                          ? `${Number(promotion.value || 0)}% off eligible orders.`
+                          : `₹${Number(promotion.value || 0).toLocaleString('en-IN')} off eligible orders.`)}
+                  </span>
+                </div>
+                <span style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>
+                  {promotion.promotion_type === 'free_shipping'
+                    ? 'FREE SHIPPING'
+                    : promotion.promotion_type === 'percentage'
+                      ? `${Number(promotion.value || 0)}% OFF`
+                      : `₹${Number(promotion.value || 0).toLocaleString('en-IN')} OFF`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="exact-trust" hidden={home.sections?.trust === false}>
         {home.trust
