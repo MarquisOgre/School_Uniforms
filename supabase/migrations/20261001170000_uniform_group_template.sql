@@ -179,7 +179,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.initialize_uniform_group_template(uuid) TO authenticated;
 
-CREATE OR REPLACE FUNCTION public.get_uniform_ai_catalog(
+DROP FUNCTION IF EXISTS public.get_uniform_ai_catalog(uuid,text,public.gender_type,text);\n\nCREATE OR REPLACE FUNCTION public.get_uniform_ai_catalog(
   p_branch_id uuid, p_class_name text, p_gender public.gender_type DEFAULT NULL, p_product_query text DEFAULT NULL
 )
 RETURNS TABLE (
