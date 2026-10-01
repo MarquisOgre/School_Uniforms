@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
           .order('sort_order'),
         serviceClient
           .from('branch_inventory')
-          .select('product_id,variant_id,quantity_on_hand,reorder_level')
+          .select('branch_id,product_id,variant_id,quantity_on_hand,reorder_level')
           .eq('branch_id', effectiveBranchId),
         serviceClient
           .from('branch_packages')
@@ -150,6 +150,16 @@ Deno.serve(async (req) => {
       branchProducts = bp.data ?? []
       inventory = bi.data ?? []
       branchPackages = bpk.data ?? []
+    } else {
+      // Visitors may ask about stock before selecting a branch. Load inventory
+      // across active branches so the assistant can answer with the branch name
+      // instead of incorrectly claiming that inventory is unavailable.
+      const { data: allInventory } = await serviceClient
+        .from('branch_inventory')
+        .select('branch_id,product_id,variant_id,quantity_on_hand,reorder_level')
+        .gt('quantity_on_hand', 0)
+        .limit(2000)
+      inventory = allInventory ?? []
     }
 
     const productById = new Map((products ?? []).map((p: any) => [p.id, p]))
@@ -220,22 +230,23 @@ Deno.serve(async (req) => {
       gender: p.gender,
     }))
 
-    const availabilityContext = effectiveBranchId
-      ? inventory
-          .map((row: any) => {
-            const variant = variantById.get(row.variant_id)
-            const product = variant ? productById.get(variant.product_id) : null
-            if (!variant || !product) return null
-            return {
-              product: product.name,
-              variant: variant.variant_name || variant.size_label || variant.id,
-              size: variant.size_label,
-              color: variant.color,
-              quantity_on_hand: Number(row.quantity_on_hand || 0),
-            }
-          })
-          .filter(Boolean)
-      : []
+    const availabilityContext = inventory
+      .map((row: any) => {
+        const variant = variantById.get(row.variant_id)
+        const product = variant ? productById.get(variant.product_id) : null
+        const branch = (branches ?? []).find((b: any) => b.id === row.branch_id)
+        if (!variant || !product) return null
+        return {
+          branch: branch?.name || row.branch_id,
+          branch_code: branch?.code || null,
+          product: product.name,
+          variant: variant.variant_name || variant.size_label || variant.id,
+          size: variant.size_label,
+          color: variant.color,
+          quantity_on_hand: Number(row.quantity_on_hand || 0),
+        }
+      })
+      .filter(Boolean)
 
     catalogContext = [
       effectiveBranchId
@@ -260,7 +271,7 @@ Deno.serve(async (req) => {
     'Never reveal private customer information or another customer’s order details.',
     'The live application catalog context below is authoritative for product, variant, package, branch, and inventory questions.',
     'If earlier conversation messages claim that live catalog or inventory is unavailable, ignore that claim when the current catalog context contains the requested information.',
-    'For stock questions, use the exact_variant_inventory values supplied for the matching branch and variant. A positive quantity means the variant is currently in stock; zero means out of stock.',
+    'For stock questions, use the exact_variant_inventory values supplied for the matching branch and variant. A positive quantity means the variant is currently in stock; zero means out of stock. If no branch was selected, use the branch field in the inventory records and tell the customer which branch the stock belongs to.',
     'When answering a size or availability question, list EVERY matching size/variant explicitly from exact_variant_inventory. Never omit a size, never summarize a complete list as a shortened range, and never infer missing sizes.',
     'If the data contains sizes 2, 3, 4, 5, and 6, your answer must explicitly write Size 2, Size 3, Size 4, Size 5, and Size 6.',
     'If a customer names a school or branch that is not an exact branch name, use the resolved branch context when one is supplied; do not ask them to repeat the product name if it is already clear.',
