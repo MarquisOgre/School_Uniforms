@@ -1421,9 +1421,7 @@ function Products({
         product_id: productId,
         branch_price:
           existingPriceMap[id] ?? Number(editing.offer_price ?? editing.base_price ?? 0),
-        sort_order:
-          existingOrderMap[id] ??
-          ((maxOrderByBranch[id] ?? -1) + 1),
+        sort_order: existingOrderMap[id] ?? (maxOrderByBranch[id] ?? -1) + 1,
         is_visible: editing.status === 'active',
       }))
       const catalogResult = await dbFrom('branch_products').upsert(catalogRows, {
@@ -1903,61 +1901,63 @@ function Products({
                   <span>Offer Price</span>
                   <span>Actions</span>
                 </div>
-                {visible.map((product) => { const rowIndex = visible.findIndex((x) => x.id === product.id); return (
-                  <div className="workspace-row product-row" key={product.id}>
-                    <strong>{product.name}</strong>
-                    <span>
-                      {categories.find((c) => c.id === product.category_id)?.name ||
-                        'Uncategorized'}
-                    </span>
-                    <span>{formatGender(product.gender)}</span>
-                    <span>₹{Number(product.base_price || 0).toLocaleString('en-IN')}</span>
-                    <span>{Number(product.discount_percentage || 0)}%</span>
-                    <span>
-                      ₹
-                      {Number(product.offer_price ?? product.base_price ?? 0).toLocaleString(
-                        'en-IN',
-                      )}
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        disabled={rowIndex === 0}
-                        onClick={() => void moveProduct(product.id, 'up')}
-                        title="Move up"
-                      >
-                        ↑
-                      </button>
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        disabled={rowIndex === visible.length - 1}
-                        onClick={() => void moveProduct(product.id, 'down')}
-                        title="Move down"
-                      >
-                        ↓
-                      </button>
-                      <button
-                      onClick={() => {
-                        const slug = String(product.name || 'product')
-                          .toLowerCase()
-                          .trim()
-                          .replace(/[^a-z0-9]+/g, '-')
-                          .replace(/^-|-$/g, '')
-                        window.history.pushState(
-                          { schoolUniformApp: 'admin', tool: 'products', productSlug: slug },
-                          '',
-                          `/admin/products/edit/${encodeURIComponent(slug)}`,
-                        )
-                        window.dispatchEvent(new PopStateEvent('popstate'))
-                      }}
-                    >
-                      Edit
-                      </button>
+                {visible.map((product) => {
+                  const rowIndex = visible.findIndex((x) => x.id === product.id)
+                  return (
+                    <div className="workspace-row product-row" key={product.id}>
+                      <strong>{product.name}</strong>
+                      <span>
+                        {categories.find((c) => c.id === product.category_id)?.name ||
+                          'Uncategorized'}
+                      </span>
+                      <span>{formatGender(product.gender)}</span>
+                      <span>₹{Number(product.base_price || 0).toLocaleString('en-IN')}</span>
+                      <span>{Number(product.discount_percentage || 0)}%</span>
+                      <span>
+                        ₹
+                        {Number(product.offer_price ?? product.base_price ?? 0).toLocaleString(
+                          'en-IN',
+                        )}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          disabled={rowIndex === 0}
+                          onClick={() => void moveProduct(product.id, 'up')}
+                          title="Move up"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          disabled={rowIndex === visible.length - 1}
+                          onClick={() => void moveProduct(product.id, 'down')}
+                          title="Move down"
+                        >
+                          ↓
+                        </button>
+                        <button
+                          onClick={() => {
+                            const slug = String(product.name || 'product')
+                              .toLowerCase()
+                              .trim()
+                              .replace(/[^a-z0-9]+/g, '-')
+                              .replace(/^-|-$/g, '')
+                            window.history.pushState(
+                              { schoolUniformApp: 'admin', tool: 'products', productSlug: slug },
+                              '',
+                              `/admin/products/edit/${encodeURIComponent(slug)}`,
+                            )
+                            window.dispatchEvent(new PopStateEvent('popstate'))
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )
+                  )
                 })}
               </div>
             </Panel>

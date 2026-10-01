@@ -1002,10 +1002,12 @@ function Products({
         setLoading(false)
         return
       }
-      const products = ((p.data ?? []) as unknown as Array<{
-        id: string
-        [key: string]: any
-      }>).sort((a, b) => (branchOrder[a.id] ?? 0) - (branchOrder[b.id] ?? 0)) as Array<{
+      const products = (
+        (p.data ?? []) as unknown as Array<{
+          id: string
+          [key: string]: any
+        }>
+      ).sort((a, b) => (branchOrder[a.id] ?? 0) - (branchOrder[b.id] ?? 0)) as Array<{
         id: string
         name: string
         description: string | null
