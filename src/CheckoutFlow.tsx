@@ -776,21 +776,6 @@ export default function CheckoutFlow({
                   </label>
                 )}
 
-                {settings.razorpay_enabled && (
-                  <label className="payment-option">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === 'razorpay'}
-                      onChange={() => setPaymentMethod('razorpay')}
-                    />
-                    <CreditCard />
-                    <div>
-                      <strong>Pay Online with Razorpay</strong>
-                      <span>UPI, cards, net banking and other Razorpay payment methods.</span>
-                    </div>
-                  </label>
-                )}
                 {settings.upi_enabled && settings.upi_id && (
                   <label
                     className={`school-payment-option ${paymentMethod === 'upi' ? 'active' : ''}`}
@@ -840,6 +825,10 @@ export default function CheckoutFlow({
 
                 {error && <div className="workspace-error">{error}</div>}
 
+                <div className="school-payment-total">
+                  <span>Shipping · {shippingMethodName}</span>
+                  <strong>{effectiveShipping ? '₹' + effectiveShipping.toLocaleString('en-IN') : 'FREE'}</strong>
+                </div>
                 <div className="school-payment-total">
                   <span>Payable</span>
                   <strong>₹{payable.toLocaleString('en-IN')}</strong>
