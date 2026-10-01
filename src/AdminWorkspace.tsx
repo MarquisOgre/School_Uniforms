@@ -17,6 +17,7 @@ import { supabase } from './lib/supabase'
 import EmailConfigSettings from './EmailConfigSettings'
 import SiteBrandingSettings from './SiteBrandingSettings'
 import TaxSettings from './TaxSettings'
+import AIUniformSetup from './AIUniformSetup'
 
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
 
@@ -64,6 +65,10 @@ const META: Record<ModuleKey, { title: string; description: string }> = {
   users: {
     title: 'Users & Customers',
     description: 'View administrator and customer accounts, branch assignments and login IDs.',
+  },
+  'ai-uniform': {
+    title: 'AI Uniform Setup',
+    description: 'Configure class eligibility and measurement-based uniform size recommendations.',
   },
 }
 
