@@ -226,6 +226,10 @@ function ModuleBody({
       return <InventoryAdmin />
     case 'students':
       return <ParentStudents />
+    case 'users':
+      return <UsersCustomers />
+    case 'ai-uniform':
+      return <AIUniformSetup />
     case 'reports':
       return <Reports />
     case 'settings':
