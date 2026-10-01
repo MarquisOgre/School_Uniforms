@@ -784,47 +784,129 @@ function Invoices() {
 }
 function Marketing() {
   const [promos, setPromos] = useState<any[]>([])
+  const [branches, setBranches] = useState<any[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [promoMsg, setPromoMsg] = useState('')
   const [promoSaving, setPromoSaving] = useState(false)
   const [products, setProducts] = useState<any[]>([])
   const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
   const [value, setValue] = useState('10')
   const [type, setType] = useState('percentage')
+  const [minOrder, setMinOrder] = useState('0')
+  const [usageLimit, setUsageLimit] = useState('')
+  const [startsAt, setStartsAt] = useState('')
+  const [endsAt, setEndsAt] = useState('')
+  const [branchId, setBranchId] = useState('')
   const [source, setSource] = useState('')
   const [target, setTarget] = useState('')
   const [relation, setRelation] = useState('related')
   const [msg, setMsg] = useState('')
+
+  const resetPromoForm = () => {
+    setEditingId(null)
+    setName('')
+    setDescription('')
+    setValue('10')
+    setType('percentage')
+    setMinOrder('0')
+    setUsageLimit('')
+    setStartsAt('')
+    setEndsAt('')
+    setBranchId('')
+  }
+
   const load = async () => {
-    const [p, pr] = await Promise.all([
+    const [p, pr, b] = await Promise.all([
       db('promotions').select('*').order('created_at', { ascending: false }),
       db('products').select('id,name').eq('status', 'active').order('name'),
+      db('branches').select('id,name,code,status').order('name'),
     ])
     setPromos(p.data ?? [])
     setProducts(pr.data ?? [])
+    setBranches(b.data ?? [])
   }
+
   useEffect(() => {
     void load()
   }, [])
-  const addPromo = async () => {
+
+  const savePromo = async () => {
     if (!name.trim()) {
       setPromoMsg('Enter a promotion name.')
       return
     }
+    const numericValue = Math.max(0, Number(value) || 0)
+    if (type === 'percentage' && numericValue > 100) {
+      setPromoMsg('Percentage promotions cannot exceed 100%.')
+      return
+    }
     setPromoMsg('')
     setPromoSaving(true)
-    const r = await db('promotions').insert({
+    const payload = {
       name: name.trim(),
+      description: description.trim() || null,
       promotion_type: type,
-      value: Number(value) || 0,
-    })
-    if (r.error) setPromoMsg(`Unable to create promotion: ${r.error.message}`)
-    else {
-      setName('')
-      setPromoMsg('Promotion created successfully.')
+      value: numericValue,
+      min_order_value: Math.max(0, Number(minOrder) || 0),
+      usage_limit: usageLimit.trim() ? Math.max(1, Number(usageLimit) || 1) : null,
+      starts_at: startsAt ? new Date(startsAt).toISOString() : null,
+      ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+      branch_id: branchId || null,
+      updated_at: new Date().toISOString(),
+    }
+    if (payload.starts_at && payload.ends_at && payload.ends_at < payload.starts_at) {
+      setPromoMsg('End date must be after the start date.')
+      setPromoSaving(false)
+      return
+    }
+    const r = editingId
+      ? await db('promotions').update(payload).eq('id', editingId)
+      : await db('promotions').insert({ ...payload, enabled: true })
+    if (r.error) {
+      setPromoMsg(`Unable to save promotion: ${r.error.message}`)
+    } else {
+      setPromoMsg(editingId ? 'Promotion updated successfully.' : 'Promotion created successfully.')
+      resetPromoForm()
       await load()
     }
     setPromoSaving(false)
   }
+
+  const editPromo = (p: any) => {
+    setEditingId(p.id)
+    setName(p.name || '')
+    setDescription(p.description || '')
+    setValue(String(p.value ?? 0))
+    setType(p.promotion_type || 'percentage')
+    setMinOrder(String(p.min_order_value ?? 0))
+    setUsageLimit(p.usage_limit == null ? '' : String(p.usage_limit))
+    setStartsAt(p.starts_at ? new Date(p.starts_at).toISOString().slice(0, 16) : '')
+    setEndsAt(p.ends_at ? new Date(p.ends_at).toISOString().slice(0, 16) : '')
+    setBranchId(p.branch_id || '')
+    setPromoMsg('')
+  }
+
+  const togglePromo = async (p: any) => {
+    setPromoMsg('')
+    const r = await db('promotions')
+      .update({ enabled: !p.enabled, updated_at: new Date().toISOString() })
+      .eq('id', p.id)
+    setPromoMsg(r.error ? `Unable to change status: ${r.error.message}` : p.enabled ? 'Promotion deactivated.' : 'Promotion activated.')
+    if (!r.error) await load()
+  }
+
+  const deletePromo = async (p: any) => {
+    if (!window.confirm(`Delete promotion "${p.name}" permanently?`)) return
+    setPromoMsg('')
+    const r = await db('promotions').delete().eq('id', p.id)
+    setPromoMsg(r.error ? `Unable to delete promotion: ${r.error.message}` : 'Promotion deleted.')
+    if (!r.error) {
+      if (editingId === p.id) resetPromoForm()
+      await load()
+    }
+  }
+
   const relate = async () => {
     if (!source || !target || source === target) {
       setMsg('Select two different products.')
@@ -836,88 +918,108 @@ function Marketing() {
     )
     setMsg(r.error ? r.error.message : 'Product merchandising link saved.')
   }
+
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3>
-          <Plus size={17} /> Promotions
-        </h3>
-        <p>
-          Create native percentage, fixed-value and free-shipping promotions. Date windows and usage
-          limits are stored in the database.
-        </p>
+        <div className="enterprise-card-head">
+          <div>
+            <h3><Plus size={17} /> Promotions</h3>
+            <span>Automatic offers for the storefront. Coupons remain separate and can be entered manually at checkout.</span>
+          </div>
+        </div>
         <div className="cms-field-grid">
           <label>
             Name
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Back to School Offer"
-            />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Back to School Offer" />
           </label>
           <label>
             Type
             <select value={type} onChange={(e) => setType(e.target.value)}>
               <option value="percentage">Percentage</option>
-              <option value="fixed">Fixed</option>
+              <option value="fixed">Fixed Amount</option>
               <option value="free_shipping">Free Shipping</option>
             </select>
           </label>
           <label>
             Value
-            <input type="number" min="0" value={value} onChange={(e) => setValue(e.target.value)} />
+            <input type="number" min="0" max={type === 'percentage' ? 100 : undefined} value={value} onChange={(e) => setValue(e.target.value)} disabled={type === 'free_shipping'} />
+          </label>
+          <label>
+            Minimum Order
+            <input type="number" min="0" value={minOrder} onChange={(e) => setMinOrder(e.target.value)} />
+          </label>
+          <label>
+            Usage Limit
+            <input type="number" min="1" value={usageLimit} onChange={(e) => setUsageLimit(e.target.value)} placeholder="Unlimited" />
+          </label>
+          <label>
+            Branch
+            <select value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+              <option value="">All Branches</option>
+              {branches.filter((b) => b.status === 'active').map((b) => (
+                <option key={b.id} value={b.id}>{b.name || b.code}</option>
+              ))}
+            </select>
+          </label>
+          <label className="full-field">
+            Description
+            <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Save 10% on eligible school uniform orders." />
+          </label>
+          <label>
+            Starts
+            <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+          </label>
+          <label>
+            Ends
+            <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
           </label>
         </div>
-        <button className="primary-button" disabled={promoSaving} onClick={() => void addPromo()}>
-          <Save size={15} /> {promoSaving ? 'Creating...' : 'Create Promotion'}
-        </button>
-        {promoMsg && (
-          <p className={promoMsg.startsWith('Unable') ? 'workspace-error' : 'form-success'}>
-            {promoMsg}
-          </p>
-        )}
+        <div className="inline-form">
+          <button className="primary-button" disabled={promoSaving} onClick={() => void savePromo()}>
+            <Save size={15} /> {promoSaving ? 'Saving...' : editingId ? 'Update Promotion' : 'Create Promotion'}
+          </button>
+          {editingId && <button className="secondary-button" onClick={resetPromoForm}>Cancel Edit</button>}
+        </div>
+        {promoMsg && <p className={promoMsg.startsWith('Unable') ? 'workspace-error' : 'form-success'}>{promoMsg}</p>}
         <div className="enterprise-list">
           {promos.map((p) => (
             <div className="enterprise-list-row" key={p.id}>
               <span>
                 {p.name}
                 <small>
-                  {p.promotion_type} · {p.value}
+                  {p.promotion_type} · {p.promotion_type === 'free_shipping' ? 'Free shipping' : p.value}
+                  {Number(p.min_order_value || 0) ? ` · Min ₹${Number(p.min_order_value).toFixed(0)}` : ''}
+                  {p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name || 'Branch'}` : ' · All branches'}
                 </small>
               </span>
-              <span>{p.enabled ? 'Active' : 'Disabled'}</span>
+              <span className="inline-form">
+                <strong>{p.enabled ? 'Active' : 'Inactive'}</strong>
+                <button className="secondary-button" onClick={() => editPromo(p)}>Edit</button>
+                <button className="secondary-button" onClick={() => void togglePromo(p)}>{p.enabled ? 'Deactivate' : 'Activate'}</button>
+                <button className="secondary-button" onClick={() => void deletePromo(p)}>Delete</button>
+              </span>
             </div>
           ))}
+          {!promos.length && <div className="workspace-empty">No promotions created yet.</div>}
         </div>
       </div>
       <div className="enterprise-card">
-        <h3>
-          <Archive size={17} /> Product Merchandising
-        </h3>
+        <h3><Archive size={17} /> Product Merchandising</h3>
         <p>Configure native related products, upsells and cross-sells.</p>
         <div className="cms-field-grid">
           <label>
             Product
             <select value={source} onChange={(e) => setSource(e.target.value)}>
               <option value="">Select product</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
+              {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </label>
           <label>
             Target Product
             <select value={target} onChange={(e) => setTarget(e.target.value)}>
               <option value="">Select target</option>
-              {products
-                .filter((p) => p.id !== source)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
+              {products.filter((p) => p.id !== source).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </label>
           <label>
@@ -929,9 +1031,7 @@ function Marketing() {
             </select>
           </label>
         </div>
-        <button className="secondary-button" onClick={() => void relate()}>
-          <Plus size={15} /> Save Relationship
-        </button>
+        <button className="secondary-button" onClick={() => void relate()}><Plus size={15} /> Save Relationship</button>
         {msg && <p className="form-success">{msg}</p>}
       </div>
     </section>
