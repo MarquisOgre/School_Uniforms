@@ -268,11 +268,16 @@ export default function ChatWidget({ branchId, studentId }: ChatWidgetProps) {
       // if the general OpenRouter support service is temporarily unavailable.
       if (branchId) {
         try {
-          const { data: fallbackData, error: fallbackError } = await (supabase as any).functions.invoke(
-            'ai-uniform-assistant',
-            { body: { branchId, studentId, message: text } },
-          )
-          if (!fallbackError && typeof fallbackData?.reply === 'string' && fallbackData.reply.trim()) {
+          const { data: fallbackData, error: fallbackError } = await (
+            supabase as any
+          ).functions.invoke('ai-uniform-assistant', {
+            body: { branchId, studentId, message: text },
+          })
+          if (
+            !fallbackError &&
+            typeof fallbackData?.reply === 'string' &&
+            fallbackData.reply.trim()
+          ) {
             setMessages((current) => [
               ...current,
               {
@@ -315,69 +320,71 @@ export default function ChatWidget({ branchId, studentId }: ChatWidgetProps) {
           </div>
 
           <div className="chat-ai-intro">
-                <Sparkles size={16} />
-                <span>AI assistant is ready. Ask about uniforms, products, orders, shipping or returns.</span>
+            <Sparkles size={16} />
+            <span>
+              AI assistant is ready. Ask about uniforms, products, orders, shipping or returns.
+            </span>
+          </div>
+
+          <div className="chat-messages">
+            {loading ? <div className="chat-status">Loading chat...</div> : null}
+            {!loading && !messages.length ? (
+              <div className="chat-status">
+                <strong>Hi! 👋</strong>
+                <br />
+                How can I help you today?
               </div>
+            ) : null}
 
-              <div className="chat-messages">
-                {loading ? <div className="chat-status">Loading chat...</div> : null}
-                {!loading && !messages.length ? (
-                  <div className="chat-status">
-                    <strong>Hi! 👋</strong>
-                    <br />
-                    How can I help you today?
-                  </div>
-                ) : null}
-
-                {messages.map((item) => (
-                  <div
-                    key={item.id}
-                    className={
-                      'chat-message ' +
-                      ((currentUserId && item.sender_user_id === currentUserId) ||
-                      (!currentUserId && item.sender_user_id === 'visitor')
-                        ? 'customer-message'
-                        : 'support-message')
-                    }
-                  >
-                    <p>{item.message}</p>
-                    <time>
-                      {new Date(item.created_at).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </time>
-                  </div>
-                ))}
-
-                {sending ? (
-                  <div className="chat-message support-message">
-                    <p>Thinking...</p>
-                  </div>
-                ) : null}
-                <div ref={endRef} />
-              </div>
-
-              {error ? <div className="chat-error">{error}</div> : null}
-
-              <form
-                className="chat-composer"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  void send()
-                }}
+            {messages.map((item) => (
+              <div
+                key={item.id}
+                className={
+                  'chat-message ' +
+                  ((currentUserId && item.sender_user_id === currentUserId) ||
+                  (!currentUserId && item.sender_user_id === 'visitor')
+                    ? 'customer-message'
+                    : 'support-message')
+                }
               >
-                <input
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Ask our AI assistant..."
-                  maxLength={1000}
-                  disabled={sending}
-                />
-                <button type="submit" disabled={!draft.trim() || sending} aria-label="Send message">
-                  <Send size={17} />
-                </button>
-              </form>
+                <p>{item.message}</p>
+                <time>
+                  {new Date(item.created_at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </time>
+              </div>
+            ))}
+
+            {sending ? (
+              <div className="chat-message support-message">
+                <p>Thinking...</p>
+              </div>
+            ) : null}
+            <div ref={endRef} />
+          </div>
+
+          {error ? <div className="chat-error">{error}</div> : null}
+
+          <form
+            className="chat-composer"
+            onSubmit={(e) => {
+              e.preventDefault()
+              void send()
+            }}
+          >
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Ask our AI assistant..."
+              maxLength={1000}
+              disabled={sending}
+            />
+            <button type="submit" disabled={!draft.trim() || sending} aria-label="Send message">
+              <Send size={17} />
+            </button>
+          </form>
         </div>
       ) : null}
     </>
