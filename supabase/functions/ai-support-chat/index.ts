@@ -79,9 +79,31 @@ Deno.serve(async (req) => {
 
   let catalogContext = ''
   try {
-    const branchId = typeof body.branchId === 'string' && /^[0-9a-f-]{36}$/i.test(body.branchId)
-      ? body.branchId
-      : null
+    const requestedBranchId =
+      typeof body.branchId === 'string' && /^[0-9a-f-]{36}$/i.test(body.branchId)
+        ? body.branchId
+        : null
+
+    const { data: branches } = await serviceClient
+      .from('branches')
+      .select('id,name,code,status')
+      .eq('status', 'active')
+      .order('name')
+
+    const normalizedMessage = message.toLowerCase()
+    const matchedBranch =
+      requestedBranchId
+        ? (branches ?? []).find((b: any) => b.id === requestedBranchId)
+        : (branches ?? []).find((b: any) => {
+            const name = String(b.name || '').toLowerCase()
+            const code = String(b.code || '').toLowerCase()
+            return (
+              (name.length >= 3 && normalizedMessage.includes(name)) ||
+              (code.length >= 3 && normalizedMessage.includes(code))
+            )
+          })
+
+    const effectiveBranchId = matchedBranch?.id ?? null
 
     const { data: products } = await serviceClient
       .from('products')
@@ -89,6 +111,12 @@ Deno.serve(async (req) => {
       .eq('status', 'active')
       .order('name')
       .limit(120)
+
+    const { data: variants } = await serviceClient
+      .from('product_variants')
+      .select('id,product_id,sku,size_label,color,variant_name,price,status')
+      .eq('status', 'active')
+      .limit(500)
 
     const { data: packages } = await serviceClient
       .from('uniform_packages')
@@ -101,22 +129,22 @@ Deno.serve(async (req) => {
     let inventory: any[] = []
     let branchPackages: any[] = []
 
-    if (branchId) {
+    if (effectiveBranchId) {
       const [bp, bi, bpk] = await Promise.all([
         serviceClient
           .from('branch_products')
-          .select('product_id,branch_price,is_visible,sort_order')
-          .eq('branch_id', branchId)
+          .select('branch_id,product_id,branch_price,is_visible,sort_order')
+          .eq('branch_id', effectiveBranchId)
           .eq('is_visible', true)
           .order('sort_order'),
         serviceClient
           .from('branch_inventory')
-          .select('product_id,variant_id,quantity_on_hand')
-          .eq('branch_id', branchId),
+          .select('product_id,variant_id,quantity_on_hand,reorder_level')
+          .eq('branch_id', effectiveBranchId),
         serviceClient
           .from('branch_packages')
           .select('package_id,branch_price,is_visible')
-          .eq('branch_id', branchId)
+          .eq('branch_id', effectiveBranchId)
           .eq('is_visible', true),
       ])
       branchProducts = bp.data ?? []
@@ -126,30 +154,42 @@ Deno.serve(async (req) => {
 
     const productById = new Map((products ?? []).map((p: any) => [p.id, p]))
     const packageById = new Map((packages ?? []).map((p: any) => [p.id, p]))
+    const variantById = new Map((variants ?? []).map((v: any) => [v.id, v]))
+    const variantsByProduct = new Map<string, any[]>()
 
-    const visibleProducts = branchId && branchProducts.length
-      ? branchProducts.map((bp: any) => {
-          const p = productById.get(bp.product_id)
-          return p ? { ...p, branch_price: bp.branch_price } : null
-        }).filter(Boolean)
-      : (products ?? [])
-
-    const visiblePackages = branchId && branchPackages.length
-      ? branchPackages.map((bp: any) => {
-          const p = packageById.get(bp.package_id)
-          return p ? { ...p, branch_price: bp.branch_price } : null
-        }).filter(Boolean)
-      : (packages ?? [])
-
-    const availabilityByProduct = new Map<string, number>()
-    for (const row of inventory) {
-      const current = availabilityByProduct.get(row.product_id) ?? 0
-      availabilityByProduct.set(row.product_id, current + Number(row.quantity_on_hand || 0))
+    for (const variant of variants ?? []) {
+      const list = variantsByProduct.get(variant.product_id) ?? []
+      list.push(variant)
+      variantsByProduct.set(variant.product_id, list)
     }
 
-    const normalizedQuery = message.toLowerCase()
-    const wantsAvailability = /stock|available|availability|in stock|quantity|size|sizes/.test(normalizedQuery)
-    const productContext = visibleProducts.slice(0, 80).map((p: any) => ({
+    const visibleProducts = effectiveBranchId && branchProducts.length
+      ? branchProducts
+          .map((bp: any) => {
+            const p = productById.get(bp.product_id)
+            return p ? { ...p, branch_price: bp.branch_price } : null
+          })
+          .filter(Boolean)
+      : (products ?? [])
+
+    const visiblePackages = effectiveBranchId && branchPackages.length
+      ? branchPackages
+          .map((bp: any) => {
+            const p = packageById.get(bp.package_id)
+            return p ? { ...p, branch_price: bp.branch_price } : null
+          })
+          .filter(Boolean)
+      : (packages ?? [])
+
+    const inventoryByVariant = new Map<string, number>()
+    for (const row of inventory) {
+      inventoryByVariant.set(row.variant_id, Number(row.quantity_on_hand || 0))
+    }
+
+    const wantsAvailability =
+      /stock|available|availability|in stock|quantity|size|sizes|sock/.test(normalizedMessage)
+
+    const productContext = visibleProducts.slice(0, 100).map((p: any) => ({
       name: p.name,
       description: p.description,
       price: p.branch_price ?? p.offer_price ?? p.base_price,
@@ -162,7 +202,15 @@ Deno.serve(async (req) => {
       cod_available: p.cod_available,
       easy_returns: p.easy_returns,
       express_shipping: p.express_shipping,
-      ...(wantsAvailability && branchId ? { quantity_on_hand: availabilityByProduct.get(p.id) ?? 0 } : {}),
+      variants: (variantsByProduct.get(p.id) ?? []).map((v: any) => ({
+        size: v.size_label,
+        color: v.color,
+        name: v.variant_name,
+        price: v.price,
+        ...(wantsAvailability && effectiveBranchId
+          ? { quantity_on_hand: inventoryByVariant.get(v.id) ?? 0 }
+          : {}),
+      })),
     }))
 
     const packageContext = visiblePackages.slice(0, 40).map((p: any) => ({
@@ -173,7 +221,10 @@ Deno.serve(async (req) => {
     }))
 
     catalogContext = [
-      branchId ? 'Current branch catalog context:' : 'Public catalog context:',
+      effectiveBranchId
+        ? `Resolved branch: ${matchedBranch?.name || 'selected branch'} (${matchedBranch?.code || ''}).`
+        : 'No branch was resolved from the current visitor request.',
+      'Use the following live application catalog context:',
       JSON.stringify({ products: productContext, uniform_packages: packageContext }),
     ].join('\n')
   } catch {
