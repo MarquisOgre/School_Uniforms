@@ -974,7 +974,7 @@ function Products({
       }
       const bp = await client
         .from('branch_products')
-        .select('product_id,is_visible')
+        .select('product_id,is_visible,sort_order')
         .eq('branch_id', branchId)
         .eq('is_visible', true)
       if (bp.error) {
@@ -982,6 +982,9 @@ function Products({
         setLoading(false)
         return
       }
+      const branchOrder = Object.fromEntries(
+        (bp.data ?? []).map((x: any) => [x.product_id, Number(x.sort_order ?? 0)]),
+      )
       const ids = (bp.data ?? []).map((x: any) => x.product_id)
       if (!ids.length) {
         setItems([])
@@ -999,7 +1002,10 @@ function Products({
         setLoading(false)
         return
       }
-      const products = (p.data ?? []) as unknown as Array<{
+      const products = ((p.data ?? []) as unknown as Array<{
+        id: string
+        [key: string]: any
+      }>).sort((a, b) => (branchOrder[a.id] ?? 0) - (branchOrder[b.id] ?? 0)) as Array<{
         id: string
         name: string
         description: string | null
