@@ -100,18 +100,23 @@ function Payments() {
   }, [])
   const verify = async (p: any) => {
     setMessage('')
-    const r = await db('payments')
-      .update({ status: 'paid', paid_at: new Date().toISOString() })
-      .eq('id', p.id)
+    const paidAt = new Date().toISOString()
+    const r = await db('payments').update({ status: 'paid', paid_at: paidAt }).eq('id', p.id)
     if (r.error) {
       setMessage(r.error.message)
+      return
+    }
+    const orderUpdate = await db('orders').update({ status: 'confirmed' }).eq('id', p.order_id).in('status', ['pending'])
+    if (orderUpdate.error) {
+      setMessage(orderUpdate.error.message)
       return
     }
     await audit('payment.verified', 'payments', p.id, {
       provider: p.provider,
       order_id: p.order_id,
+      verified_at: paidAt,
     })
-    setMessage('Payment marked as verified.')
+    setMessage('Payment verified and pending order moved to confirmed.')
     void load()
   }
   return (
