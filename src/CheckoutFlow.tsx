@@ -334,31 +334,20 @@ export default function CheckoutFlow({
     if (!client || !branchId) return
     let cancelled = false
     const loadShipping = async () => {
-      const zone = await client
-        .from('shipping_zones')
-        .select('id')
-        .eq('is_default', true)
-        .maybeSingle()
-      if (zone.error || !zone.data) return
-      const methods = await client
-        .from('shipping_methods')
-        .select('name,rate,free_shipping_minimum')
-        .eq('zone_id', zone.data.id)
-        .eq('enabled', true)
-        .order('sort_order')
-        .limit(1)
-      const method = methods.data?.[0]
-      if (!cancelled && method) {
-        setShippingRate(Number(method.rate || 0))
-        setShippingFreeAbove(Number(method.free_shipping_minimum || 0))
-        setShippingMethodName(method.name || 'Standard Delivery')
+      const result = await client.rpc('calculate_school_shipping', {
+        p_state: address.state || '',
+        p_postal_code: address.pincode || '',
+        p_subtotal: total,
+      })
+      if (!cancelled && result.data) {
+        setShippingRate(Number(result.data.rate || 0))
+        setShippingMethodName(result.data.method || 'Standard Delivery')
+        setShippingFreeAbove(0)
       }
     }
     void loadShipping()
-    return () => {
-      cancelled = true
-    }
-  }, [branchId])
+    return () => { cancelled = true }
+  }, [branchId, address.state, address.pincode, total])
 
   useEffect(() => {
     if (!settings) return
