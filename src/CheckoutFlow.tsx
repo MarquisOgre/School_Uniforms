@@ -840,9 +840,7 @@ export default function CheckoutFlow({
                       : '-₹' + promotionDiscount.toLocaleString('en-IN')}
                   </strong>
                 </div>
-                {promotion.message && (
-                  <small className="form-success">{promotion.message}</small>
-                )}
+                {promotion.message && <small className="form-success">{promotion.message}</small>}
               </div>
             )}
 
