@@ -379,8 +379,42 @@ function Fulfillment() {
                 <tr key={x.id}>
                   <td>{x.order_number || x.order_id}</td>
                   <td>{x.status}</td>
-                  <td><input className="admin-mini-input" value={x.carrier || ''} placeholder="Carrier" onChange={(e) => setRows((v) => v.map((r) => r.id === x.id ? { ...r, carrier: e.target.value } : r))} onBlur={() => void db('order_fulfillments').update({ carrier: x.carrier || null }).eq('id', x.id)} /></td>
-                  <td><input className="admin-mini-input" value={x.tracking_number || ''} placeholder="Tracking #" onChange={(e) => setRows((v) => v.map((r) => r.id === x.id ? { ...r, tracking_number: e.target.value } : r))} onBlur={() => void db('order_fulfillments').update({ tracking_number: x.tracking_number || null }).eq('id', x.id)} /></td>
+                  <td>
+                    <input
+                      className="admin-mini-input"
+                      value={x.carrier || ''}
+                      placeholder="Carrier"
+                      onChange={(e) =>
+                        setRows((v) =>
+                          v.map((r) => (r.id === x.id ? { ...r, carrier: e.target.value } : r)),
+                        )
+                      }
+                      onBlur={() =>
+                        void db('order_fulfillments')
+                          .update({ carrier: x.carrier || null })
+                          .eq('id', x.id)
+                      }
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="admin-mini-input"
+                      value={x.tracking_number || ''}
+                      placeholder="Tracking #"
+                      onChange={(e) =>
+                        setRows((v) =>
+                          v.map((r) =>
+                            r.id === x.id ? { ...r, tracking_number: e.target.value } : r,
+                          ),
+                        )
+                      }
+                      onBlur={() =>
+                        void db('order_fulfillments')
+                          .update({ tracking_number: x.tracking_number || null })
+                          .eq('id', x.id)
+                      }
+                    />
+                  </td>
                   <td>
                     <select value={x.status} onChange={(e) => void setStatus(x.id, e.target.value)}>
                       <option>pending</option>
@@ -634,15 +668,28 @@ function Marketing() {
     setPromos(p.data ?? [])
     setProducts(pr.data ?? [])
   }
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+  }, [])
   const addPromo = async () => {
     if (!name.trim()) return
-    const r = await db('promotions').insert({ name: name.trim(), promotion_type: type, value: Number(value) || 0 })
+    const r = await db('promotions').insert({
+      name: name.trim(),
+      promotion_type: type,
+      value: Number(value) || 0,
+    })
     if (r.error) setMsg(r.error.message)
-    else { setName(''); setMsg('Promotion created.'); void load() }
+    else {
+      setName('')
+      setMsg('Promotion created.')
+      void load()
+    }
   }
   const relate = async () => {
-    if (!source || !target || source === target) { setMsg('Select two different products.'); return }
+    if (!source || !target || source === target) {
+      setMsg('Select two different products.')
+      return
+    }
     const r = await db('product_relations').upsert(
       { product_id: source, related_product_id: target, relation_type: relation, sort_order: 0 },
       { onConflict: 'product_id,related_product_id,relation_type' },
@@ -652,25 +699,94 @@ function Marketing() {
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3><Plus size={17} /> Promotions</h3>
-        <p>Create native percentage, fixed-value and free-shipping promotions. Date windows and usage limits are stored in the database.</p>
+        <h3>
+          <Plus size={17} /> Promotions
+        </h3>
+        <p>
+          Create native percentage, fixed-value and free-shipping promotions. Date windows and usage
+          limits are stored in the database.
+        </p>
         <div className="cms-field-grid">
-          <label>Name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Back to School Offer" /></label>
-          <label>Type<select value={type} onChange={(e) => setType(e.target.value)}><option value="percentage">Percentage</option><option value="fixed">Fixed</option><option value="free_shipping">Free Shipping</option></select></label>
-          <label>Value<input type="number" min="0" value={value} onChange={(e) => setValue(e.target.value)} /></label>
+          <label>
+            Name
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Back to School Offer"
+            />
+          </label>
+          <label>
+            Type
+            <select value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="percentage">Percentage</option>
+              <option value="fixed">Fixed</option>
+              <option value="free_shipping">Free Shipping</option>
+            </select>
+          </label>
+          <label>
+            Value
+            <input type="number" min="0" value={value} onChange={(e) => setValue(e.target.value)} />
+          </label>
         </div>
-        <button className="primary-button" onClick={() => void addPromo()}><Save size={15} /> Create Promotion</button>
-        <div className="enterprise-list">{promos.map((p) => <div className="enterprise-list-row" key={p.id}><span>{p.name}<small>{p.promotion_type} · {p.value}</small></span><span>{p.enabled ? 'Active' : 'Disabled'}</span></div>)}</div>
+        <button className="primary-button" onClick={() => void addPromo()}>
+          <Save size={15} /> Create Promotion
+        </button>
+        <div className="enterprise-list">
+          {promos.map((p) => (
+            <div className="enterprise-list-row" key={p.id}>
+              <span>
+                {p.name}
+                <small>
+                  {p.promotion_type} · {p.value}
+                </small>
+              </span>
+              <span>{p.enabled ? 'Active' : 'Disabled'}</span>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="enterprise-card">
-        <h3><Archive size={17} /> Product Merchandising</h3>
+        <h3>
+          <Archive size={17} /> Product Merchandising
+        </h3>
         <p>Configure native related products, upsells and cross-sells.</p>
         <div className="cms-field-grid">
-          <label>Product<select value={source} onChange={(e) => setSource(e.target.value)}><option value="">Select product</option>{products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-          <label>Target Product<select value={target} onChange={(e) => setTarget(e.target.value)}><option value="">Select target</option>{products.filter((p) => p.id !== source).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-          <label>Relationship<select value={relation} onChange={(e) => setRelation(e.target.value)}><option value="related">Related</option><option value="upsell">Upsell</option><option value="cross_sell">Cross-sell</option></select></label>
+          <label>
+            Product
+            <select value={source} onChange={(e) => setSource(e.target.value)}>
+              <option value="">Select product</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Target Product
+            <select value={target} onChange={(e) => setTarget(e.target.value)}>
+              <option value="">Select target</option>
+              {products
+                .filter((p) => p.id !== source)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label>
+            Relationship
+            <select value={relation} onChange={(e) => setRelation(e.target.value)}>
+              <option value="related">Related</option>
+              <option value="upsell">Upsell</option>
+              <option value="cross_sell">Cross-sell</option>
+            </select>
+          </label>
         </div>
-        <button className="secondary-button" onClick={() => void relate()}><Plus size={15} /> Save Relationship</button>
+        <button className="secondary-button" onClick={() => void relate()}>
+          <Plus size={15} /> Save Relationship
+        </button>
         {msg && <p className="form-success">{msg}</p>}
       </div>
     </section>
