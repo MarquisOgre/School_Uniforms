@@ -14,6 +14,7 @@ type ChatMessage = {
 type RequestBody = {
   conversationId?: string
   branchId?: string
+  studentId?: string
   message: string
   history?: ChatMessage[]
 }
@@ -89,6 +90,32 @@ Deno.serve(async (req) => {
       .select('id,name,code,status')
       .eq('status', 'active')
       .order('name')
+
+    let studentContext: any = null
+    if (typeof body.studentId === 'string' && body.studentId.trim()) {
+      const studentQuery = serviceClient
+        .from('students')
+        .select('id,student_code,full_name,class_name,section,gender,branch_id,status')
+        .eq('student_code', body.studentId.trim())
+        .eq('status', 'active')
+        .limit(5)
+      const { data: matchedStudents } = await studentQuery
+      const sameBranch = (matchedStudents ?? []).find(
+        (student: any) => !body.branchId || student.branch_id === body.branchId,
+      )
+      if (sameBranch) {
+        const studentBranch = (branches ?? []).find((b: any) => b.id === sameBranch.branch_id)
+        studentContext = {
+          student_code: sameBranch.student_code,
+          full_name: sameBranch.full_name,
+          class_name: sameBranch.class_name,
+          section: sameBranch.section,
+          gender: sameBranch.gender,
+          branch: studentBranch?.name || studentBranch?.code || sameBranch.branch_id,
+          branch_code: studentBranch?.code || null,
+        }
+      }
+    }
 
     const normalizedMessage = message.toLowerCase()
     const matchedBranch =
@@ -252,6 +279,8 @@ Deno.serve(async (req) => {
       effectiveBranchId
         ? `Resolved branch: ${matchedBranch?.name || 'selected branch'} (${matchedBranch?.code || ''}).`
         : 'No branch was resolved from the current visitor request.',
+      studentContext ? 'Authenticated portal student context (use this to personalize school/class/section answers):' : '',
+      studentContext ? JSON.stringify(studentContext) : '',
       'Use the following live application catalog context:',
       JSON.stringify({
         products: productContext,
