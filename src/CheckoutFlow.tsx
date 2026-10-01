@@ -142,6 +142,9 @@ export default function CheckoutFlow({
     shipping_fee: 0,
     free_shipping_above: 0,
   })
+  const [shippingRate, setShippingRate] = useState(0)
+  const [shippingFreeAbove, setShippingFreeAbove] = useState(0)
+  const [shippingMethodName, setShippingMethodName] = useState('Standard Delivery')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successOrder, setSuccessOrder] = useState<any>(null)
@@ -306,6 +309,25 @@ export default function CheckoutFlow({
   }, [step])
 
   useEffect(() => {
+    const client = supabase as any
+    if (!client || !branchId) return
+    let cancelled = false
+    const loadShipping = async () => {
+      const zone = await client.from('shipping_zones').select('id').eq('is_default', true).maybeSingle()
+      if (zone.error || !zone.data) return
+      const methods = await client.from('shipping_methods').select('name,rate,free_shipping_minimum').eq('zone_id', zone.data.id).eq('enabled', true).order('sort_order').limit(1)
+      const method = methods.data?.[0]
+      if (!cancelled && method) {
+        setShippingRate(Number(method.rate || 0))
+        setShippingFreeAbove(Number(method.free_shipping_minimum || 0))
+        setShippingMethodName(method.name || 'Standard Delivery')
+      }
+    }
+    void loadShipping()
+    return () => { cancelled = true }
+  }, [branchId])
+
+  useEffect(() => {
     if (settings.upi_enabled && !settings.pay_at_school_enabled) setPaymentMethod('upi')
     else if (!settings.pay_at_school_enabled && settings.razorpay_enabled)
       setPaymentMethod('razorpay')
@@ -313,10 +335,10 @@ export default function CheckoutFlow({
   }, [settings.upi_enabled, settings.pay_at_school_enabled])
 
   const effectiveShipping = useMemo(() => {
-    const fee = Number(settings.shipping_fee || 0),
-      freeAbove = Number(settings.free_shipping_above || 0)
+    const fee = shippingRate > 0 ? shippingRate : Number(settings.shipping_fee || 0)
+    const freeAbove = shippingFreeAbove || Number(settings.free_shipping_above || 0)
     return fee > 0 && (!freeAbove || total < freeAbove) ? fee : 0
-  }, [settings, total])
+  }, [shippingRate, shippingFreeAbove, settings, total])
   const payable = total + effectiveShipping
   const upiUri = useMemo(() => {
     if (!settings.upi_enabled || !settings.upi_id) return ''
