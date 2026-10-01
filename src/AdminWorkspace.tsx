@@ -1361,11 +1361,14 @@ function Products({
 
     const productId = editing.id || result.data?.id
     if (productId) {
-      const assignedBranchIds = Array.from(
-        new Set(
-          (Array.isArray(editing.assigned_branch_ids) ? editing.assigned_branch_ids : []).filter(
-            Boolean,
-          ),
+      const assignedBranchIds: string[] = Array.from(
+        new Set<string>(
+          (Array.isArray(editing.assigned_branch_ids)
+            ? editing.assigned_branch_ids
+            : []
+          )
+            .filter(Boolean)
+            .map((id: unknown) => String(id)),
         ),
       )
       if (!assignedBranchIds.length) {
@@ -1396,7 +1399,10 @@ function Products({
         return false
       }
       const maxOrderByBranch: Record<string, number> = {}
-      for (const row of orderResult.data || []) {
+      for (const row of (orderResult.data || []) as Array<{
+        branch_id: string
+        sort_order: number | null
+      }>) {
         const value = Number(row.sort_order ?? 0)
         maxOrderByBranch[row.branch_id] = Math.max(maxOrderByBranch[row.branch_id] ?? -1, value)
       }
