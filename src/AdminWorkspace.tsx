@@ -6647,11 +6647,38 @@ function Coupons() {
             onChange={(v) => setEditing({ ...editing, usage_limit: v })}
             type="number"
           />
-          <Field label="Minimum Order Value" value={String(editing.minimum_order_value ?? 0)} onChange={(v) => setEditing({ ...editing, minimum_order_value: v })} type="number" />
-          <Field label="Maximum Discount" value={String(editing.maximum_discount ?? '')} onChange={(v) => setEditing({ ...editing, maximum_discount: v })} type="number" />
-          <Field label="Per Customer Limit" value={String(editing.per_customer_limit ?? '')} onChange={(v) => setEditing({ ...editing, per_customer_limit: v })} type="number" />
-          <Select label="Applies To" value={editing.applies_to || 'all'} options={['all','products','categories']} onChange={(v) => setEditing({ ...editing, applies_to: v })} />
-          <label className="workspace-field"><span>First Order Only</span><input type="checkbox" checked={!!editing.first_order_only} onChange={(e) => setEditing({ ...editing, first_order_only: e.target.checked })} /></label>
+          <Field
+            label="Minimum Order Value"
+            value={String(editing.minimum_order_value ?? 0)}
+            onChange={(v) => setEditing({ ...editing, minimum_order_value: v })}
+            type="number"
+          />
+          <Field
+            label="Maximum Discount"
+            value={String(editing.maximum_discount ?? '')}
+            onChange={(v) => setEditing({ ...editing, maximum_discount: v })}
+            type="number"
+          />
+          <Field
+            label="Per Customer Limit"
+            value={String(editing.per_customer_limit ?? '')}
+            onChange={(v) => setEditing({ ...editing, per_customer_limit: v })}
+            type="number"
+          />
+          <Select
+            label="Applies To"
+            value={editing.applies_to || 'all'}
+            options={['all', 'products', 'categories']}
+            onChange={(v) => setEditing({ ...editing, applies_to: v })}
+          />
+          <label className="workspace-field">
+            <span>First Order Only</span>
+            <input
+              type="checkbox"
+              checked={!!editing.first_order_only}
+              onChange={(e) => setEditing({ ...editing, first_order_only: e.target.checked })}
+            />
+          </label>
           <Select
             label="Status"
             value={editing.status}

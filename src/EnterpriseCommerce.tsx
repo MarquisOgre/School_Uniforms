@@ -1105,39 +1105,77 @@ function AccessAudit() {
     setRolePermissions(rp.data ?? [])
     setLogs(l.data ?? [])
   }
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+  }, [])
   const addRole = async () => {
     const name = window.prompt('Role name')
     if (!name?.trim()) return
-    const r = await db('admin_roles').insert({ name: name.trim(), description: 'Custom administrator role', is_system: false })
+    const r = await db('admin_roles').insert({
+      name: name.trim(),
+      description: 'Custom administrator role',
+      is_system: false,
+    })
     setMsg(r.error ? r.error.message : 'Role created.')
     void load()
   }
   const togglePermission = async (permissionId: string) => {
     if (!selectedRole) return
-    const exists = rolePermissions.some((x) => x.role_id === selectedRole.id && x.permission_id === permissionId)
+    const exists = rolePermissions.some(
+      (x) => x.role_id === selectedRole.id && x.permission_id === permissionId,
+    )
     const r = exists
-      ? await db('admin_role_permissions').delete().eq('role_id', selectedRole.id).eq('permission_id', permissionId)
-      : await db('admin_role_permissions').insert({ role_id: selectedRole.id, permission_id: permissionId })
+      ? await db('admin_role_permissions')
+          .delete()
+          .eq('role_id', selectedRole.id)
+          .eq('permission_id', permissionId)
+      : await db('admin_role_permissions').insert({
+          role_id: selectedRole.id,
+          permission_id: permissionId,
+        })
     if (r.error) setMsg(r.error.message)
-    else { setMsg('Permissions updated.'); void load() }
+    else {
+      setMsg('Permissions updated.')
+      void load()
+    }
   }
   const assignUser = async () => {
     if (!selectedRole || !selectedUser) return
-    const r = await db('admin_user_roles').upsert({ user_id: selectedUser, role_id: selectedRole.id }, { onConflict: 'user_id,role_id' })
+    const r = await db('admin_user_roles').upsert(
+      { user_id: selectedUser, role_id: selectedRole.id },
+      { onConflict: 'user_id,role_id' },
+    )
     if (r.error) setMsg(r.error.message)
-    else { setMsg('User assigned to role.'); setSelectedUser(''); void load() }
+    else {
+      setMsg('User assigned to role.')
+      setSelectedUser('')
+      void load()
+    }
   }
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3><ShieldCheck size={17} /> Roles & Permissions</h3>
-        <p>Create administrator roles and control individual capabilities without exposing passwords.</p>
-        <button className="primary-button" onClick={() => void addRole()}><Users size={15} /> Add Role</button>
+        <h3>
+          <ShieldCheck size={17} /> Roles & Permissions
+        </h3>
+        <p>
+          Create administrator roles and control individual capabilities without exposing passwords.
+        </p>
+        <button className="primary-button" onClick={() => void addRole()}>
+          <Users size={15} /> Add Role
+        </button>
         <div className="enterprise-list">
           {roles.map((r) => (
-            <button key={r.id} className={selectedRole?.id === r.id ? 'selected' : ''} onClick={() => setSelectedRole(r)}>
-              <span>{r.name}<small>{r.description || '—'}</small></span><span>{r.is_system ? 'System' : 'Custom'}</span>
+            <button
+              key={r.id}
+              className={selectedRole?.id === r.id ? 'selected' : ''}
+              onClick={() => setSelectedRole(r)}
+            >
+              <span>
+                {r.name}
+                <small>{r.description || '—'}</small>
+              </span>
+              <span>{r.is_system ? 'System' : 'Custom'}</span>
             </button>
           ))}
         </div>
@@ -1146,25 +1184,75 @@ function AccessAudit() {
             <strong>Permissions for {selectedRole.name}</strong>
             <div className="enterprise-list">
               {permissions.map((p) => {
-                const checked = rolePermissions.some((x) => x.role_id === selectedRole.id && x.permission_id === p.id)
-                return <label className="enterprise-list-row" key={p.id}><span>{p.permission_key}<small>{p.description || ''}</small></span><input type="checkbox" checked={checked} onChange={() => void togglePermission(p.id)} /></label>
+                const checked = rolePermissions.some(
+                  (x) => x.role_id === selectedRole.id && x.permission_id === p.id,
+                )
+                return (
+                  <label className="enterprise-list-row" key={p.id}>
+                    <span>
+                      {p.permission_key}
+                      <small>{p.description || ''}</small>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => void togglePermission(p.id)}
+                    />
+                  </label>
+                )
               })}
             </div>
             <div className="inline-form">
               <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
                 <option value="">Select user to assign</option>
-                {profiles.filter((p) => p.status === 'active').map((p) => <option key={p.id} value={p.id}>{p.full_name || p.login_id || p.id} · {p.role}</option>)}
+                {profiles
+                  .filter((p) => p.status === 'active')
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.full_name || p.login_id || p.id} · {p.role}
+                    </option>
+                  ))}
               </select>
-              <button className="secondary-button" disabled={!selectedUser} onClick={() => void assignUser()}>Assign Role</button>
+              <button
+                className="secondary-button"
+                disabled={!selectedUser}
+                onClick={() => void assignUser()}
+              >
+                Assign Role
+              </button>
             </div>
           </div>
         )}
         {msg && <p className="form-success">{msg}</p>}
       </div>
       <div className="enterprise-card">
-        <h3><Archive size={17} /> Audit Log</h3>
-        <p>Administrative actions are recorded with actor, entity, branch and JSON details for traceability.</p>
-        <div className="enterprise-table-wrap"><table><thead><tr><th>Action</th><th>Entity</th><th>When</th></tr></thead><tbody>{logs.map((l) => <tr key={l.id}><td>{l.action}</td><td>{l.entity_type || '—'}</td><td>{new Date(l.created_at).toLocaleString()}</td></tr>)}</tbody></table></div>
+        <h3>
+          <Archive size={17} /> Audit Log
+        </h3>
+        <p>
+          Administrative actions are recorded with actor, entity, branch and JSON details for
+          traceability.
+        </p>
+        <div className="enterprise-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.map((l) => (
+                <tr key={l.id}>
+                  <td>{l.action}</td>
+                  <td>{l.entity_type || '—'}</td>
+                  <td>{new Date(l.created_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   )
