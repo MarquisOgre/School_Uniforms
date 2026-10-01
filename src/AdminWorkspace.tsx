@@ -7230,7 +7230,7 @@ function Settings() {
   const [section, setSection] = useState<SettingsSection>('general')
 
   return (
-    <div className="workspace-body settings-center">
+    <div className="settings-center">
       <div className="workspace-heading">
         <div>
           <h1>Settings</h1>
