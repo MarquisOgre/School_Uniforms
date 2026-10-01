@@ -3301,8 +3301,8 @@ function Packages({
     setRows(
       (p.data ?? []).map((pkg: any) => ({
         ...pkg,
-        item_names: (packageItemsMap[pkg.id] ?? []).map((item) =>
-          `${item.product_name}${item.quantity > 1 ? ` × ${item.quantity}` : ''}`,
+        item_names: (packageItemsMap[pkg.id] ?? []).map(
+          (item) => `${item.product_name}${item.quantity > 1 ? ` × ${item.quantity}` : ''}`,
         ),
         item_details: packageItemsMap[pkg.id] ?? [],
       })),

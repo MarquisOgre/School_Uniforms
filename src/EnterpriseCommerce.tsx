@@ -19,14 +19,7 @@ import {
 import { supabase } from './lib/supabase'
 
 const db = (table: string): any => (supabase as any)?.from(table)
-type Tab =
-  | 'shipping'
-  | 'returns'
-  | 'invoices'
-  | 'marketing'
-  | 'content'
-  | 'seo'
-  | 'access'
+type Tab = 'shipping' | 'returns' | 'invoices' | 'marketing' | 'content' | 'seo' | 'access'
 
 export default function EnterpriseCommerce() {
   const [tab, setTab] = useState<Tab>('shipping')

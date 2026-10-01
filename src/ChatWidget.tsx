@@ -218,8 +218,8 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
                 {loading ? <div className="chat-status">Loading your previous chat...</div> : null}
                 {!messages.length && !loading ? (
                   <div className="chat-status">
-                    Hi! Tell me the student's class and what uniform item you need. If you know
-                    the chest, waist, height or foot measurement, include it and I can check the
+                    Hi! Tell me the student's class and what uniform item you need. If you know the
+                    chest, waist, height or foot measurement, include it and I can check the
                     configured size chart.
                   </div>
                 ) : null}
