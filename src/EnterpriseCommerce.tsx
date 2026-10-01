@@ -194,6 +194,8 @@ function Shipping() {
   const [freeAbove, setFreeAbove] = useState('0')
   const [methodType, setMethodType] = useState('flat_rate')
   const [msg, setMsg] = useState('')
+  const [promoMsg, setPromoMsg] = useState('')
+  const [promoSaving, setPromoSaving] = useState(false)
   const load = async () => {
     const r = await db('shipping_zones')
       .select('*')
@@ -800,18 +802,24 @@ function Marketing() {
     void load()
   }, [])
   const addPromo = async () => {
-    if (!name.trim()) return
+    if (!name.trim()) {
+      setPromoMsg('Enter a promotion name.')
+      return
+    }
+    setPromoMsg('')
+    setPromoSaving(true)
     const r = await db('promotions').insert({
       name: name.trim(),
       promotion_type: type,
       value: Number(value) || 0,
     })
-    if (r.error) setMsg(r.error.message)
+    if (r.error) setPromoMsg(`Unable to create promotion: ${r.error.message}`)
     else {
       setName('')
-      setMsg('Promotion created.')
-      void load()
+      setPromoMsg('Promotion created successfully.')
+      await load()
     }
+    setPromoSaving(false)
   }
   const relate = async () => {
     if (!source || !target || source === target) {
@@ -856,9 +864,10 @@ function Marketing() {
             <input type="number" min="0" value={value} onChange={(e) => setValue(e.target.value)} />
           </label>
         </div>
-        <button className="primary-button" onClick={() => void addPromo()}>
-          <Save size={15} /> Create Promotion
+        <button className="primary-button" disabled={promoSaving} onClick={() => void addPromo()}>
+          <Save size={15} /> {promoSaving ? 'Creating...' : 'Create Promotion'}
         </button>
+        {promoMsg && <p className={promoMsg.startsWith('Unable') ? 'workspace-error' : 'form-success'}>{promoMsg}</p>}
         <div className="enterprise-list">
           {promos.map((p) => (
             <div className="enterprise-list-row" key={p.id}>
