@@ -36,16 +36,18 @@ Deno.serve(async (req) => {
     return json({ error: 'AI support is not configured on the server.' }, 500)
   }
 
+  // Authentication is optional: visitors can use the AI assistant before logging in.
+  // If a valid customer session is supplied, it is returned for the persistent
+  // branch conversation flow, but the AI response itself does not require an account.
   const authHeader = req.headers.get('Authorization')
-  if (!authHeader) return json({ error: 'Authentication required.' }, 401)
-
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: { headers: { Authorization: authHeader } },
-  })
-
-  const { data: userData, error: userError } = await userClient.auth.getUser()
-  const user = userData?.user
-  if (userError || !user) return json({ error: 'Authentication required.' }, 401)
+  let userId: string | null = null
+  if (authHeader) {
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    })
+    const { data: userData } = await userClient.auth.getUser()
+    userId = userData?.user?.id ?? null
+  }
 
   let body: RequestBody
   try {
@@ -136,6 +138,6 @@ Deno.serve(async (req) => {
     reply: reply.trim(),
     model,
     conversationId: body.conversationId || null,
-    userId: user.id,
+    userId,
   })
 })
