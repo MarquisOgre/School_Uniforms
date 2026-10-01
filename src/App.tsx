@@ -114,7 +114,7 @@ function App() {
               setMode('home')
             }}
           />
-          <ChatWidget branchId={branch} />
+          <ChatWidget branchId={branch} studentId={studentId} />
         </>
       </Suspense>
     )
