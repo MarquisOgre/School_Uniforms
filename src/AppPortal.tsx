@@ -1376,14 +1376,29 @@ function ProductDetail({
     const loadRelated = async () => {
       const client = supabase as any
       if (!client || item.type !== 'product' || !item.sourceId) return
-      const links = await client.from('product_relations').select('related_product_id,relation_type,sort_order').eq('product_id', item.sourceId).eq('enabled', true).order('sort_order').limit(8)
+      const links = await client
+        .from('product_relations')
+        .select('related_product_id,relation_type,sort_order')
+        .eq('product_id', item.sourceId)
+        .eq('enabled', true)
+        .order('sort_order')
+        .limit(8)
       const ids = (links.data || []).map((x: any) => x.related_product_id).filter(Boolean)
-      if (!ids.length) { if (!cancelled) setRelatedProducts([]); return }
-      const products = await client.from('products').select('id,name,image_url,base_price,offer_price').in('id', ids).eq('status','active')
+      if (!ids.length) {
+        if (!cancelled) setRelatedProducts([])
+        return
+      }
+      const products = await client
+        .from('products')
+        .select('id,name,image_url,base_price,offer_price')
+        .in('id', ids)
+        .eq('status', 'active')
       if (!cancelled) setRelatedProducts(products.data || [])
     }
     void loadRelated()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [item.id, item.sourceId, item.type])
 
   useEffect(() => {
@@ -1758,12 +1773,23 @@ function ProductDetail({
       ) : null}
       {relatedProducts.length ? (
         <section style={{ marginTop: 24 }}>
-          <div className="section-heading"><div><span className="eyebrow">SHOPPING SUGGESTIONS</span><h2>Related Products</h2></div></div>
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">SHOPPING SUGGESTIONS</span>
+              <h2>Related Products</h2>
+            </div>
+          </div>
           <div className="product-grid">
             {relatedProducts.map((product) => (
               <article className="product-card" key={product.id}>
                 <img src={product.image_url || '/category-packages.jpg'} alt={product.name} />
-                <div className="product-copy"><h3>{product.name}</h3><strong>₹{Number(product.offer_price ?? product.base_price ?? 0).toLocaleString('en-IN')}</strong></div>
+                <div className="product-copy">
+                  <h3>{product.name}</h3>
+                  <strong>
+                    ₹
+                    {Number(product.offer_price ?? product.base_price ?? 0).toLocaleString('en-IN')}
+                  </strong>
+                </div>
               </article>
             ))}
           </div>
@@ -1911,26 +1937,82 @@ function Orders({ students = [] }: { students?: any[] }) {
                 <span>Total</span>
                 <strong>₹{Number(x.grand_total).toLocaleString('en-IN')}</strong>
               </div>
-              <div className="order-card-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                <button type="button" className="secondary-button" onClick={async () => {
-                  const client = supabase as any
-                  if (!client) return
-                  const invoice = await client.from('invoices').select('invoice_number,issued_at,orders(order_number,grand_total,shipping_address)').eq('order_id', x.id).maybeSingle()
-                  if (invoice.error || !invoice.data) { window.alert('Invoice is not available yet.'); return }
-                  const address = invoice.data.orders?.shipping_address || {}
-                  const w = window.open('', '_blank', 'width=900,height=700')
-                  if (!w) return
-                  w.document.write('<html><head><title>'+invoice.data.invoice_number+'</title></head><body style="font-family:Arial;padding:40px"><h1>INVOICE</h1><p><b>'+invoice.data.invoice_number+'</b></p><p>'+String(address.recipient_name||'Customer')+'<br>'+String(address.address_line1||'')+'<br>'+String(address.city||'')+' '+String(address.state||'')+' '+String(address.postal_code||'')+'</p><h2>Order '+String(invoice.data.orders?.order_number||x.order_number)+'</h2><p>Grand Total: ₹'+Number(invoice.data.orders?.grand_total||x.grand_total).toFixed(2)+'</p><script>window.print()</script></body></html>')
-                  w.document.close()
-                }}><FileText size={15}/> Invoice / PDF</button>
-                {!['cancelled','returned','refunded'].includes(x.status) ? <button type="button" className="secondary-button" onClick={async () => {
-                  const reason = window.prompt('Return reason')
-                  if (!reason) return
-                  const client = supabase as any
-                  const user = await client.auth.getUser()
-                  const result = await client.from('returns').insert({ order_id: x.id, customer_user_id: user.data.user?.id, branch_id: x.branch_id, reason, status: 'requested' })
-                  window.alert(result.error ? result.error.message : 'Return request submitted.')
-                }}><RotateCcw size={15}/> Request Return</button> : null}
+              <div
+                className="order-card-actions"
+                style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}
+              >
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={async () => {
+                    const client = supabase as any
+                    if (!client) return
+                    const invoice = await client
+                      .from('invoices')
+                      .select(
+                        'invoice_number,issued_at,orders(order_number,grand_total,shipping_address)',
+                      )
+                      .eq('order_id', x.id)
+                      .maybeSingle()
+                    if (invoice.error || !invoice.data) {
+                      window.alert('Invoice is not available yet.')
+                      return
+                    }
+                    const address = invoice.data.orders?.shipping_address || {}
+                    const w = window.open('', '_blank', 'width=900,height=700')
+                    if (!w) return
+                    w.document.write(
+                      '<html><head><title>' +
+                        invoice.data.invoice_number +
+                        '</title></head><body style="font-family:Arial;padding:40px"><h1>INVOICE</h1><p><b>' +
+                        invoice.data.invoice_number +
+                        '</b></p><p>' +
+                        String(address.recipient_name || 'Customer') +
+                        '<br>' +
+                        String(address.address_line1 || '') +
+                        '<br>' +
+                        String(address.city || '') +
+                        ' ' +
+                        String(address.state || '') +
+                        ' ' +
+                        String(address.postal_code || '') +
+                        '</p><h2>Order ' +
+                        String(invoice.data.orders?.order_number || x.order_number) +
+                        '</h2><p>Grand Total: ₹' +
+                        Number(invoice.data.orders?.grand_total || x.grand_total).toFixed(2) +
+                        '</p><script>window.print()</script></body></html>',
+                    )
+                    w.document.close()
+                  }}
+                >
+                  <FileText size={15} /> Invoice / PDF
+                </button>
+                {!['cancelled', 'returned', 'refunded'].includes(x.status) ? (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={async () => {
+                      const reason = window.prompt('Return reason')
+                      if (!reason) return
+                      const client = supabase as any
+                      const user = await client.auth.getUser()
+                      const result = await client
+                        .from('returns')
+                        .insert({
+                          order_id: x.id,
+                          customer_user_id: user.data.user?.id,
+                          branch_id: x.branch_id,
+                          reason,
+                          status: 'requested',
+                        })
+                      window.alert(
+                        result.error ? result.error.message : 'Return request submitted.',
+                      )
+                    }}
+                  >
+                    <RotateCcw size={15} /> Request Return
+                  </button>
+                ) : null}
               </div>
             </article>
           ))}
