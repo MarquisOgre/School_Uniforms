@@ -54,7 +54,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
   }, [])
 
   useEffect(() => {
-    if (!open || !authenticated || !branchId || !supabase) return
+    if (!open || !supabase) return
     let cancelled = false
     const client = supabase as any
 
@@ -153,90 +153,83 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
 
   const send = async () => {
     const text = draft.trim()
-    if (!text || !conversationId || !supabase || sending) return
-
+    if (!text || !supabase || sending) return
     setSending(true)
     setError('')
 
-    const { data } = await (supabase as any).auth.getUser()
-    const user = data?.user
-    if (!user) {
-      setError('Please sign in to use chat.')
-      setSending(false)
-      return
-    }
-
+    const { data: sessionData } = await (supabase as any).auth.getSession()
+    const user = sessionData?.session?.user || null
     const now = new Date().toISOString()
     const customerMessage: Message = {
       id: 'local-' + Date.now(),
-      sender_user_id: user.id,
+      sender_user_id: user?.id ?? 'visitor',
       message: text,
       created_at: now,
     }
-
     setMessages((current) => [...current, customerMessage])
     setDraft('')
 
-    const { error: sendError } = await (supabase as any).from('support_messages').insert({
-      conversation_id: conversationId,
-      sender_user_id: user.id,
-      message: text,
-    })
-
-    if (sendError) {
-      setMessages((current) => current.filter((item) => item.id !== customerMessage.id))
-      setError(sendError.message)
-      setSending(false)
-      return
+    if (user && branchId && conversationId) {
+      const { error: sendError } = await (supabase as any).from('support_messages').insert({
+        conversation_id: conversationId,
+        sender_user_id: user.id,
+        message: text,
+      })
+      if (sendError) {
+        setMessages((current) => current.filter((item) => item.id !== customerMessage.id))
+        setError(sendError.message)
+        setSending(false)
+        return
+      }
     }
 
-    const history: ApiMessage[] = [...messages, customerMessage]
-      .slice(-8)
-      .map((item) => ({
-        role: item.sender_user_id === user.id ? 'user' : 'assistant',
-        content: item.message,
-      }))
+    const history: ApiMessage[] = [...messages, customerMessage].slice(-8).map((item) => ({
+      role: item.sender_user_id === (user?.id ?? 'visitor') ? 'user' : 'assistant',
+      content: item.message,
+    }))
 
     try {
-      const { data: sessionData } = await (supabase as any).auth.getSession()
-      const accessToken = sessionData?.session?.access_token
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
+      if (!supabaseUrl || !supabaseKey) throw new Error('Chat service is not configured.')
 
-      if (!supabaseUrl || !supabaseKey || !accessToken) {
-        throw new Error('Chat service is not configured.')
+      const headers: Record<string, string> = {
+        apikey: supabaseKey,
+        'Content-Type': 'application/json',
+      }
+      if (sessionData?.session?.access_token) {
+        headers.Authorization = `Bearer ${sessionData.session.access_token}`
       }
 
       const response = await fetch(`${supabaseUrl}/functions/v1/ai-support-chat`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          apikey: supabaseKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          conversationId,
-          message: text,
-          history,
-        }),
+        headers,
+        body: JSON.stringify({ conversationId, message: text, history }),
       })
-
       const result = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(result?.error || 'AI support is temporarily unavailable.')
-      }
+      if (!response.ok) throw new Error(result?.error || 'AI support is temporarily unavailable.')
 
       const aiText = typeof result?.reply === 'string' ? result.reply.trim() : ''
       if (!aiText) throw new Error('The AI returned an empty response.')
 
-      const { error: aiInsertError } = await (supabase as any).from('support_messages').insert({
-        conversation_id: conversationId,
+      const aiMessage: Message = {
+        id: 'ai-' + Date.now(),
         sender_user_id: null,
         message: aiText,
-      })
+        created_at: new Date().toISOString(),
+      }
+      setMessages((current) => [...current, aiMessage])
 
-      if (aiInsertError) throw new Error(aiInsertError.message)
+      if (user && branchId && conversationId) {
+        const { error: aiInsertError } = await (supabase as any).from('support_messages').insert({
+          conversation_id: conversationId,
+          sender_user_id: null,
+          message: aiText,
+        })
+        if (aiInsertError) throw new Error(aiInsertError.message)
+      }
     } catch (err) {
+      setMessages((current) => current.filter((item) => item.id !== customerMessage.id))
       setError(err instanceof Error ? err.message : 'Unable to contact AI support.')
     } finally {
       setSending(false)
@@ -255,37 +248,14 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
           <div className="chat-widget-header">
             <div>
               <strong>Chat with us</strong>
-              <span>{authenticated ? 'AI Support Assistant' : 'School Uniform Support'}</span>
+              <span>AI Support Assistant</span>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Close chat">
               <X size={19} />
             </button>
           </div>
 
-          {!authenticated ? (
-            <div className="chat-login-prompt">
-              <MessageCircle size={34} />
-              <h3>Need help?</h3>
-              <p>Please log in as Parent / Student to start a support chat.</p>
-              <button
-                onClick={() => {
-                  setOpen(false)
-                  window.dispatchEvent(new CustomEvent('open-parent-login'))
-                }}
-              >
-                Parent / Student Login
-              </button>
-            </div>
-          ) : !branchId ? (
-            <div className="chat-login-prompt">
-              <MessageCircle size={34} />
-              <p>
-                Your branch is not selected yet. Open your branch store to start chatting with
-                support.
-              </p>
-            </div>
-          ) : (
-            <>
+          <>
               <div className="chat-ai-intro">
                 <Sparkles size={16} />
                 <span>AI assistant is ready. Ask about uniforms, products, orders, shipping or returns.</span>
