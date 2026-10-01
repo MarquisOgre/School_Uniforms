@@ -1267,7 +1267,7 @@ function Products({
         editing.color_image_map && typeof editing.color_image_map === 'object'
           ? editing.color_image_map
           : {},
-      color_order: Array.isArray(editing.color_order) ? editing.color_order : [],
+      color_order: currentColors,
       base_price: Number(editing.base_price || 0),
       offer_price:
         editing.offer_price === '' || editing.offer_price == null
@@ -2160,7 +2160,6 @@ function ProductEditorScreen({
   const [saving, setSaving] = useState(false)
   const [additionalDetailsOpen, setAdditionalDetailsOpen] = useState(false)
   const [newColor, setNewColor] = useState('')
-  const [draggedColor, setDraggedColor] = useState<string | null>(null)
 
   const toggleAdditionalDetails = () => {
     setAdditionalDetailsOpen((open) => !open)
@@ -2180,20 +2179,9 @@ function ProductEditorScreen({
     )
   }
 
-  const detectedColors = Array.from(
+  const currentColors = Array.from(
     new Set(variants.map((variant) => String(variant.color || '').trim()).filter(Boolean)),
-  )
-  const currentColors = [
-    ...(Array.isArray(editing.color_order) ? editing.color_order : []).filter((color: string) =>
-      detectedColors.some((x) => x.toLowerCase() === String(color).toLowerCase()),
-    ),
-    ...detectedColors.filter(
-      (color) =>
-        !(Array.isArray(editing.color_order) ? editing.color_order : []).some(
-          (x: string) => x.toLowerCase() === color.toLowerCase(),
-        ),
-    ),
-  ]
+  ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
 
   const addColor = () => {
     const color = newColor.trim()
@@ -2219,22 +2207,9 @@ function ProductEditorScreen({
       },
     ])
     setNewColor('')
-    setEditing({
-      ...editing,
-      color_order: [...(Array.isArray(editing.color_order) ? editing.color_order : []), color],
-    })
   }
 
-  const moveColor = (color: string, targetColor: string) => {
-    if (color === targetColor) return
-    const order = [...currentColors]
-    const from = order.indexOf(color)
-    const to = order.indexOf(targetColor)
-    if (from < 0 || to < 0) return
-    order.splice(from, 1)
-    order.splice(to, 0, color)
-    setEditing({ ...editing, color_order: order })
-  }
+
 
   const generateColorSizes = () => {
     const colors = currentColors
@@ -2319,8 +2294,7 @@ function ProductEditorScreen({
     )
     const map = { ...(editing.color_image_map || {}) }
     delete map[color]
-    const order = currentColors.filter((x) => x.toLowerCase() !== normalized)
-    setEditing({ ...editing, color_image_map: map, color_order: order })
+    setEditing({ ...editing, color_image_map: map })
   }
 
   const setColorImage = (color: string, image: string) => {
@@ -2537,36 +2511,19 @@ function ProductEditorScreen({
         </div>
         {currentColors.length ? (
           <div style={{ display: 'grid', gap: 14, marginTop: 16 }}>
-            {currentColors.map((color, index) => (
+            {currentColors.map((color) => (
               <div
                 key={color}
-                draggable
-                onDragStart={() => setDraggedColor(color)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault()
-                  if (draggedColor) moveColor(draggedColor, color)
-                  setDraggedColor(null)
-                }}
-                onDragEnd={() => setDraggedColor(null)}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '28px 140px minmax(220px, 1fr) auto',
+                  gridTemplateColumns: '140px minmax(220px, 1fr) auto',
                   gap: 14,
                   alignItems: 'center',
                   padding: 12,
                   border: '1px solid #e2e8f0',
                   borderRadius: 10,
-                  cursor: 'grab',
-                  opacity: draggedColor === color ? 0.55 : 1,
                 }}
               >
-                <span
-                  title="Drag to change order"
-                  style={{ fontSize: 18, color: '#718096', fontWeight: 800, userSelect: 'none' }}
-                >
-                  ⋮⋮
-                </span>
                 <strong>{color}</strong>
                 <ImagePicker
                   value={String(editing.color_image_map?.[color] || '')}
@@ -2575,24 +2532,6 @@ function ProductEditorScreen({
                   onChange={(v) => setColorImage(color, v)}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    disabled={index === 0}
-                    onClick={() => moveColor(color, currentColors[index - 1])}
-                    title="Move up"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    disabled={index === currentColors.length - 1}
-                    onClick={() => moveColor(color, currentColors[index + 1])}
-                    title="Move down"
-                  >
-                    ↓
-                  </button>
                   <button
                     type="button"
                     className="secondary-button"
