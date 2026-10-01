@@ -924,77 +924,60 @@ function Content() {
   )
 }
 function SeoMenus() {
-  const [menus, setMenus] = useState<any[]>([]),
-    [pages, setPages] = useState<any[]>([]),
-    [msg, setMsg] = useState('')
+  const [menus, setMenus] = useState<any[]>([])
+  const [pages, setPages] = useState<any[]>([])
+  const [seo, setSeo] = useState<any[]>([])
+  const [editing, setEditing] = useState<any>(null)
+  const [msg, setMsg] = useState('')
   const load = async () => {
-    const [m, p] = await Promise.all([
+    const [m, p, s] = await Promise.all([
       db('nav_menus').select('*').order('name'),
       db('site_pages').select('id,title,slug').order('title'),
+      db('seo_meta').select('*').order('updated_at', { ascending: false }),
     ])
     setMenus(m.data ?? [])
     setPages(p.data ?? [])
+    setSeo(s.data ?? [])
   }
-  useEffect(() => {
-    void load()
-  }, [])
+  useEffect(() => { void load() }, [])
+  const editSeo = (page: any) => {
+    const existing = seo.find((x) => x.object_type === 'page' && x.object_id === page.id)
+    setEditing(existing || { object_type: 'page', object_id: page.id, meta_title: page.title, meta_description: '', canonical_url: '/page/' + page.slug, robots: 'index,follow', og_title: page.title, og_description: '', og_image_url: '', schema_json: {} })
+  }
+  const saveSeo = async () => {
+    if (!editing?.object_id) return
+    const payload = { object_type: editing.object_type, object_id: editing.object_id, meta_title: editing.meta_title || null, meta_description: editing.meta_description || null, canonical_url: editing.canonical_url || null, robots: editing.robots || 'index,follow', og_title: editing.og_title || null, og_description: editing.og_description || null, og_image_url: editing.og_image_url || null, schema_json: editing.schema_json || {}, updated_at: new Date().toISOString() }
+    const r = await db('seo_meta').upsert(payload, { onConflict: 'object_type,object_id' })
+    if (r.error) setMsg(r.error.message)
+    else { setMsg('SEO metadata saved.'); setEditing(null); void load() }
+  }
   const addItem = async (menu: any, page: any) => {
-    const r = await db('nav_menu_items').insert({
-      menu_id: menu.id,
-      label: page.title,
-      url: '/page/' + page.slug,
-      sort_order: 999,
-    })
+    const r = await db('nav_menu_items').insert({ menu_id: menu.id, label: page.title, url: '/page/' + page.slug, sort_order: 999 })
     setMsg(r.error ? r.error.message : 'Menu item added.')
   }
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3>
-          <Globe2 size={17} /> Navigation Menus
-        </h3>
-        <p>
-          Manage header/footer menus independently from the React shell. Items are stored with
-          parent/child support for dropdown navigation.
-        </p>
-        {menus.map((m) => (
-          <div className="enterprise-list-row" key={m.id}>
-            <span>
-              {m.name}
-              <small>{m.location}</small>
-            </span>
-            <span>{m.enabled ? 'Enabled' : 'Disabled'}</span>
-          </div>
-        ))}
-        {menus[0] && pages[0] ? (
-          <button className="secondary-button" onClick={() => void addItem(menus[0], pages[0])}>
-            Add first page to {menus[0].name}
-          </button>
-        ) : null}
+        <h3><Globe2 size={17} /> Navigation Menus</h3>
+        <p>Manage header/footer menus independently from the React shell.</p>
+        {menus.map((m) => <div className="enterprise-list-row" key={m.id}><span>{m.name}<small>{m.location}</small></span>{pages[0] ? <button className="secondary-button" onClick={() => void addItem(m, pages[0])}>Add page</button> : null}</div>)}
         {msg && <p className="form-success">{msg}</p>}
       </div>
       <div className="enterprise-card">
-        <h3>SEO Records</h3>
-        <p>
-          Canonical URLs, meta titles/descriptions, Open Graph data, robots directives and schema
-          JSON are available per page, post, product, package and category.
-        </p>
-        <div className="enterprise-list">
-          {pages.slice(0, 10).map((p) => (
-            <div className="enterprise-list-row" key={p.id}>
-              <span>
-                {p.title}
-                <small>/{p.slug}</small>
-              </span>
-              <span>SEO ready</span>
-            </div>
-          ))}
-        </div>
+        <div className="enterprise-card-head"><div><h3>SEO Manager</h3><span>Edit metadata per page and publish-ready content.</span></div></div>
+        <div className="enterprise-list">{pages.map((p) => <button key={p.id} onClick={() => editSeo(p)}><span>{p.title}<small>/{p.slug}</small></span><span>Edit SEO</span></button>)}</div>
+        {editing && <div className="cms-field-grid" style={{ marginTop: 16 }}>
+          <label>Meta Title<input value={editing.meta_title || ''} onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })} /></label>
+          <label>Canonical URL<input value={editing.canonical_url || ''} onChange={(e) => setEditing({ ...editing, canonical_url: e.target.value })} /></label>
+          <label className="full-field">Meta Description<textarea value={editing.meta_description || ''} onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })} /></label>
+          <label>Robots<input value={editing.robots || ''} onChange={(e) => setEditing({ ...editing, robots: e.target.value })} /></label>
+          <label>OG Image<input value={editing.og_image_url || ''} onChange={(e) => setEditing({ ...editing, og_image_url: e.target.value })} /></label>
+          <div className="inline-form"><button className="primary-button" onClick={() => void saveSeo()}><Save size={15} /> Save SEO</button><button className="secondary-button" onClick={() => setEditing(null)}>Cancel</button></div>
+        </div>}
       </div>
     </section>
   )
 }
-
 function AccessAudit() {
   const [roles, setRoles] = useState<any[]>([]),
     [permissions, setPermissions] = useState<any[]>([]),
