@@ -319,8 +319,6 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
                   <Send size={17} />
                 </button>
               </form>
-            </>
-          )}
         </div>
       ) : null}
     </>
