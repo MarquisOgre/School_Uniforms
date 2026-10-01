@@ -9742,6 +9742,7 @@ a {
 
 .admin-support-layout {
   height: calc(100vh - 245px);
+  min-height: 0;
   min-height: 460px;
   display: grid;
   grid-template-columns: 270px minmax(0, 1fr);
@@ -9749,10 +9750,12 @@ a {
   border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
+  min-height: 0;
 }
 
 .admin-support-conversations {
   border-right: 1px solid var(--line);
+  min-height: 0;
   overflow-y: auto;
   background: #faf7f0;
 }
@@ -9807,6 +9810,7 @@ a {
 
 .admin-support-thread {
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -9832,7 +9836,8 @@ a {
 }
 
 .admin-support-messages {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: 18px;
   background: #f7f4ee;
@@ -9853,6 +9858,28 @@ a {
   background: var(--ink);
   border-color: var(--ink);
   color: #fff;
+}
+
+ .admin-support-message-sender {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  opacity: 0.72;
+}
+
+.admin-support-message-admin .admin-support-message-sender {
+  opacity: 0.82;
+}
+
+.admin-support-customer-id,
+.admin-support-child-names {
+  display: block;
+  margin-top: 3px;
+  color: #8a9390;
+  font-size: 9px;
+  line-height: 1.35;
 }
 
 .admin-support-message p {
