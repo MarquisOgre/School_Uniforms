@@ -1316,20 +1316,9 @@ function ProductDetail({
     ? item.variantOptions
     : (item.sizeOptions || []).map((x) => ({ id: x, label: x }))
 
-  const detectedColors = Array.from(
+  const colors = Array.from(
     new Set(productOptions.map((x) => String(x.color || '').trim()).filter(Boolean)),
-  )
-  const colors = [
-    ...(Array.isArray(item.colorOrder) ? item.colorOrder : []).filter((color) =>
-      detectedColors.some((x) => x.toLowerCase() === String(color).toLowerCase()),
-    ),
-    ...detectedColors.filter(
-      (color) =>
-        !(Array.isArray(item.colorOrder) ? item.colorOrder : []).some(
-          (x) => x.toLowerCase() === color.toLowerCase(),
-        ),
-    ),
-  ]
+  ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
   const galleryImages = Array.from(
     new Set(
       [item.image, ...(item.imageGallery || [])].filter((url): url is string => Boolean(url)),
