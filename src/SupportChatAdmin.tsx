@@ -54,7 +54,9 @@ export default function SupportChatAdmin() {
         .from('profiles')
         .select('id,full_name,login_id')
         .in('id', ids)
-      names = Object.fromEntries((profiles ?? []).map((x: any) => [x.id, x.full_name || x.login_id || 'Customer']))
+      names = Object.fromEntries(
+        (profiles ?? []).map((x: any) => [x.id, x.full_name || x.login_id || 'Customer']),
+      )
       loginIds = Object.fromEntries((profiles ?? []).map((x: any) => [x.id, x.login_id || '']))
     }
 
@@ -194,7 +196,11 @@ export default function SupportChatAdmin() {
                 onClick={() => setSelected(conversation.id)}
               >
                 <strong>{conversation.customer_name}</strong>
-                {conversation.customer_login_id ? <small className="admin-support-customer-id">Parent ID: {conversation.customer_login_id}</small> : null}
+                {conversation.customer_login_id ? (
+                  <small className="admin-support-customer-id">
+                    Parent ID: {conversation.customer_login_id}
+                  </small>
+                ) : null}
                 <span className="admin-support-conversation-meta">
                   <span>{conversation.status}</span>
                   <span
@@ -236,7 +242,11 @@ export default function SupportChatAdmin() {
                         : 'admin-support-message'
                     }
                   >
-                    <span className="admin-support-message-sender">{item.sender_user_id === adminId ? 'You' : conversations.find((x) => x.id === selected)?.customer_name || 'Customer'}</span>
+                    <span className="admin-support-message-sender">
+                      {item.sender_user_id === adminId
+                        ? 'You'
+                        : conversations.find((x) => x.id === selected)?.customer_name || 'Customer'}
+                    </span>
                     <p>{item.message}</p>
                     <time>
                       {new Date(item.created_at).toLocaleString([], {
