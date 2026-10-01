@@ -413,7 +413,7 @@ function CustomerPortal({
             </div>
           </div>
           {page === 'dashboard' ? (
-            <Dashboard setPage={setPage} students={students} />
+            <Dashboard setPage={setPage} students={students} branchId={branchId} />
           ) : page === 'packages' ? (
             <Packages branchId={branchId} onView={setSelected} onAdd={add} />
           ) : page === 'products' ? (
@@ -543,9 +543,11 @@ function CustomerPortal({
 function Dashboard({
   setPage,
   students = [],
+  branchId,
 }: {
   setPage: (p: CustomerPage) => void
   students?: any[]
+  branchId: string
 }) {
   const [activeOrders, setActiveOrders] = useState<number | null>(null)
   const [savedItems, setSavedItems] = useState<number | null>(null)
@@ -617,6 +619,7 @@ function Dashboard({
 
   return (
     <div className="portal-content dashboard-content">
+      <CustomerPromotions branchId={branchId} />
       {/* <div className="welcome-banner">
         <div>
           {<p className="eyebrow">YOUR SCHOOL STORE</p>}
@@ -688,6 +691,61 @@ function Dashboard({
         />
       </div>
     </div>
+  )
+}
+function CustomerPromotions({ branchId }: { branchId: string }) {
+  const [promotions, setPromotions] = useState<any[]>([])
+  useEffect(() => {
+    const client = supabase as any
+    if (!client || !branchId) return
+    let cancelled = false
+    client
+      .from('promotions')
+      .select('id,name,description,promotion_type,value,min_order_value,branch_id')
+      .or(`branch_id.is.null,branch_id.eq.${branchId}`)
+      .limit(6)
+      .then(({ data }: { data: any[] | null }) => {
+        if (!cancelled) setPromotions(data ?? [])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [branchId])
+
+  if (!promotions.length) return null
+
+  return (
+    <section
+      className="parent-children-section"
+      style={{ marginBottom: 20 }}
+      aria-label="Available offers"
+    >
+      <div className="parent-children-grid">
+        <article className="parent-family-heading">
+          <p className="eyebrow">AVAILABLE OFFERS</p>
+          <h2>Current Promotions</h2>
+        </article>
+        {promotions.map((promotion) => (
+          <article className="parent-child-card" key={promotion.id}>
+            <div className="parent-child-avatar">%</div>
+            <div>
+              <strong>{promotion.name}</strong>
+              <span>
+                {promotion.description ||
+                  (promotion.promotion_type === 'free_shipping'
+                    ? 'Free shipping on eligible orders.'
+                    : promotion.promotion_type === 'percentage'
+                      ? `${Number(promotion.value || 0)}% off eligible orders.`
+                      : `₹${Number(promotion.value || 0).toLocaleString('en-IN')} off eligible orders.`)}
+              </span>
+              {Number(promotion.min_order_value || 0) > 0 && (
+                <small>Minimum order ₹{Number(promotion.min_order_value).toLocaleString('en-IN')}</small>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   )
 }
 function Stat({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
