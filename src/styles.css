@@ -8088,8 +8088,8 @@ a {
 /* Keep uniform package columns aligned with the Edit action on the same row. */
 .workspace-row.package-row {
   grid-template-columns:
-    minmax(260px, 2fr) minmax(100px, 0.8fr) minmax(120px, 0.9fr) minmax(180px, 1.25fr)
-    auto;
+    minmax(220px, 1.5fr) minmax(90px, 0.7fr) minmax(110px, 0.8fr)
+    minmax(160px, 1fr) minmax(280px, 2fr) auto;
 }
 
 .workspace-row.package-row button {
