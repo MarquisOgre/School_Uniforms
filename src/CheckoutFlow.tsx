@@ -1001,7 +1001,8 @@ export default function CheckoutFlow({
                   <span>Shipping · {shippingMethodName}</span>
                   <strong>
                     {effectiveShipping - promotionShippingDiscount > 0
-                      ? '₹' + (effectiveShipping - promotionShippingDiscount).toLocaleString('en-IN')
+                      ? '₹' +
+                        (effectiveShipping - promotionShippingDiscount).toLocaleString('en-IN')
                       : 'FREE'}
                   </strong>
                 </div>

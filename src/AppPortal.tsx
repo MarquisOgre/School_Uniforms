@@ -739,7 +739,9 @@ function CustomerPromotions({ branchId }: { branchId: string }) {
                       : `₹${Number(promotion.value || 0).toLocaleString('en-IN')} off eligible orders.`)}
               </span>
               {Number(promotion.min_order_value || 0) > 0 && (
-                <small>Minimum order ₹{Number(promotion.min_order_value).toLocaleString('en-IN')}</small>
+                <small>
+                  Minimum order ₹{Number(promotion.min_order_value).toLocaleString('en-IN')}
+                </small>
               )}
             </div>
           </article>

@@ -892,7 +892,13 @@ function Marketing() {
     const r = await db('promotions')
       .update({ enabled: !p.enabled, updated_at: new Date().toISOString() })
       .eq('id', p.id)
-    setPromoMsg(r.error ? `Unable to change status: ${r.error.message}` : p.enabled ? 'Promotion deactivated.' : 'Promotion activated.')
+    setPromoMsg(
+      r.error
+        ? `Unable to change status: ${r.error.message}`
+        : p.enabled
+          ? 'Promotion deactivated.'
+          : 'Promotion activated.',
+    )
     if (!r.error) await load()
   }
 
@@ -924,14 +930,23 @@ function Marketing() {
       <div className="enterprise-card">
         <div className="enterprise-card-head">
           <div>
-            <h3><Plus size={17} /> Promotions</h3>
-            <span>Automatic offers for the storefront. Coupons remain separate and can be entered manually at checkout.</span>
+            <h3>
+              <Plus size={17} /> Promotions
+            </h3>
+            <span>
+              Automatic offers for the storefront. Coupons remain separate and can be entered
+              manually at checkout.
+            </span>
           </div>
         </div>
         <div className="cms-field-grid">
           <label>
             Name
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Back to School Offer" />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Back to School Offer"
+            />
           </label>
           <label>
             Type
@@ -943,61 +958,119 @@ function Marketing() {
           </label>
           <label>
             Value
-            <input type="number" min="0" max={type === 'percentage' ? 100 : undefined} value={value} onChange={(e) => setValue(e.target.value)} disabled={type === 'free_shipping'} />
+            <input
+              type="number"
+              min="0"
+              max={type === 'percentage' ? 100 : undefined}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              disabled={type === 'free_shipping'}
+            />
           </label>
           <label>
             Minimum Order
-            <input type="number" min="0" value={minOrder} onChange={(e) => setMinOrder(e.target.value)} />
+            <input
+              type="number"
+              min="0"
+              value={minOrder}
+              onChange={(e) => setMinOrder(e.target.value)}
+            />
           </label>
           <label>
             Usage Limit
-            <input type="number" min="1" value={usageLimit} onChange={(e) => setUsageLimit(e.target.value)} placeholder="Unlimited" />
+            <input
+              type="number"
+              min="1"
+              value={usageLimit}
+              onChange={(e) => setUsageLimit(e.target.value)}
+              placeholder="Unlimited"
+            />
           </label>
           <label>
             Branch
             <select value={branchId} onChange={(e) => setBranchId(e.target.value)}>
               <option value="">All Branches</option>
-              {branches.filter((b) => b.status === 'active').map((b) => (
-                <option key={b.id} value={b.id}>{b.name || b.code}</option>
-              ))}
+              {branches
+                .filter((b) => b.status === 'active')
+                .map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name || b.code}
+                  </option>
+                ))}
             </select>
           </label>
           <label className="full-field">
             Description
-            <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Save 10% on eligible school uniform orders." />
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Save 10% on eligible school uniform orders."
+            />
           </label>
           <label>
             Starts
-            <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+            <input
+              type="datetime-local"
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
+            />
           </label>
           <label>
             Ends
-            <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+            <input
+              type="datetime-local"
+              value={endsAt}
+              onChange={(e) => setEndsAt(e.target.value)}
+            />
           </label>
         </div>
         <div className="inline-form">
-          <button className="primary-button" disabled={promoSaving} onClick={() => void savePromo()}>
-            <Save size={15} /> {promoSaving ? 'Saving...' : editingId ? 'Update Promotion' : 'Create Promotion'}
+          <button
+            className="primary-button"
+            disabled={promoSaving}
+            onClick={() => void savePromo()}
+          >
+            <Save size={15} />{' '}
+            {promoSaving ? 'Saving...' : editingId ? 'Update Promotion' : 'Create Promotion'}
           </button>
-          {editingId && <button className="secondary-button" onClick={resetPromoForm}>Cancel Edit</button>}
+          {editingId && (
+            <button className="secondary-button" onClick={resetPromoForm}>
+              Cancel Edit
+            </button>
+          )}
         </div>
-        {promoMsg && <p className={promoMsg.startsWith('Unable') ? 'workspace-error' : 'form-success'}>{promoMsg}</p>}
+        {promoMsg && (
+          <p className={promoMsg.startsWith('Unable') ? 'workspace-error' : 'form-success'}>
+            {promoMsg}
+          </p>
+        )}
         <div className="enterprise-list">
           {promos.map((p) => (
             <div className="enterprise-list-row" key={p.id}>
               <span>
                 {p.name}
                 <small>
-                  {p.promotion_type} · {p.promotion_type === 'free_shipping' ? 'Free shipping' : p.value}
-                  {Number(p.min_order_value || 0) ? ` · Min ₹${Number(p.min_order_value).toFixed(0)}` : ''}
-                  {p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name || 'Branch'}` : ' · All branches'}
+                  {p.promotion_type} ·{' '}
+                  {p.promotion_type === 'free_shipping' ? 'Free shipping' : p.value}
+                  {Number(p.min_order_value || 0)
+                    ? ` · Min ₹${Number(p.min_order_value).toFixed(0)}`
+                    : ''}
+                  {p.branch_id
+                    ? ` · ${branches.find((b) => b.id === p.branch_id)?.name || 'Branch'}`
+                    : ' · All branches'}
                 </small>
               </span>
               <span className="inline-form">
                 <strong>{p.enabled ? 'Active' : 'Inactive'}</strong>
-                <button className="secondary-button" onClick={() => editPromo(p)}>Edit</button>
-                <button className="secondary-button" onClick={() => void togglePromo(p)}>{p.enabled ? 'Deactivate' : 'Activate'}</button>
-                <button className="secondary-button" onClick={() => void deletePromo(p)}>Delete</button>
+                <button className="secondary-button" onClick={() => editPromo(p)}>
+                  Edit
+                </button>
+                <button className="secondary-button" onClick={() => void togglePromo(p)}>
+                  {p.enabled ? 'Deactivate' : 'Activate'}
+                </button>
+                <button className="secondary-button" onClick={() => void deletePromo(p)}>
+                  Delete
+                </button>
               </span>
             </div>
           ))}
@@ -1005,21 +1078,33 @@ function Marketing() {
         </div>
       </div>
       <div className="enterprise-card">
-        <h3><Archive size={17} /> Product Merchandising</h3>
+        <h3>
+          <Archive size={17} /> Product Merchandising
+        </h3>
         <p>Configure native related products, upsells and cross-sells.</p>
         <div className="cms-field-grid">
           <label>
             Product
             <select value={source} onChange={(e) => setSource(e.target.value)}>
               <option value="">Select product</option>
-              {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
             </select>
           </label>
           <label>
             Target Product
             <select value={target} onChange={(e) => setTarget(e.target.value)}>
               <option value="">Select target</option>
-              {products.filter((p) => p.id !== source).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {products
+                .filter((p) => p.id !== source)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
             </select>
           </label>
           <label>
@@ -1031,7 +1116,9 @@ function Marketing() {
             </select>
           </label>
         </div>
-        <button className="secondary-button" onClick={() => void relate()}><Plus size={15} /> Save Relationship</button>
+        <button className="secondary-button" onClick={() => void relate()}>
+          <Plus size={15} /> Save Relationship
+        </button>
         {msg && <p className="form-success">{msg}</p>}
       </div>
     </section>
