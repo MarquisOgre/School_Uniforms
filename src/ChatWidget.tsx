@@ -255,8 +255,7 @@ export default function ChatWidget({ branchId }: ChatWidgetProps) {
             </button>
           </div>
 
-          <>
-              <div className="chat-ai-intro">
+          <div className="chat-ai-intro">
                 <Sparkles size={16} />
                 <span>AI assistant is ready. Ask about uniforms, products, orders, shipping or returns.</span>
               </div>
