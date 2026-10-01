@@ -185,7 +185,7 @@ GRANT EXECUTE ON FUNCTION public.initialize_uniform_group_template(uuid) TO auth
 
 DROP FUNCTION IF EXISTS public.get_uniform_ai_catalog(uuid,text,public.gender_type,text);
 
-CREATE OR REPLACE FUNCTION public.get_uniform_ai_catalog(
+DROP FUNCTION IF EXISTS public.get_uniform_ai_catalog(uuid,text,public.gender_type,text);\n\nCREATE OR REPLACE FUNCTION public.get_uniform_ai_catalog(
   p_branch_id uuid, p_class_name text, p_gender public.gender_type DEFAULT NULL, p_product_query text DEFAULT NULL
 )
 RETURNS TABLE (
@@ -197,7 +197,7 @@ RETURNS TABLE (
 LANGUAGE sql SECURITY DEFINER SET search_path = public, app_private
 AS $$
   SELECT g.id, g.name, g.level_code, g.gender,
-         p.id, p.name, pc.name, p.gender, v.id, v.sku, v.size_label, v.variant_name,
+         p.id, p.name, pc.name, p.gender, pv.id, pv.sku, pv.size_label, pv.variant_name,
          COALESCE(bi.quantity_on_hand, 0), vm.measurement_type, vm.min_value, vm.ideal_value, vm.max_value, vm.unit
   FROM public.branches b
   JOIN public.uniform_classes uc ON uc.branch_id = b.id AND uc.status = 'active'
@@ -211,14 +211,14 @@ AS $$
   JOIN public.product_variants v ON v.product_id = p.id AND v.status = 'active'
   JOIN public.variant_group_assignments vga ON v.variant_id = v.id AND vga.group_id = g.id
   LEFT JOIN public.product_categories pc ON pc.id = p.category_id
-  LEFT JOIN public.branch_inventory bi ON bi.branch_id = b.id AND bi.variant_id = v.id
-  LEFT JOIN public.variant_measurements vm ON vm.variant_id = v.id
+  LEFT JOIN public.branch_inventory bi ON bi.branch_id = b.id AND bi.variant_id = pv.id
+  LEFT JOIN public.variant_measurements vm ON vm.variant_id = pv.id
   WHERE b.id = p_branch_id
     AND (p_gender IS NULL OR p.gender IN (p_gender, 'unisex'))
     AND (p_product_query IS NULL OR trim(p_product_query) = ''
       OR p.name ILIKE '%' || trim(p_product_query) || '%'
       OR COALESCE(pc.name,'') ILIKE '%' || trim(p_product_query) || '%')
-  ORDER BY g.sort_order, p.name, v.size_label, vm.measurement_type;
+  ORDER BY g.sort_order, p.name, pv.size_label, vm.measurement_type;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_uniform_ai_catalog(uuid,text,public.gender_type,text) TO anon, authenticated;
