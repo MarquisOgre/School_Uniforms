@@ -426,11 +426,22 @@ export default function CheckoutFlow({
 
   const applyCoupon = async () => {
     const code = couponCode.trim()
-    if (!code) { setCouponMessage('Enter a coupon code.'); return }
+    if (!code) {
+      setCouponMessage('Enter a coupon code.')
+      return
+    }
     const client = supabase as any
     const r = await client.rpc('preview_school_coupon', { p_code: code, p_subtotal: total })
-    if (r.error) { setCouponDiscount(0); setCouponMessage(r.error.message); return }
-    if (!r.data?.valid) { setCouponDiscount(0); setCouponMessage(r.data?.message || 'Coupon is not valid.'); return }
+    if (r.error) {
+      setCouponDiscount(0)
+      setCouponMessage(r.error.message)
+      return
+    }
+    if (!r.data?.valid) {
+      setCouponDiscount(0)
+      setCouponMessage(r.data?.message || 'Coupon is not valid.')
+      return
+    }
     setCouponDiscount(Number(r.data.discount || 0))
     setCouponMessage(r.data.message || 'Coupon applied.')
   }
@@ -752,13 +763,31 @@ export default function CheckoutFlow({
             <div className="school-coupon-panel" style={{ marginTop: 16 }}>
               <strong>Coupon Code</strong>
               <div className="inline-form">
-                <input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="Enter coupon code" />
-                <button type="button" className="secondary-button" onClick={() => void applyCoupon()}>Apply Coupon</button>
+                <input
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="Enter coupon code"
+                />
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => void applyCoupon()}
+                >
+                  Apply Coupon
+                </button>
               </div>
-              {couponMessage && <small className={couponDiscount > 0 ? 'form-success' : 'workspace-error'}>{couponMessage}</small>}
-              {couponDiscount > 0 && <div className="school-payment-total"><span>Discount</span><strong>-₹{couponDiscount.toLocaleString('en-IN')}</strong></div>}
+              {couponMessage && (
+                <small className={couponDiscount > 0 ? 'form-success' : 'workspace-error'}>
+                  {couponMessage}
+                </small>
+              )}
+              {couponDiscount > 0 && (
+                <div className="school-payment-total">
+                  <span>Discount</span>
+                  <strong>-₹{couponDiscount.toLocaleString('en-IN')}</strong>
+                </div>
+              )}
             </div>
-
 
             {!detailsValid ? (
               <div className="school-payment-locked">
