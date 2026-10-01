@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, Plus, RefreshCw, Save, Trash2, WandSparkles } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
 const dbFrom = (table: string): any => (supabase as any)?.from(table)
 const TYPES = ['height','chest','waist','hip','shoulder','inseam','foot_length','age'] as const
 
-type GroupRow = { id: string; school_id: string; code: string; name: string; level_code: string; gender: string; sort_order: number }
+type GroupRow = { id: string; branch_id: string; code: string; name: string; level_code: string; gender: string; sort_order: number }
 type ClassRow = { id: string; name: string }
 type ProductRow = { id: string; name: string; gender: string; status: string }
 type VariantRow = { id: string; product_id: string; sku: string; size_label: string | null; variant_name: string | null; status: string }
@@ -36,12 +36,10 @@ export default function AIUniformSetup() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  const schoolId = useMemo(() => branches.find((b) => b.id === branchId)?.school_id || '', [branches, branchId])
-
   const loadBranches = async () => {
     if (!supabase) return
     setLoading(true); setError(''); setNotice('')
-    const b = await dbFrom('branches').select('id,name,code,school_id,status').eq('status','active').order('name')
+    const b = await dbFrom('branches').select('id,name,code,status').eq('status','active').order('name')
     if (b.error) { setError(b.error.message); setLoading(false); return }
     setBranches(b.data || [])
     const stored = window.localStorage.getItem('admin:selectedBranchId')
@@ -52,27 +50,36 @@ export default function AIUniformSetup() {
 
   useEffect(() => { void loadBranches() }, [])
 
-  const loadSchool = async () => {
-    if (!schoolId || !supabase) return
+  const loadBranch = async () => {
+    if (!branchId || !supabase) return
     setError('')
     const [g,c,p] = await Promise.all([
-      dbFrom('uniform_groups').select('*').eq('school_id',schoolId).eq('status','active').order('sort_order'),
-      dbFrom('uniform_classes').select('id,name').eq('school_id',schoolId).eq('status','active').order('sort_order').order('name'),
-      dbFrom('products').select('id,name,gender,status').eq('status','active').order('name'),
+      dbFrom('uniform_groups').select('*').eq('branch_id',branchId).eq('status','active').order('sort_order'),
+      dbFrom('uniform_classes').select('id,name').eq('branch_id',branchId).eq('status','active').order('sort_order').order('name'),
+      dbFrom('products').select('id,name,gender,status').eq('branch_id',branchId).eq('status','active').order('name'),
     ])
-    if (g.error || c.error || p.error) { setError(g.error?.message || c.error?.message || p.error?.message || 'Unable to load setup data.'); return }
+    if (g.error || c.error || p.error) { setError(g.error?.message || c.error?.message || p.error?.message || 'Unable to load uniform setup data.'); return }
     setGroups(g.data || []); setClasses(c.data || []); setProducts(p.data || [])
     setSelectedGroup((current) => current && (g.data || []).some((x:any)=>x.id===current.id) ? current : g.data?.[0] || null)
   }
 
-  useEffect(() => { void loadSchool() }, [schoolId])
+  useEffect(() => {
+    setSelectedGroup(null)
+    setGroupClassIds(new Set())
+    setProductId('')
+    setAssignedProducts(new Set())
+    setVariants([])
+    setAssignedVariants(new Set())
+    setMeasurements({})
+    void loadBranch()
+  }, [branchId])
 
   const initializeTemplate = async () => {
-    if (!schoolId || !supabase || initializing) return
+    if (!branchId || !supabase || initializing) return
     setInitializing(true); setError(''); setNotice('')
-    const r = await (supabase as any).rpc('initialize_uniform_group_template', { p_school_id: schoolId })
+    const r = await (supabase as any).rpc('initialize_uniform_group_template', { p_branch_id: branchId })
     if (r.error) setError(r.error.message)
-    else { setNotice('Standard 3-level × Boys/Girls template is ready for this school.'); await loadSchool() }
+    else { setNotice('Standard 3-level × Boys/Girls uniform template is ready for this branch.'); await loadBranch() }
     setInitializing(false)
   }
 
@@ -80,15 +87,15 @@ export default function AIUniformSetup() {
     if (!selectedGroup || !branchId || !supabase) return
     const run = async () => {
       setError('')
-      const a = await dbFrom('product_group_assignments').select('product_id').eq('branch_id',branchId).eq('group_id',selectedGroup.id)
-      const cls = await dbFrom('uniform_group_classes').select('class_id').eq('group_id',selectedGroup.id)
+      const [a, cls] = await Promise.all([
+        dbFrom('product_group_assignments').select('product_id').eq('branch_id',branchId).eq('group_id',selectedGroup.id),
+        dbFrom('uniform_group_classes').select('class_id').eq('group_id',selectedGroup.id),
+      ])
       if (a.error || cls.error) { setError(a.error?.message || cls.error?.message || 'Unable to load group mappings.'); return }
       setAssignedProducts(new Set((a.data || []).map((x:any)=>x.product_id)))
-      const ids = (cls.data || []).map((x:any)=>x.class_id)
-      setClasses((current) => current.map(c => c))
+      setGroupClassIds(new Set((cls.data || []).map((x:any)=>x.class_id)))
       setProductId('')
       setVariants([]); setAssignedVariants(new Set()); setMeasurements({})
-      ;(window as any).__uniformGroupClassIds = ids
     }
     void run()
   }, [selectedGroup, branchId])
@@ -172,7 +179,7 @@ export default function AIUniformSetup() {
 
   return <div className="workspace-body">
     <div className="workspace-heading" style={{display:'flex',justifyContent:'space-between',gap:20}}>
-      <div><h1>AI Uniform Setup</h1><p>Reusable school template: Early Years, Primary and Secondary, each split into Boys and Girls. Only assigned variants can be recommended.</p></div>
+      <div><h1>AI Uniform Setup</h1><p>Store-aware uniform sizing: configure class groups, eligible products, allowed variants and measurements. AI only uses what this store has configured.</p></div>
       <button className="secondary-button" onClick={()=>void loadBranches()}><RefreshCw size={15}/> Refresh</button>
     </div>
     {error && <div className="workspace-error">{error}</div>}
@@ -181,7 +188,7 @@ export default function AIUniformSetup() {
       <div className="workspace-toolbar">
         <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
           <label>Branch <select value={branchId} onChange={e=>{setBranchId(e.target.value);window.localStorage.setItem('admin:selectedBranchId',e.target.value)}}>{branches.map(b=><option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}</select></label>
-          <button className="primary-button" onClick={()=>void initializeTemplate()} disabled={!schoolId || initializing}><WandSparkles size={15}/> {initializing?'Applying...':'Apply Standard School Template'}</button>
+          <button className="primary-button" onClick={()=>void initializeTemplate()} disabled={!branchId || initializing}><WandSparkles size={15}/> {initializing?'Applying...':'Apply Standard Uniform Template'}</button>
         </div>
       </div>
       {loading ? <div className="workspace-empty">Loading...</div> : <div style={{display:'grid',gridTemplateColumns:'260px 1fr',gap:20}}>
@@ -192,7 +199,7 @@ export default function AIUniformSetup() {
               <strong>{g.name}</strong><br/><small>{LEVELS[g.level_code]}</small>
             </button>)}
           </div>
-          {!groups.length && <div className="workspace-empty">Apply the standard template to create the 6 reusable groups.</div>}
+          {!groups.length && <div className="workspace-empty">Apply the standard template to create the 6 reusable groups for this branch.</div>}
         </div>
         <div>
           {!selectedGroup ? <div className="workspace-empty">Select a group to configure it.</div> : <>
