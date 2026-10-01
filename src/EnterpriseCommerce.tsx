@@ -194,8 +194,6 @@ function Shipping() {
   const [freeAbove, setFreeAbove] = useState('0')
   const [methodType, setMethodType] = useState('flat_rate')
   const [msg, setMsg] = useState('')
-  const [promoMsg, setPromoMsg] = useState('')
-  const [promoSaving, setPromoSaving] = useState(false)
   const load = async () => {
     const r = await db('shipping_zones')
       .select('*')
@@ -782,6 +780,8 @@ function Invoices() {
 }
 function Marketing() {
   const [promos, setPromos] = useState<any[]>([])
+  const [promoMsg, setPromoMsg] = useState('')
+  const [promoSaving, setPromoSaving] = useState(false)
   const [products, setProducts] = useState<any[]>([])
   const [name, setName] = useState('')
   const [value, setValue] = useState('10')
