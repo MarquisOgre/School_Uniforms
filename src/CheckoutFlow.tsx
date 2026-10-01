@@ -145,6 +145,9 @@ export default function CheckoutFlow({
   const [shippingRate, setShippingRate] = useState(0)
   const [shippingFreeAbove, setShippingFreeAbove] = useState(0)
   const [shippingMethodName, setShippingMethodName] = useState('Standard Delivery')
+  const [couponCode, setCouponCode] = useState('')
+  const [couponDiscount, setCouponDiscount] = useState(0)
+  const [couponMessage, setCouponMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successOrder, setSuccessOrder] = useState<any>(null)
@@ -351,7 +354,7 @@ export default function CheckoutFlow({
     const freeAbove = shippingFreeAbove || Number(settings.free_shipping_above || 0)
     return fee > 0 && (!freeAbove || total < freeAbove) ? fee : 0
   }, [shippingRate, shippingFreeAbove, settings, total])
-  const payable = total + effectiveShipping
+  const payable = Math.max(0, total + effectiveShipping - couponDiscount)
   const upiUri = useMemo(() => {
     if (!settings.upi_enabled || !settings.upi_id) return ''
     return (
@@ -421,6 +424,17 @@ export default function CheckoutFlow({
     paymentMethod === 'razorpay' ||
     paymentReference.trim().length >= 4
 
+  const applyCoupon = async () => {
+    const code = couponCode.trim()
+    if (!code) { setCouponMessage('Enter a coupon code.'); return }
+    const client = supabase as any
+    const r = await client.rpc('preview_school_coupon', { p_code: code, p_subtotal: total })
+    if (r.error) { setCouponDiscount(0); setCouponMessage(r.error.message); return }
+    if (!r.data?.valid) { setCouponDiscount(0); setCouponMessage(r.data?.message || 'Coupon is not valid.'); return }
+    setCouponDiscount(Number(r.data.discount || 0))
+    setCouponMessage(r.data.message || 'Coupon applied.')
+  }
+
   const placeOrder = async () => {
     if (!detailsValid || !paymentValid || loading) return
     setLoading(true)
@@ -462,6 +476,7 @@ export default function CheckoutFlow({
         p_payment_method: paymentMethod,
         p_payment_reference: paymentMethod === 'upi' ? paymentReference.trim() : null,
         p_notes: null,
+        p_coupon_code: couponCode.trim() || null,
       })
       if (rpcError) throw rpcError
       if (!data?.order_number) throw new Error('The order was not created.')
@@ -734,6 +749,17 @@ export default function CheckoutFlow({
 
           <section className="school-checkout-card school-payment-card">
             <h2>Payment</h2>
+            <div className="school-coupon-panel" style={{ marginTop: 16 }}>
+              <strong>Coupon Code</strong>
+              <div className="inline-form">
+                <input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="Enter coupon code" />
+                <button type="button" className="secondary-button" onClick={() => void applyCoupon()}>Apply Coupon</button>
+              </div>
+              {couponMessage && <small className={couponDiscount > 0 ? 'form-success' : 'workspace-error'}>{couponMessage}</small>}
+              {couponDiscount > 0 && <div className="school-payment-total"><span>Discount</span><strong>-₹{couponDiscount.toLocaleString('en-IN')}</strong></div>}
+            </div>
+
+
             {!detailsValid ? (
               <div className="school-payment-locked">
                 <p>Please fill in your details correctly to proceed with payment.</p>
