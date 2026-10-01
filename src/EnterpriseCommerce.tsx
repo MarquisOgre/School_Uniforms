@@ -939,41 +939,145 @@ function SeoMenus() {
     setPages(p.data ?? [])
     setSeo(s.data ?? [])
   }
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+  }, [])
   const editSeo = (page: any) => {
     const existing = seo.find((x) => x.object_type === 'page' && x.object_id === page.id)
-    setEditing(existing || { object_type: 'page', object_id: page.id, meta_title: page.title, meta_description: '', canonical_url: '/page/' + page.slug, robots: 'index,follow', og_title: page.title, og_description: '', og_image_url: '', schema_json: {} })
+    setEditing(
+      existing || {
+        object_type: 'page',
+        object_id: page.id,
+        meta_title: page.title,
+        meta_description: '',
+        canonical_url: '/page/' + page.slug,
+        robots: 'index,follow',
+        og_title: page.title,
+        og_description: '',
+        og_image_url: '',
+        schema_json: {},
+      },
+    )
   }
   const saveSeo = async () => {
     if (!editing?.object_id) return
-    const payload = { object_type: editing.object_type, object_id: editing.object_id, meta_title: editing.meta_title || null, meta_description: editing.meta_description || null, canonical_url: editing.canonical_url || null, robots: editing.robots || 'index,follow', og_title: editing.og_title || null, og_description: editing.og_description || null, og_image_url: editing.og_image_url || null, schema_json: editing.schema_json || {}, updated_at: new Date().toISOString() }
+    const payload = {
+      object_type: editing.object_type,
+      object_id: editing.object_id,
+      meta_title: editing.meta_title || null,
+      meta_description: editing.meta_description || null,
+      canonical_url: editing.canonical_url || null,
+      robots: editing.robots || 'index,follow',
+      og_title: editing.og_title || null,
+      og_description: editing.og_description || null,
+      og_image_url: editing.og_image_url || null,
+      schema_json: editing.schema_json || {},
+      updated_at: new Date().toISOString(),
+    }
     const r = await db('seo_meta').upsert(payload, { onConflict: 'object_type,object_id' })
     if (r.error) setMsg(r.error.message)
-    else { setMsg('SEO metadata saved.'); setEditing(null); void load() }
+    else {
+      setMsg('SEO metadata saved.')
+      setEditing(null)
+      void load()
+    }
   }
   const addItem = async (menu: any, page: any) => {
-    const r = await db('nav_menu_items').insert({ menu_id: menu.id, label: page.title, url: '/page/' + page.slug, sort_order: 999 })
+    const r = await db('nav_menu_items').insert({
+      menu_id: menu.id,
+      label: page.title,
+      url: '/page/' + page.slug,
+      sort_order: 999,
+    })
     setMsg(r.error ? r.error.message : 'Menu item added.')
   }
   return (
     <section className="enterprise-grid">
       <div className="enterprise-card">
-        <h3><Globe2 size={17} /> Navigation Menus</h3>
+        <h3>
+          <Globe2 size={17} /> Navigation Menus
+        </h3>
         <p>Manage header/footer menus independently from the React shell.</p>
-        {menus.map((m) => <div className="enterprise-list-row" key={m.id}><span>{m.name}<small>{m.location}</small></span>{pages[0] ? <button className="secondary-button" onClick={() => void addItem(m, pages[0])}>Add page</button> : null}</div>)}
+        {menus.map((m) => (
+          <div className="enterprise-list-row" key={m.id}>
+            <span>
+              {m.name}
+              <small>{m.location}</small>
+            </span>
+            {pages[0] ? (
+              <button className="secondary-button" onClick={() => void addItem(m, pages[0])}>
+                Add page
+              </button>
+            ) : null}
+          </div>
+        ))}
         {msg && <p className="form-success">{msg}</p>}
       </div>
       <div className="enterprise-card">
-        <div className="enterprise-card-head"><div><h3>SEO Manager</h3><span>Edit metadata per page and publish-ready content.</span></div></div>
-        <div className="enterprise-list">{pages.map((p) => <button key={p.id} onClick={() => editSeo(p)}><span>{p.title}<small>/{p.slug}</small></span><span>Edit SEO</span></button>)}</div>
-        {editing && <div className="cms-field-grid" style={{ marginTop: 16 }}>
-          <label>Meta Title<input value={editing.meta_title || ''} onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })} /></label>
-          <label>Canonical URL<input value={editing.canonical_url || ''} onChange={(e) => setEditing({ ...editing, canonical_url: e.target.value })} /></label>
-          <label className="full-field">Meta Description<textarea value={editing.meta_description || ''} onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })} /></label>
-          <label>Robots<input value={editing.robots || ''} onChange={(e) => setEditing({ ...editing, robots: e.target.value })} /></label>
-          <label>OG Image<input value={editing.og_image_url || ''} onChange={(e) => setEditing({ ...editing, og_image_url: e.target.value })} /></label>
-          <div className="inline-form"><button className="primary-button" onClick={() => void saveSeo()}><Save size={15} /> Save SEO</button><button className="secondary-button" onClick={() => setEditing(null)}>Cancel</button></div>
-        </div>}
+        <div className="enterprise-card-head">
+          <div>
+            <h3>SEO Manager</h3>
+            <span>Edit metadata per page and publish-ready content.</span>
+          </div>
+        </div>
+        <div className="enterprise-list">
+          {pages.map((p) => (
+            <button key={p.id} onClick={() => editSeo(p)}>
+              <span>
+                {p.title}
+                <small>/{p.slug}</small>
+              </span>
+              <span>Edit SEO</span>
+            </button>
+          ))}
+        </div>
+        {editing && (
+          <div className="cms-field-grid" style={{ marginTop: 16 }}>
+            <label>
+              Meta Title
+              <input
+                value={editing.meta_title || ''}
+                onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })}
+              />
+            </label>
+            <label>
+              Canonical URL
+              <input
+                value={editing.canonical_url || ''}
+                onChange={(e) => setEditing({ ...editing, canonical_url: e.target.value })}
+              />
+            </label>
+            <label className="full-field">
+              Meta Description
+              <textarea
+                value={editing.meta_description || ''}
+                onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })}
+              />
+            </label>
+            <label>
+              Robots
+              <input
+                value={editing.robots || ''}
+                onChange={(e) => setEditing({ ...editing, robots: e.target.value })}
+              />
+            </label>
+            <label>
+              OG Image
+              <input
+                value={editing.og_image_url || ''}
+                onChange={(e) => setEditing({ ...editing, og_image_url: e.target.value })}
+              />
+            </label>
+            <div className="inline-form">
+              <button className="primary-button" onClick={() => void saveSeo()}>
+                <Save size={15} /> Save SEO
+              </button>
+              <button className="secondary-button" onClick={() => setEditing(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )
