@@ -68,7 +68,6 @@ BEGIN
       OR (pr.slug='narayana-cbse-uniform-divider-skirt-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
       OR (pr.slug='narayana-cbse-uniform-flit-normal-skirt-01' AND ug.code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS'))
       OR (pr.slug='narayana-cbse-uniform-chudi-set-01' AND ug.code='SECONDARY_GIRLS')
-      -- Binoform has no documented class assignment in the published Narayana guide; leave unassigned.
       OR (pr.slug='narayana-cbse-uniform-boys-elastic-pant-back-elastic-01' AND ug.code IN ('PRIMARY_BOYS','SECONDARY_BOYS'))
       OR (pr.slug='narayana-cbse-uniform-gents-pant-fix-waist-01' AND ug.code IN ('PRIMARY_BOYS','SECONDARY_BOYS'))
       -- Blazer is documented for XI-XII, outside this six-group template.
@@ -116,12 +115,6 @@ BEGIN
             OR (g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='SECONDARY_GIRLS') AND v.size_label IN ('37','40'))))
         OR
         (p=(SELECT id FROM products WHERE slug='narayana-cbse-uniform-chudi-set-01') AND g=(SELECT id FROM uniform_groups WHERE school_id=school_id AND code='SECONDARY_GIRLS'))
-        OR
-        (p=(SELECT id FROM products WHERE slug='narayana-cbse-uniform-boys-blazer-01') AND g IN (SELECT id FROM uniform_groups WHERE school_id=school_id AND code IN ('PRIMARY_BOYS','SECONDARY_BOYS')))
-        OR
-        (p=(SELECT id FROM products WHERE slug='narayana-cbse-uniform-grils-coat-01') AND g IN (SELECT id FROM uniform_groups WHERE school_id=school_id AND code IN ('PRIMARY_GIRLS','SECONDARY_GIRLS')))
-        OR
-        -- Binoform intentionally has no class assignment.
         OR
         (p IN (SELECT id FROM products WHERE slug IN ('narayana-cbse-socks-3-sets-drak-grey-colour-01','narayana-socks-3-sets-01')) AND g IN (SELECT id FROM uniform_groups WHERE school_id=school_id))
         OR
