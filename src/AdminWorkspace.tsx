@@ -2115,6 +2115,7 @@ function PackageEditorScreen({
   editing: any
   setEditing: (value: any) => void
   products: any[]
+  categories: any[]
   items: any[]
   onBack: () => void
   onSave: (value: any) => Promise<void>
@@ -2268,6 +2269,7 @@ function PackageEditorScreen({
               <thead>
                 <tr>
                   <th>#</th>
+                  <th>Category</th>
                   <th>Product</th>
                   <th>Quantity</th>
                   <th>Size Selection</th>
@@ -2282,6 +2284,12 @@ function PackageEditorScreen({
                   return (
                     <tr key={item.id || `item-${index}`}>
                       <td>{index + 1}</td>
+                      <td>
+                        <strong>
+                          {categories.find((c) => c.id === product?.category_id)?.name ||
+                            'Uncategorized'}
+                        </strong>
+                      </td>
                       <td>
                         <strong>{product?.name || item.product_id}</strong>
                       </td>
@@ -3364,6 +3372,7 @@ function Packages({
 }) {
   const [rows, setRows] = useState<any[]>([]),
     [products, setProducts] = useState<any[]>([]),
+    [categories, setCategories] = useState<any[]>([]),
     [items, setItems] = useState<any[]>([]),
     [editing, setEditing] = useState<any>(null),
     [itemEditing, setItemEditing] = useState<any>(null),
@@ -3383,37 +3392,47 @@ function Packages({
     const [p, x, pi] = await Promise.all([
       dbFrom('uniform_packages').select('*').eq('branch_id', branchId).order('name'),
       dbFrom('products')
-        .select('id,name,gender,base_price')
+        .select('id,name,gender,base_price,category_id')
         .eq('branch_id', branchId)
         .eq('status', 'active')
         .order('name'),
       dbFrom('package_items')
         .select('package_id,product_id,quantity,sort_order')
         .order('sort_order'),
+      dbFrom('product_categories').select('id,name').eq('status', 'active').order('name'),
     ])
 
     const productMap = Object.fromEntries(
       (x.data ?? []).map((product: any) => [product.id, product]),
     )
-    const packageItemsMap: Record<string, string[]> = {}
+    const categoryMap = Object.fromEntries(
+      (c.data ?? []).map((category: any) => [category.id, category]),
+    )
+    const packageItemsMap: Record<string, any[]> = {}
 
     for (const item of pi.data ?? []) {
       const product = productMap[item.product_id]
       if (!product) continue
       if (!packageItemsMap[item.package_id]) packageItemsMap[item.package_id] = []
-      packageItemsMap[item.package_id].push(
-        `${product.name}${Number(item.quantity || 1) > 1 ? ` × ${item.quantity}` : ''}`,
-      )
+      packageItemsMap[item.package_id].push({
+        product_name: product.name,
+        category_name: categoryMap[product.category_id]?.name || 'Uncategorized',
+        quantity: Number(item.quantity || 1),
+      })
     }
 
     setRows(
       (p.data ?? []).map((pkg: any) => ({
         ...pkg,
-        item_names: packageItemsMap[pkg.id] ?? [],
+        item_names: (packageItemsMap[pkg.id] ?? []).map((item) =>
+          `${item.product_name}${item.quantity > 1 ? ` × ${item.quantity}` : ''}`,
+        ),
+        item_details: packageItemsMap[pkg.id] ?? [],
       })),
     )
     setProducts(x.data ?? [])
-    setError(p.error?.message || x.error?.message || pi.error?.message || '')
+    setCategories(c.data ?? [])
+    setError(p.error?.message || x.error?.message || pi.error?.message || c.error?.message || '')
     setLoading(false)
   }
   const downloadPackageTemplate = () => {
@@ -3920,7 +3939,8 @@ function Packages({
                   <strong>Package</strong>
                   <span>Gender</span>
                   <span>Base Price</span>
-                  <span>Items</span>
+                  <span>Categories</span>
+                  <span>Products Assigned</span>
                   <span>Actions</span>
                 </div>
                 {rows.map((x) => (
@@ -3929,14 +3949,30 @@ function Packages({
                     <span>{formatGender(x.gender)}</span>
                     <span>₹{Number(x.base_price || 0).toLocaleString('en-IN')}</span>
                     <span>
-                      {x.item_names?.length ? (
+                      {x.item_details?.length ? (
                         <span className="package-list-items">
-                          {x.item_names.map((name: string, index: number) => (
-                            <span key={`${x.id}-item-${index}`}>{name}</span>
+                          {Array.from(
+                            new Set(x.item_details.map((item: any) => item.category_name)),
+                          ).map((category: string) => (
+                            <span key={`${x.id}-category-${category}`}>{category}</span>
                           ))}
                         </span>
                       ) : (
-                        'No items configured'
+                        '—'
+                      )}
+                    </span>
+                    <span>
+                      {x.item_details?.length ? (
+                        <span className="package-list-items">
+                          {x.item_details.map((item: any, index: number) => (
+                            <span key={`${x.id}-product-${index}`}>
+                              <strong>{item.category_name}</strong> · {item.product_name}
+                              {item.quantity > 1 ? ` × ${item.quantity}` : ''}
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        'No products assigned'
                       )}
                     </span>
                     <button
@@ -4120,6 +4156,7 @@ function Packages({
           editing={editing}
           setEditing={setEditing}
           products={products}
+          categories={categories}
           items={items}
           onBack={() => {
             window.history.pushState(
@@ -4167,7 +4204,12 @@ function Packages({
             label="Product"
             value={itemEditing.product_id}
             options={products.map((x) => x.id)}
-            labels={Object.fromEntries(products.map((x) => [x.id, x.name]))}
+            labels={Object.fromEntries(
+              products.map((x) => [
+                x.id,
+                `${categories.find((c) => c.id === x.category_id)?.name || 'Uncategorized'} · ${x.name}`,
+              ]),
+            )}
             onChange={(v) => {
               setItemEditing({ ...itemEditing, product_id: v, variant_ids: [] })
               void loadItemVariants(v)
