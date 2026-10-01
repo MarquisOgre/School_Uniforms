@@ -35,6 +35,7 @@ type AdminTool =
   | 'orders'
   | 'inventory'
   | 'students'
+  | 'users'
   | 'reports'
   | 'coupons'
   | 'support'
@@ -56,6 +57,7 @@ const ADMIN_NAV: Array<{
   { key: 'orders', label: 'Orders & Payments', icon: ClipboardList },
   { key: 'inventory', label: 'Inventory', icon: ClipboardList },
   { key: 'students', label: 'Parents & Students', icon: UserRound },
+  { key: 'users', label: 'Users & Customers', icon: UserRound },
   { key: 'reports', label: 'Reports', icon: FileSpreadsheet },
   { key: 'coupons', label: 'Coupons', icon: Sparkles },
   { key: 'support', label: 'Support Chat', icon: MessageCircle },
@@ -511,6 +513,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       orders: '/admin/orders',
       inventory: '/admin/inventory',
       students: '/admin/parents-students',
+      users: '/admin/users',
       reports: '/admin/reports',
       coupons: '/admin/coupons',
       support: '/admin/support',
@@ -532,6 +535,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     if (path === '/admin/orders' || path === '/admin/payments') return 'orders'
     if (path === '/admin/inventory') return 'inventory'
     if (path === '/admin/parents-students') return 'students'
+    if (path === '/admin/users') return 'users'
     if (path === '/admin/reports') return 'reports'
     if (path === '/admin/coupons') return 'coupons'
     if (path === '/admin/support') return 'support'
@@ -793,6 +797,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     tool === 'orders' ||
     tool === 'inventory' ||
     tool === 'students' ||
+    tool === 'users' ||
     tool === 'reports' ||
     tool === 'coupons'
   )
