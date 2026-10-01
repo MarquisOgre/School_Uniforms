@@ -13,6 +13,7 @@ type ChatMessage = {
 
 type RequestBody = {
   conversationId?: string
+  branchId?: string
   message: string
   history?: ChatMessage[]
 }
@@ -31,16 +32,10 @@ Deno.serve(async (req) => {
   const openRouterKey = Deno.env.get('OPENROUTER_API_KEY')
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
+  const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
   if (!openRouterKey || !supabaseUrl || !supabaseAnonKey) {
-    return json({
-      error: 'AI support is not configured on the server.',
-      diagnostics: {
-        openRouterApiKey: Boolean(openRouterKey),
-        supabaseUrl: Boolean(supabaseUrl),
-        supabaseAnonKey: Boolean(supabaseAnonKey),
-      },
-    }, 500)
+    return json({ error: 'AI support is not configured on the server.' }, 500)
   }
 
   // Authentication is optional: visitors can use the AI assistant before logging in.
@@ -77,6 +72,113 @@ Deno.serve(async (req) => {
         )
         .slice(-8)
     : []
+
+  const serviceClient = supabaseServiceRoleKey
+    ? createClient(supabaseUrl, supabaseServiceRoleKey)
+    : createClient(supabaseUrl, supabaseAnonKey)
+
+  let catalogContext = ''
+  try {
+    const branchId = typeof body.branchId === 'string' && /^[0-9a-f-]{36}$/i.test(body.branchId)
+      ? body.branchId
+      : null
+
+    const { data: products } = await serviceClient
+      .from('products')
+      .select('id,name,description,base_price,offer_price,discount_percentage,product_type,gender,material,brand,quality,fabric,cod_available,easy_returns,express_shipping,branch_id')
+      .eq('status', 'active')
+      .order('name')
+      .limit(120)
+
+    const { data: packages } = await serviceClient
+      .from('uniform_packages')
+      .select('id,name,description,base_price,offer_price,discount_percentage,gender,branch_id')
+      .eq('status', 'active')
+      .order('name')
+      .limit(60)
+
+    let branchProducts: any[] = []
+    let inventory: any[] = []
+    let branchPackages: any[] = []
+
+    if (branchId) {
+      const [bp, bi, bpk] = await Promise.all([
+        serviceClient
+          .from('branch_products')
+          .select('product_id,branch_price,is_visible,sort_order')
+          .eq('branch_id', branchId)
+          .eq('is_visible', true)
+          .order('sort_order'),
+        serviceClient
+          .from('branch_inventory')
+          .select('product_id,variant_id,quantity_on_hand')
+          .eq('branch_id', branchId),
+        serviceClient
+          .from('branch_packages')
+          .select('package_id,branch_price,is_visible')
+          .eq('branch_id', branchId)
+          .eq('is_visible', true),
+      ])
+      branchProducts = bp.data ?? []
+      inventory = bi.data ?? []
+      branchPackages = bpk.data ?? []
+    }
+
+    const productById = new Map((products ?? []).map((p: any) => [p.id, p]))
+    const packageById = new Map((packages ?? []).map((p: any) => [p.id, p]))
+
+    const visibleProducts = branchId && branchProducts.length
+      ? branchProducts.map((bp: any) => {
+          const p = productById.get(bp.product_id)
+          return p ? { ...p, branch_price: bp.branch_price } : null
+        }).filter(Boolean)
+      : (products ?? [])
+
+    const visiblePackages = branchId && branchPackages.length
+      ? branchPackages.map((bp: any) => {
+          const p = packageById.get(bp.package_id)
+          return p ? { ...p, branch_price: bp.branch_price } : null
+        }).filter(Boolean)
+      : (packages ?? [])
+
+    const availabilityByProduct = new Map<string, number>()
+    for (const row of inventory) {
+      const current = availabilityByProduct.get(row.product_id) ?? 0
+      availabilityByProduct.set(row.product_id, current + Number(row.quantity_on_hand || 0))
+    }
+
+    const normalizedQuery = message.toLowerCase()
+    const wantsAvailability = /stock|available|availability|in stock|quantity|size|sizes/.test(normalizedQuery)
+    const productContext = visibleProducts.slice(0, 80).map((p: any) => ({
+      name: p.name,
+      description: p.description,
+      price: p.branch_price ?? p.offer_price ?? p.base_price,
+      product_type: p.product_type,
+      gender: p.gender,
+      material: p.material,
+      brand: p.brand,
+      quality: p.quality,
+      fabric: p.fabric,
+      cod_available: p.cod_available,
+      easy_returns: p.easy_returns,
+      express_shipping: p.express_shipping,
+      ...(wantsAvailability && branchId ? { quantity_on_hand: availabilityByProduct.get(p.id) ?? 0 } : {}),
+    }))
+
+    const packageContext = visiblePackages.slice(0, 40).map((p: any) => ({
+      name: p.name,
+      description: p.description,
+      price: p.branch_price ?? p.offer_price ?? p.base_price,
+      gender: p.gender,
+    }))
+
+    catalogContext = [
+      branchId ? 'Current branch catalog context:' : 'Public catalog context:',
+      JSON.stringify({ products: productContext, uniform_packages: packageContext }),
+    ].join('\n')
+  } catch {
+    catalogContext = ''
+  }
 
   const systemPrompt = [
     'You are the School UniformsDirect AI Support Assistant.',
