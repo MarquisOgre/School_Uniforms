@@ -125,6 +125,19 @@ export default function AdminWorkspace({
               </div>
               {module === 'packages' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                  <BulkTools
+                    title="Excel Bulk Import / Export — Uniform Packages"
+                    description="Download a package template, export current packages, or upload package records in bulk."
+                    demoLabel="Download Package Template"
+                    exportLabel="Download Packages"
+                    importing={false}
+                    canExport={true}
+                    onDemo={() => window.dispatchEvent(new CustomEvent('packages:download-template'))}
+                    onExport={() => window.dispatchEvent(new CustomEvent('packages:export'))}
+                    onImport={(file) => {
+                      window.dispatchEvent(new CustomEvent('packages:import', { detail: file }))
+                    }}
+                  />
                   <button
                     className="primary-button"
                     onClick={() => window.dispatchEvent(new CustomEvent('packages:add'))}
@@ -3534,11 +3547,23 @@ function Packages({
         status: 'active',
       })
     const refreshHandler = () => void load()
+    const downloadTemplateHandler = () => downloadPackageTemplate()
+    const exportHandler = () => exportPackages()
+    const importHandler = (event: Event) => {
+      const file = (event as CustomEvent<File>).detail
+      if (file) void importPackages(file)
+    }
     window.addEventListener('packages:add', addHandler)
     window.addEventListener('packages:refresh', refreshHandler)
+    window.addEventListener('packages:download-template', downloadTemplateHandler)
+    window.addEventListener('packages:export', exportHandler)
+    window.addEventListener('packages:import', importHandler)
     return () => {
       window.removeEventListener('packages:add', addHandler)
       window.removeEventListener('packages:refresh', refreshHandler)
+      window.removeEventListener('packages:download-template', downloadTemplateHandler)
+      window.removeEventListener('packages:export', exportHandler)
+      window.removeEventListener('packages:import', importHandler)
     }
   }, [branchId])
   useEffect(() => {
@@ -3786,21 +3811,6 @@ function Packages({
       ) : null}
       {!isPackagePage && (
         <>
-          <div className="workspace-toolbar">
-            <div>
-              <BulkTools
-                title="Excel Bulk Import / Export — Uniform Packages"
-                description="Download a package template, export current packages, or upload package records in bulk."
-                demoLabel="Download Package Template"
-                exportLabel="Download Packages"
-                importing={bulkImporting}
-                canExport={rows.length > 0}
-                onDemo={downloadPackageTemplate}
-                onExport={exportPackages}
-                onImport={(file) => void importPackages(file)}
-              />
-            </div>
-          </div>
           <ErrorBox text={error} />
           {loading ? (
             <Loading />
