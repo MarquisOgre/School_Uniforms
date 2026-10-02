@@ -2308,14 +2308,6 @@ function PackageEditorScreen({
       </section>
 
       <div className="product-variants-footer">
-        <button
-          type="button"
-          className="secondary-button"
-          style={{ background: '#b42318', borderColor: '#b42318', color: '#fff' }}
-          onClick={() => void onDeleteProduct()}
-        >
-          Delete Permanently
-        </button>
         <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
           <button type="button" className="secondary-button" onClick={onBack}>
             Cancel
@@ -2585,9 +2577,19 @@ function ProductEditorScreen({
           <h1>Edit Product</h1>
           <p>Update product details, images and size-wise pricing.</p>
         </div>
-        <button type="button" className="product-editor-back" onClick={onBack}>
-          <ArrowLeft size={16} /> Back to Products
-        </button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button
+            type="button"
+            className="secondary-button"
+            style={{ background: '#b42318', borderColor: '#b42318', color: '#fff' }}
+            onClick={() => void onDeleteProduct()}
+          >
+            <Trash2 size={15} /> Delete Permanently
+          </button>
+          <button type="button" className="product-editor-back" onClick={onBack}>
+            <ArrowLeft size={16} /> Back to Products
+          </button>
+        </div>
       </div>
 
       {error ? <div className="workspace-error">{error}</div> : null}
