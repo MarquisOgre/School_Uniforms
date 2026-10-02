@@ -3286,9 +3286,7 @@ function Packages({
         .eq('branch_id', branchId)
         .eq('status', 'active')
         .order('name'),
-      dbFrom('package_items')
-        .select('package_id,product_id,quantity')
-        .order('created_at'),
+      dbFrom('package_items').select('package_id,product_id,quantity').order('created_at'),
       dbFrom('product_categories').select('id,name').eq('status', 'active').order('name'),
     ])
 
@@ -4200,9 +4198,7 @@ function OrdersAdmin({ search }: { search: string }) {
           'id,order_id,product_id,package_id,quantity,unit_price,item_name_snapshot,selected_variants',
         )
         .order('created_at'),
-      dbFrom('package_items')
-        .select('package_id,product_id,quantity')
-        .order('created_at'),
+      dbFrom('package_items').select('package_id,product_id,quantity').order('created_at'),
       dbFrom('products').select('id,name'),
       dbFrom('payments')
         .select('id,order_id,provider_payment_id,provider,amount,status,paid_at,created_at')
