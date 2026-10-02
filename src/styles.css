@@ -5064,7 +5064,8 @@ a {
 .workspace-branches > .workspace-toolbar {
   position: absolute;
   top: 48px;
-  right: 0;
+  left: clamp(320px, 42%, 760px);
+  right: auto;
   z-index: 2;
   width: auto;
   margin: 0;
@@ -5074,7 +5075,7 @@ a {
   box-shadow: none;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 12px;
 }
 
@@ -5099,7 +5100,7 @@ a {
 }
 .workspace-toolbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 16px;
   margin-bottom: 18px;
