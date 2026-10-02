@@ -110,25 +110,6 @@ export default function AdminWorkspace({
       <main className={`workspace-body workspace-${module}`}>
         {module !== 'reports' && module !== 'settings' && (
           <>
-            {(module === 'products' || module === 'packages') && (
-              <div className="admin-branch-context">
-                <label htmlFor="admin-active-branch">Active Branch</label>
-                <select
-                  id="admin-active-branch"
-                  value={branchId || ''}
-                  onChange={(e) => handleBranchChange(e.target.value)}
-                  disabled={!branches.length}
-                >
-                  {!branches.length ? <option value="">No active branches</option> : null}
-                  {branches.map((branch: any) => (
-                    <option key={branch.id} value={branch.id}>
-                      {branch.name}
-                      {branch.code ? ` (${branch.code})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
             <div
               className="workspace-heading"
               style={{
@@ -2469,9 +2450,6 @@ function ProductEditorScreen({
         <span>Products</span>
         <strong>›</strong>
         <span>Edit Product</span>
-        <button type="button" className="product-editor-back" onClick={onBack}>
-          <ArrowLeft size={16} /> Back to Products
-        </button>
       </div>
 
       <div className="product-editor-heading">
@@ -2479,6 +2457,9 @@ function ProductEditorScreen({
           <h1>Edit Product</h1>
           <p>Update product details, images and size-wise pricing.</p>
         </div>
+        <button type="button" className="product-editor-back" onClick={onBack}>
+          <ArrowLeft size={16} /> Back to Products
+        </button>
       </div>
 
       {error ? <div className="workspace-error">{error}</div> : null}
