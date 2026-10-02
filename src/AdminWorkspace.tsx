@@ -7535,29 +7535,31 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <div className="settings-security-password">
-                  <div>
-                    <strong>Change Password</strong>
-                    <span>Update the administrator account password securely.</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => {
-                      window.history.pushState(
-                        { schoolUniformApp: 'admin', tool: 'change-password' },
-                        '',
-                        '/admin/change-password',
-                      )
-                      window.dispatchEvent(new PopStateEvent('popstate'))
-                    }}
-                  >
-                    Change Password
-                  </button>
-                </div>
               </>
             )}
           </SystemConfigurationPanel>
+          <Panel>
+            <div className="settings-security-password">
+              <div>
+                <strong>Change Password</strong>
+                <span>Update the administrator account password securely.</span>
+              </div>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => {
+                  window.history.pushState(
+                    { schoolUniformApp: 'admin', tool: 'change-password' },
+                    '',
+                    '/admin/change-password',
+                  )
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }}
+              >
+                Change Password
+              </button>
+            </div>
+          </Panel>
         )}
 
         {section === 'advanced' && (
