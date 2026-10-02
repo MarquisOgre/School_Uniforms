@@ -33,32 +33,25 @@ type ModuleKey =
 const META: Record<ModuleKey, { title: string }> = {
   branches: {
     title: 'Branches',
-
   },
   products: {
     title: 'Products',
-
   },
   packages: {
     title: 'Uniform Packages',
-
   },
   orders: {
     title: 'Orders & Payments',
-
   },
 
   students: {
     title: 'Parents & Students',
-
   },
   reports: {
     title: 'Reports',
-
   },
   settings: {
     title: 'Settings',
-
   },
 }
 
@@ -121,7 +114,6 @@ export default function AdminWorkspace({
             >
               <div>
                 <h1>{m.title}</h1>
-
               </div>
               {module === 'packages' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
