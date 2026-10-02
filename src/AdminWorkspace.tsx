@@ -3531,8 +3531,15 @@ function Packages({
       .select('id,sku,size_label,color,variant_name,status')
       .eq('product_id', productId)
       .eq('status', 'active')
-      .order('size_label')
-    setItemVariants(r.data ?? [])
+
+    const sortedVariants = [...(r.data ?? [])].sort((a: any, b: any) =>
+      String(a.size_label ?? '').localeCompare(String(b.size_label ?? ''), undefined, {
+        numeric: true,
+        sensitivity: 'base',
+      }),
+    )
+
+    setItemVariants(sortedVariants)
     if (r.error) setError(r.error.message || '')
   }
 
