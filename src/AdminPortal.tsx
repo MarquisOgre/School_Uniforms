@@ -17,7 +17,6 @@ import {
   Upload,
   Images,
   Trash2,
-  KeyRound,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 const AdminWorkspace = lazy(() => import('./AdminWorkspace'))
@@ -93,14 +92,6 @@ function AdminSidebar({
           </button>
         ))}
       </nav>
-      <button
-        type="button"
-        className="admin-sidebar-change-password"
-        onClick={() => onNavigate('change-password')}
-      >
-        <KeyRound size={17} />
-        <span>Change Password</span>
-      </button>
       <button type="button" className="admin-sidebar-logout" onClick={onLogout}>
         <LogOut size={17} />
         <span>Logout</span>
