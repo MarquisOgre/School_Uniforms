@@ -3909,9 +3909,7 @@ function Packages({
       return false
     }
 
-    const branchResult = await dbFrom('branch_packages')
-      .delete()
-      .eq('package_id', editing.id)
+    const branchResult = await dbFrom('branch_packages').delete().eq('package_id', editing.id)
     if (branchResult.error) {
       setError(branchResult.error.message)
       return false
