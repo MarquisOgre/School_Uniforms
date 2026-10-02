@@ -730,57 +730,65 @@ function Branches() {
           onClose={() => setEditing(null)}
           onSave={saveBranch}
         >
-          <Field
-            label="Branch Name"
-            value={editing.name}
-            onChange={(v) => setEditing({ ...editing, name: v })}
-          />
-          <Field
-            label="Code"
-            value={editing.code}
-            onChange={(v) => setEditing({ ...editing, code: v })}
-          />
-          <Field
-            label="Address Line 1"
-            value={editing.address_line1 || ''}
-            onChange={(v) => setEditing({ ...editing, address_line1: v })}
-          />
-          <Field
-            label="Address Line 2"
-            value={editing.address_line2 || ''}
-            onChange={(v) => setEditing({ ...editing, address_line2: v })}
-          />
-          <Field
-            label="City"
-            value={editing.city || ''}
-            onChange={(v) => setEditing({ ...editing, city: v })}
-          />
-          <Field
-            label="State"
-            value={editing.state || ''}
-            onChange={(v) => setEditing({ ...editing, state: v })}
-          />
-          <Field
-            label="Postal Code"
-            value={editing.postal_code || ''}
-            onChange={(v) => setEditing({ ...editing, postal_code: v })}
-          />
-          <Field
-            label="Phone"
-            value={editing.phone || ''}
-            onChange={(v) => setEditing({ ...editing, phone: v })}
-          />
-          <Field
-            label="Email"
-            value={editing.email || ''}
-            onChange={(v) => setEditing({ ...editing, email: v })}
-          />
-          <Select
-            label="Status"
-            value={editing.status || 'active'}
-            options={['active', 'inactive', 'suspended']}
-            onChange={(v) => setEditing({ ...editing, status: v })}
-          />
+          <div className="branch-edit-grid branch-edit-grid-2">
+            <Field
+              label="Branch Name"
+              value={editing.name}
+              onChange={(v) => setEditing({ ...editing, name: v })}
+            />
+            <Field
+              label="Code"
+              value={editing.code}
+              onChange={(v) => setEditing({ ...editing, code: v })}
+            />
+          </div>
+          <div className="branch-edit-grid branch-edit-grid-2">
+            <Field
+              label="Address Line 1"
+              value={editing.address_line1 || ''}
+              onChange={(v) => setEditing({ ...editing, address_line1: v })}
+            />
+            <Field
+              label="Address Line 2"
+              value={editing.address_line2 || ''}
+              onChange={(v) => setEditing({ ...editing, address_line2: v })}
+            />
+          </div>
+          <div className="branch-edit-grid branch-edit-grid-3">
+            <Field
+              label="City"
+              value={editing.city || ''}
+              onChange={(v) => setEditing({ ...editing, city: v })}
+            />
+            <Field
+              label="State"
+              value={editing.state || ''}
+              onChange={(v) => setEditing({ ...editing, state: v })}
+            />
+            <Field
+              label="Postal Code"
+              value={editing.postal_code || ''}
+              onChange={(v) => setEditing({ ...editing, postal_code: v })}
+            />
+          </div>
+          <div className="branch-edit-grid branch-edit-grid-3">
+            <Field
+              label="Phone"
+              value={editing.phone || ''}
+              onChange={(v) => setEditing({ ...editing, phone: v })}
+            />
+            <Field
+              label="Email"
+              value={editing.email || ''}
+              onChange={(v) => setEditing({ ...editing, email: v })}
+            />
+            <Select
+              label="Status"
+              value={editing.status || 'active'}
+              options={['active', 'inactive', 'suspended']}
+              onChange={(v) => setEditing({ ...editing, status: v })}
+            />
+          </div>
         </EditModal>
       )}
     </>
