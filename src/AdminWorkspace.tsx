@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import {
   Plus,
-  RefreshCw,
   Save,
   Trash2,
   Search,
@@ -196,7 +195,7 @@ function ModuleBody({
 function Panel({ children }: { children: ReactNode }) {
   return <section className="workspace-panel">{children}</section>
 }
-function Toolbar({ children, onRefresh }: { children?: ReactNode; onRefresh: () => void }) {
+function Toolbar({ children }: { children?: ReactNode; onRefresh?: () => void }) {
   return (
     <div className="workspace-toolbar">
       <div>{children}</div>
