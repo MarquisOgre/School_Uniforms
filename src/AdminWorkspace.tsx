@@ -1381,6 +1381,102 @@ function Products({
     return true
   }
 
+  const deleteProductPermanently = async (): Promise<boolean> => {
+    if (!supabase || !editing?.id) return false
+
+    const productId = String(editing.id)
+    const productName = String(editing.name || 'this product').trim()
+    const confirmed = window.confirm(
+      `Permanently delete "${productName}"?\\n\\nThis cannot be undone. The product, its variants, and branch assignments will be deleted. Historical orders, inventory transactions, and package records are protected and will prevent deletion.`,
+    )
+    if (!confirmed) return false
+
+    setError('')
+    setLoading(true)
+
+    try {
+      const variantsResult = await dbFrom('product_variants')
+        .select('id')
+        .eq('product_id', productId)
+
+      if (variantsResult.error) throw new Error(variantsResult.error.message)
+
+      const variantIds = (variantsResult.data || []).map((row: any) => row.id)
+
+      const [ordersResult, packagesResult, inventoryResult, transactionsResult] =
+        await Promise.all([
+          dbFrom('order_items').select('id').eq('product_id', productId),
+          dbFrom('package_items').select('id').eq('product_id', productId),
+          dbFrom('branch_inventory').select('id,product_id,variant_id').eq('product_id', productId),
+          variantIds.length
+            ? dbFrom('inventory_transactions').select('id,variant_id').in('variant_id', variantIds)
+            : Promise.resolve({ data: [], error: null }),
+        ])
+
+      if (ordersResult.error) throw new Error(ordersResult.error.message)
+      if (packagesResult.error) throw new Error(packagesResult.error.message)
+      if (inventoryResult.error) throw new Error(inventoryResult.error.message)
+      if (transactionsResult.error) throw new Error(transactionsResult.error.message)
+
+      const protectedReasons: string[] = []
+      if ((ordersResult.data || []).length) {
+        protectedReasons.push(`${ordersResult.data.length} order item(s)`)
+      }
+      if ((packagesResult.data || []).length) {
+        protectedReasons.push(`${packagesResult.data.length} uniform package item(s)`)
+      }
+      if ((inventoryResult.data || []).length) {
+        protectedReasons.push(`${inventoryResult.data.length} inventory record(s)`)
+      }
+      if ((transactionsResult.data || []).length) {
+        protectedReasons.push(`${transactionsResult.data.length} inventory transaction(s)`)
+      }
+
+      if (protectedReasons.length) {
+        setError(
+          `Cannot permanently delete "${productName}". Protected records exist: ${protectedReasons.join(
+            ', ',
+          )}. Remove or reassign these records first. The product has not been deleted.`,
+        )
+        return false
+      }
+
+      const branchResult = await dbFrom('branch_products').delete().eq('product_id', productId)
+      if (branchResult.error) throw new Error(branchResult.error.message)
+
+      if (variantIds.length) {
+        const variantDeleteResult = await dbFrom('product_variants')
+          .delete()
+          .in('id', variantIds)
+        if (variantDeleteResult.error) throw new Error(variantDeleteResult.error.message)
+      }
+
+      const productResult = await dbFrom('products').delete().eq('id', productId)
+      if (productResult.error) throw new Error(productResult.error.message)
+
+      setEditing(null)
+      setVariants([])
+      setError('')
+      await load()
+
+      if (window.location.pathname.startsWith('/admin/products/edit/')) {
+        window.history.pushState(
+          { schoolUniformApp: 'admin', tool: 'products', productSlug: null },
+          '',
+          '/admin/products',
+        )
+        window.dispatchEvent(new PopStateEvent('popstate'))
+      }
+
+      return true
+    } catch (deleteError: any) {
+      setError(deleteError?.message || 'Unable to permanently delete the product.')
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const downloadProductTemplate = () => {
     const headers = [
       'Product Name',
@@ -1985,6 +2081,7 @@ function Products({
             return variantsSaved
           }}
           onRefreshVariants={() => editing?.id && void loadVariants(editing.id)}
+          onDeleteProduct={deleteProductPermanently}
           error={error}
           setError={setError}
         />
@@ -2212,17 +2309,26 @@ function PackageEditorScreen({
       </section>
 
       <div className="product-variants-footer">
-        <button type="button" className="secondary-button" onClick={onBack}>
-          Cancel
-        </button>
         <button
           type="button"
-          className="primary-button product-save-all"
-          disabled={saving}
-          onClick={() => void save()}
+          className="secondary-button"
+          onClick={() => void onDeleteProduct()}
         >
-          <Save size={15} /> {saving ? 'Saving...' : 'Save All Changes'}
+          Delete Permanently
         </button>
+        <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
+          <button type="button" className="secondary-button" onClick={onBack}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="primary-button product-save-all"
+            disabled={saving}
+            onClick={() => void save()}
+          >
+            <Save size={15} /> {saving ? 'Saving...' : 'Save All Changes'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -2239,6 +2345,7 @@ function ProductEditorScreen({
   onBack,
   onSaveProduct,
   onRefreshVariants,
+  onDeleteProduct,
   error,
   setError,
 }: {
@@ -2252,6 +2359,7 @@ function ProductEditorScreen({
   onBack: () => void
   onSaveProduct: () => Promise<boolean>
   onRefreshVariants: () => void
+  onDeleteProduct: () => Promise<boolean>
   error: string
   setError: (value: string) => void
 }) {
