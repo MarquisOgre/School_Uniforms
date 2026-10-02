@@ -112,10 +112,7 @@ type PackageItemRow = {
   package_id: string
   product_id: string
   quantity: number
-  is_required: boolean
   requires_size: boolean
-  selection_group: string | null
-  sort_order: number
   created_at: string
 }
 
