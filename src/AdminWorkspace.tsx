@@ -4711,6 +4711,27 @@ function InventoryAdmin() {
     }
   }
 
+  const deleteInventoryGroup = async (branchId: string, productId: string, branchName: string, productName: string) => {
+    if (!supabase) return
+    const confirmed = window.confirm(
+      `Delete all inventory/stock records for "${productName}" at "${branchName}"?\\n\\nThis removes the current stock records for every size/variant at this branch. It does not delete the product, variants, orders, or inventory transaction history.`,
+    )
+    if (!confirmed) return
+
+    setError('')
+    const result = await dbFrom('branch_inventory')
+      .delete()
+      .eq('branch_id', branchId)
+      .eq('product_id', productId)
+
+    if (result.error) {
+      setError(result.error.message)
+      return
+    }
+
+    await load()
+  }
+
   const sizeOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
   const filtered = rows.filter((x) =>
     [x.branch_name, x.product_name, x.size, x.sku].some((v) =>
@@ -4802,6 +4823,7 @@ function InventoryAdmin() {
                   ))}
                   <th>Reorder</th>
                   <th>Stock</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -4822,6 +4844,23 @@ function InventoryAdmin() {
                       ))}
                       <td>{reorder}</td>
                       <td>{lowStock ? 'Low' : 'Healthy'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          style={{ background: '#b42318', borderColor: '#b42318', color: '#fff' }}
+                          onClick={() =>
+                            void deleteInventoryGroup(
+                              x.branch_id,
+                              x.product_id,
+                              x.branch_name,
+                              x.product_name,
+                            )
+                          }
+                        >
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </td>
                     </tr>
                   )
                 })}
