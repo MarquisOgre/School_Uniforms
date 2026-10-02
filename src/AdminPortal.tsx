@@ -488,8 +488,14 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   const [packageSlug, setPackageSlug] = useState<string | null>(null)
 
   const handleAdminNavigate = (nextTool: AdminTool) => {
-    // Leaving an editor must clear its slug; otherwise the route-sync effect
-    // immediately sends the user back to the editor URL.
+    // Navigate immediately. This is important when leaving an editor because
+    // the current URL still contains the editor slug until this handler runs.
+    const nextPath = adminPathForTool(nextTool)
+    window.history.pushState(
+      { schoolUniformApp: 'admin', tool: nextTool, productSlug: null, packageSlug: null },
+      '',
+      nextPath,
+    )
     setProductSlug(null)
     setPackageSlug(null)
     setTool(nextTool)
@@ -544,56 +550,26 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
         onBack()
         return
       }
-      const nextTool = adminToolFromPath(window.location.pathname)
-      const productMatch = window.location.pathname.match(/^\/admin\/products\/edit\/([^/]+)$/)
-      const packageMatch = window.location.pathname.match(
+      const path = window.location.pathname
+      const nextTool = adminToolFromPath(path)
+      const productMatch = path.match(/^\/admin\/products\/edit\/([^/]+)$/)
+      const packageMatch = path.match(
         /^\/admin\/uniform-packages\/edit\/([^/]+)$/,
       )
+
       setProductSlug(productMatch ? decodeURIComponent(productMatch[1]) : null)
       setPackageSlug(packageMatch ? decodeURIComponent(packageMatch[1]) : null)
       setTool(nextTool)
-      const editMatch = productMatch || packageMatch
-      const canonicalPath = editMatch ? window.location.pathname : adminPathForTool(nextTool)
-      window.history.replaceState(
-        {
-          schoolUniformApp: 'admin',
-          tool: nextTool,
-          productSlug: productMatch?.[1] || null,
-          packageSlug: packageMatch?.[1] || null,
-        },
-        '',
-        canonicalPath,
-      )
     }
 
     syncAdminRoute()
     window.addEventListener('popstate', syncAdminRoute)
     return () => window.removeEventListener('popstate', syncAdminRoute)
-  }, [onBack])
+    // Route synchronization is intentionally initialized once. Sidebar navigation
+    // and editor actions update history/state directly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  useEffect(() => {
-    if (!window.location.pathname.startsWith('/admin')) return
-    if (tool === 'products' && productSlug) {
-      const productPath = `/admin/products/edit/${productSlug}`
-      if (window.location.pathname === productPath) return
-      window.history.pushState({ schoolUniformApp: 'admin', tool, productSlug }, '', productPath)
-      return
-    }
-    if (tool === 'packages' && packageSlug) {
-      const packagePath = `/admin/uniform-packages/edit/${packageSlug}`
-      if (window.location.pathname === packagePath) return
-      window.history.pushState({ schoolUniformApp: 'admin', tool, packageSlug }, '', packagePath)
-      return
-    }
-    const canonicalPath = adminPathForTool(tool)
-    if (window.location.pathname === '/admin' && tool === 'packages') return
-    if (window.location.pathname === canonicalPath) return
-    window.history.pushState(
-      { schoolUniformApp: 'admin', tool, productSlug: null },
-      '',
-      canonicalPath,
-    )
-  }, [tool, productSlug])
   async function login() {
     const client = supabase
     if (!client || !email.trim() || !password) return
