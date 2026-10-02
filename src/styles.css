@@ -5125,6 +5125,31 @@ a {
   background: transparent;
   min-width: 230px;
 }
+.branch-edit-grid {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.branch-edit-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.branch-edit-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.branch-edit-grid .workspace-field {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .branch-edit-grid-2,
+  .branch-edit-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .workspace-panel {
   background: #fff;
   border: 1px solid #e4dbcf;
