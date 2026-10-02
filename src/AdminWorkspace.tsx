@@ -932,7 +932,9 @@ function Products({
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('active')
+  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>(
+    'active',
+  )
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [categorySaving, setCategorySaving] = useState(false)
@@ -949,8 +951,7 @@ function Products({
     const [bp, c, branchResult] = await Promise.all([
       dbFrom('branch_products')
         .select('product_id,branch_price,is_visible,sort_order')
-        .eq('branch_id', branchId)
-,
+        .eq('branch_id', branchId),
       dbFrom('product_categories').select('*').eq('status', 'active').order('name'),
       dbFrom('branches').select('id,name,code,status').order('name'),
     ])
@@ -1066,7 +1067,6 @@ function Products({
         .select('product_id')
         .eq('branch_id', branchId)
 
-
       if (cancelled) return
       if (linksResult.error) {
         setError(linksResult.error.message)
@@ -1160,8 +1160,7 @@ function Products({
         base_price: product.base_price ?? '',
         discount_percentage: product.discount_percentage ?? '',
         offer_price: product.offer_price ?? product.base_price ?? '',
-        assigned_branch_ids: (assignmentResult.data || [])
-          .map((x: any) => x.branch_id),
+        assigned_branch_ids: (assignmentResult.data || []).map((x: any) => x.branch_id),
       })
 
       await loadVariants(product.id)
