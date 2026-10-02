@@ -6001,10 +6001,8 @@ function Reports() {
   const today = new Date()
   const [reportMonth, setReportMonth] = useState(String(today.getMonth() + 1))
   const [reportYear, setReportYear] = useState(String(today.getFullYear()))
-  const [statusFilter, setStatusFilter] = useState('all')
 
   const monthOptions = [
-    { value: 'all', label: 'All Months' },
     ...Array.from({ length: 12 }, (_, index) => ({
       value: String(index + 1),
       label: new Date(2000, index, 1).toLocaleString('en-US', { month: 'long' }),
@@ -6075,7 +6073,7 @@ function Reports() {
     return () => window.removeEventListener('reports:refresh', handler)
   }, [from, to])
 
-  const orders = data.orders.filter((x: any) => statusFilter === 'all' || x.status === statusFilter)
+  const orders = data.orders
   const items = data.items.filter((x: any) => orders.some((o: any) => o.id === x.order_id))
   const revenue = orders.reduce((n: number, x: any) => n + Number(x.grand_total || 0), 0)
   const subtotal = orders.reduce((n: number, x: any) => n + Number(x.subtotal || 0), 0)
@@ -6178,7 +6176,10 @@ function Reports() {
         <div className="reports-date-controls">
           <label>
             Month
-            <select value={reportMonth} onChange={(e) => setReportMonth(e.target.value)}>
+            <select
+              value={reportMonth}
+              onChange={(e) => setReportMonth(e.target.value)}
+            >
               {monthOptions.map((month) => (
                 <option key={month.value} value={month.value}>
                   {month.label}
@@ -6194,19 +6195,6 @@ function Reports() {
                   {year}
                 </option>
               ))}
-            </select>
-          </label>
-          <label>
-            Status
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="all">All Statuses</option>
-              {Object.keys(statusCounts)
-                .sort()
-                .map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
             </select>
           </label>
         </div>
@@ -6228,7 +6216,7 @@ function Reports() {
             <div>
               <span>Total Orders</span>
               <strong>{orders.length}</strong>
-              <small>{statusFilter === 'all' ? 'All statuses' : statusFilter}</small>
+              <small>Selected period</small>
             </div>
             <div>
               <span>Total Revenue</span>
