@@ -3678,13 +3678,17 @@ function Packages({
     Math.max(0, basePrice * (1 - Math.min(100, Math.max(0, discount)) / 100))
 
   const save = async (editingOverride?: any, closeAfter = true) => {
-    const currentEditing = editingOverride || editing
-    if (!supabase || !currentEditing) return
+    const currentEditing = editingOverride ?? editing
+    if (!supabase) return
+    if (!currentEditing) {
+      setError('Unable to save package: package data is not loaded.')
+      return
+    }
     if (!branchId) {
       setError('Select an active branch before saving the package.')
       return
     }
-    const name = String(currentEditing.name || '').trim()
+    const name = String(currentEditing.name ?? '').trim()
     if (!name) {
       setError('Package Name is required.')
       return
@@ -3895,7 +3899,7 @@ function Packages({
               window.dispatchEvent(new PopStateEvent('popstate'))
             }
           }}
-          onSave={save}
+          onSave={() => void save({ ...editing })}
         >
           <div className="workspace-form-row">
             <Field
