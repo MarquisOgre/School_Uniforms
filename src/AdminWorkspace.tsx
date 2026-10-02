@@ -144,10 +144,6 @@ export default function AdminWorkspace({
                     <RefreshCw size={15} /> Refresh
                   </button>
                 </div>
-              ) : module === 'settings' ? (
-                <button className="secondary-button" onClick={() => window.location.reload()}>
-                  <RefreshCw size={15} /> Refresh
-                </button>
               ) : module === 'orders' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
                   <div className="toolbar-search">
@@ -3980,8 +3976,10 @@ function Packages({
                       {x.item_details?.length ? (
                         <span className="package-list-items">
                           {Array.from(
-                            new Set(x.item_details.map((item: any) => item.category_name)),
-                          ).map((category: string) => (
+                             new Set<string>(
+                               x.item_details.map((item: any) => String(item.category_name || '')),
+                             ),
+                           ).map((category: string) => (
                             <span key={`${x.id}-category-${category}`}>{category}</span>
                           ))}
                         </span>
