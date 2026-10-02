@@ -7225,7 +7225,7 @@ function Settings() {
 
   return (
     <div className="workspace-body">
-      <div className="workspace-heading">
+      <div className="workspace-heading settings-page-header">
         <div>
           <h1>Settings</h1>
           <p>Configure secure payment gateway and application settings.</p>
@@ -7310,7 +7310,7 @@ function Settings() {
                   ['low_stock_email', 'Low stock notification'],
                   ['customer_signup_email', 'New customer notification'],
                 ].map(([key, label]) => (
-                  <label className="workspace-field" key={key}>
+                  <label className="workspace-field settings-toggle-field" key={key}>
                     <span>{label}</span>
                     <label className="admin-inline-check">
                       <input
@@ -7351,7 +7351,7 @@ function Settings() {
                   options={['pending', 'processing', 'confirmed']}
                   onChange={(x) => update('allow_cancel_before', x)}
                 />
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Auto-confirm paid orders</span>
                   <label className="admin-inline-check">
                     <input
@@ -7362,7 +7362,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Require order notes</span>
                   <label className="admin-inline-check">
                     <input
@@ -7386,7 +7386,7 @@ function Settings() {
           >
             {(v, update) => (
               <>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Allow multiple children per parent</span>
                   <label className="admin-inline-check">
                     <input
@@ -7397,7 +7397,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Require phone number</span>
                   <label className="admin-inline-check">
                     <input
@@ -7408,7 +7408,7 @@ function Settings() {
                     Required
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Allow saved address book</span>
                   <label className="admin-inline-check">
                     <input
@@ -7419,7 +7419,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Allow guest checkout</span>
                   <label className="admin-inline-check">
                     <input
@@ -7443,7 +7443,7 @@ function Settings() {
           >
             {(v, update) => (
               <>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Require student on checkout</span>
                   <label className="admin-inline-check">
                     <input
@@ -7454,7 +7454,7 @@ function Settings() {
                     Required
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Allow customer order notes</span>
                   <label className="admin-inline-check">
                     <input
@@ -7465,7 +7465,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Show tax breakdown</span>
                   <label className="admin-inline-check">
                     <input
@@ -7476,7 +7476,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Show shipping estimate</span>
                   <label className="admin-inline-check">
                     <input
@@ -7515,7 +7515,7 @@ function Settings() {
                   value={String(v.max_login_attempts)}
                   onChange={(x) => update('max_login_attempts', Number(x) || 5)}
                 />
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Require strong passwords</span>
                   <label className="admin-inline-check">
                     <input
@@ -7526,7 +7526,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Require admin 2FA</span>
                   <label className="admin-inline-check">
                     <input
@@ -7550,7 +7550,7 @@ function Settings() {
           >
             {(v, update) => (
               <>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Maintenance mode</span>
                   <label className="admin-inline-check">
                     <input
@@ -7561,7 +7561,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>AI customer support</span>
                   <label className="admin-inline-check">
                     <input
@@ -7572,7 +7572,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>AI uniform assistant</span>
                   <label className="admin-inline-check">
                     <input
@@ -7583,7 +7583,7 @@ function Settings() {
                     Enabled
                   </label>
                 </label>
-                <label className="workspace-field">
+                <label className="workspace-field settings-toggle-field">
                   <span>Debug mode</span>
                   <label className="admin-inline-check">
                     <input
