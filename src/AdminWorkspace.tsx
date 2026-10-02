@@ -3881,6 +3881,68 @@ function Packages({
       await load()
     }
   }
+  const deletePackagePermanently = async () => {
+    if (!supabase || !editing?.id || !branchId) return false
+
+    const packageName = String(editing.name || 'this package')
+    const confirmed = window.confirm(
+      `Permanently delete "${packageName}"? This cannot be undone. The package, its assigned products, and branch assignment will be deleted. Orders containing this package will prevent deletion.`,
+    )
+    if (!confirmed) return false
+
+    setError('')
+
+    const orderItemsResult = await dbFrom('order_items')
+      .select('id')
+      .eq('package_id', editing.id)
+      .limit(1)
+
+    if (orderItemsResult.error) {
+      setError(orderItemsResult.error.message)
+      return false
+    }
+
+    if ((orderItemsResult.data || []).length) {
+      setError(
+        `Cannot permanently delete "${packageName}" because it is referenced by an existing order. Order history must be preserved.`,
+      )
+      return false
+    }
+
+    const branchResult = await dbFrom('branch_packages')
+      .delete()
+      .eq('package_id', editing.id)
+    if (branchResult.error) {
+      setError(branchResult.error.message)
+      return false
+    }
+
+    const packageResult = await dbFrom('uniform_packages')
+      .delete()
+      .eq('id', editing.id)
+      .eq('branch_id', branchId)
+
+    if (packageResult.error) {
+      setError(packageResult.error.message)
+      return false
+    }
+
+    setEditing(null)
+    setItems([])
+    await load()
+
+    if (isPackagePage) {
+      window.history.pushState(
+        { schoolUniformApp: 'admin', tool: 'packages', packageSlug: null },
+        '',
+        '/admin/uniform-packages',
+      )
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    }
+
+    return true
+  }
+
   const saveItem = async () => {
     if (!supabase || !itemEditing) return
     const p = {
@@ -4010,6 +4072,8 @@ function Packages({
       {editing && (
         <EditModal
           title={editing.id ? 'Edit Package' : 'Add Package'}
+          onDelete={editing.id ? () => void deletePackagePermanently() : undefined}
+          deleteLabel="Delete Permanently"
           onClose={() => {
             setEditing(null)
             setItems([])
@@ -6523,6 +6587,7 @@ function EditModal({
   onClose,
   onSave,
   onDelete,
+  deleteLabel = 'Delete Variant',
   saveLabel = 'Save',
   children,
 }: {
@@ -6530,6 +6595,7 @@ function EditModal({
   onClose: () => void
   onSave: () => void
   onDelete?: () => void
+  deleteLabel?: string
   saveLabel?: string
   children: ReactNode
 }) {
@@ -6545,7 +6611,7 @@ function EditModal({
                 className="variant-delete-button variant-delete-header-button"
                 onClick={onDelete}
               >
-                Delete Variant
+                {deleteLabel}
               </button>
             ) : null}
             <button className="secondary-button" onClick={onClose}>
