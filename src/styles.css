@@ -5063,7 +5063,7 @@ a {
 
 .workspace-branches > .workspace-toolbar {
   position: absolute;
-  top: 0;
+  top: 48px;
   right: 0;
   z-index: 2;
   width: auto;
