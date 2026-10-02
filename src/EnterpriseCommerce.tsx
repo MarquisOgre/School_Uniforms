@@ -34,9 +34,9 @@ export default function EnterpriseCommerce() {
   ] as const
   return (
     <div className="workspace-body">
-      <div className="workspace-heading">
+      <div className="workspace-heading commerce-page-header">
         <div>
-          <h1>Commerce & CMS</h1>
+          <h1>E-Commerce & CMS</h1>
           <p>
             Built-in store operations and WordPress + WooCommerce style administration without a
             development dependency.
