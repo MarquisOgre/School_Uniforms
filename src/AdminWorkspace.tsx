@@ -3866,31 +3866,10 @@ function Packages({
                     </span>
                     <button
                       onClick={() => {
-                        const baseSlug = String(x.name || 'package')
-                          .toLowerCase()
-                          .trim()
-                          .replace(/[^a-z0-9]+/g, '-')
-                          .replace(/^-|-$/g, '')
-                        const duplicateNameCount = rows.filter(
-                          (row) =>
-                            String(row.name || '')
-                              .trim()
-                              .toLowerCase() ===
-                            String(x.name || '')
-                              .trim()
-                              .toLowerCase(),
-                        ).length
-                        const slug =
-                          duplicateNameCount > 1
-                            ? `${baseSlug}-${String(x.id).slice(0, 6)}`
-                            : baseSlug
-                        window.history.pushState(
-                          { schoolUniformApp: 'admin', tool: 'packages', packageSlug: slug },
-                          '',
-                          `/admin/uniform-packages/edit/${encodeURIComponent(slug)}`,
-                        )
-                        window.dispatchEvent(new PopStateEvent('popstate'))
-                      }}
+                        setError('')
+                        setEditing({ ...x })
+                        void loadItems(x.id)
+                      }}}
                     >
                       Edit
                     </button>
@@ -3901,12 +3880,20 @@ function Packages({
           )}
         </>
       )}
-      {editing && !isPackagePage && (
+      {editing && (
         <EditModal
           title={editing.id ? 'Edit Package' : 'Add Package'}
           onClose={() => {
             setEditing(null)
             setItems([])
+            if (isPackagePage) {
+              window.history.pushState(
+                { schoolUniformApp: 'admin', tool: 'packages', packageSlug: null },
+                '',
+                '/admin/uniform-packages',
+              )
+              window.dispatchEvent(new PopStateEvent('popstate'))
+            }
           }}
           onSave={save}
         >
@@ -4037,46 +4024,6 @@ function Packages({
           )}
         </EditModal>
       )}
-      {isPackagePage && editing?.id && (
-        <PackageEditorScreen
-          editing={editing}
-          setEditing={setEditing}
-          products={products}
-          categories={categories}
-          items={items}
-          onBack={() => {
-            window.history.pushState(
-              { schoolUniformApp: 'admin', tool: 'packages', packageSlug: null },
-              '',
-              '/admin/uniform-packages',
-            )
-            window.dispatchEvent(new PopStateEvent('popstate'))
-          }}
-          onSave={async (value) => {
-            await save(value, false)
-          }}
-          onAddItem={() => {
-            setItemEditing({
-              package_id: editing.id,
-              product_id: products[0]?.id || '',
-              quantity: 1,
-              requires_size: true,
-              variant_ids: [],
-            })
-            setItemVariants([])
-            if (products[0]?.id) void loadItemVariants(products[0].id)
-          }}
-          onEditItem={(item) => {
-            setError('')
-            setItemEditing({
-              ...item,
-              variant_ids: Array.isArray(item.variant_ids) ? item.variant_ids : [],
-            })
-            void loadItemVariants(item.product_id)
-          }}
-          error={error}
-        />
-      )}{' '}
       {itemEditing && (
         <EditModal
           title={itemEditing.id ? 'Edit Package Item' : 'Add Package Item'}
