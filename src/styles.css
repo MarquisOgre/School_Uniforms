@@ -11830,6 +11830,23 @@ a {
   white-space: nowrap;
 }
 
+.commerce-page-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+
+.commerce-page-header > div:first-child {
+  min-width: 0;
+}
+
+.commerce-page-header .secondary-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .settings-tab-content .workspace-form-row {
   align-items: stretch;
 }
