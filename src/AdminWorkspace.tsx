@@ -30,35 +30,35 @@ type ModuleKey =
   | 'reports'
   | 'settings'
 
-const META: Record<ModuleKey, { title: string; description: string }> = {
+const META: Record<ModuleKey, { title: string }> = {
   branches: {
     title: 'Branches',
-    description: 'Manage branches, contact details and active status.',
+
   },
   products: {
     title: 'Products',
-    description: 'Manage individual uniform products, sizes, SKUs and prices.',
+
   },
   packages: {
     title: 'Uniform Packages',
-    description: 'Build packages from your individual products.',
+
   },
   orders: {
     title: 'Orders & Payments',
-    description: 'Review orders, payment transactions, totals and status in one place.',
+
   },
-  inventory: { title: 'Inventory', description: 'Monitor stock by branch, product and variant.' },
+
   students: {
     title: 'Parents & Students',
-    description: 'Manage parent and student records with direct branch assignments.',
+
   },
   reports: {
     title: 'Reports',
-    description: 'View high-level sales, orders and inventory summaries.',
+
   },
   settings: {
     title: 'Settings',
-    description: 'Configure secure payment gateway and application settings.',
+
   },
 }
 
@@ -121,7 +121,7 @@ export default function AdminWorkspace({
             >
               <div>
                 <h1>{m.title}</h1>
-                {module !== 'products' ? <p>{m.description}</p> : null}
+
               </div>
               {module === 'packages' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
@@ -6834,54 +6834,45 @@ type SettingsSection =
   | 'security'
   | 'advanced'
 
-const SETTINGS_SECTIONS: Array<{ id: SettingsSection; label: string; description: string }> = [
+const SETTINGS_SECTIONS: Array<{ id: SettingsSection; label: string }> = [
   {
     id: 'general',
     label: 'General',
-    description: 'Store identity, contact details and regional defaults.',
   },
   {
     id: 'payments',
     label: 'Payments',
-    description: 'Payment gateway credentials and payment configuration.',
   },
-  { id: 'tax', label: 'Tax / GST', description: 'Tax classes, GST rates and tax behaviour.' },
+  { id: 'tax', label: 'Tax / GST' },
   {
     id: 'shipping',
     label: 'Shipping',
-    description: 'Branch delivery charges and free-shipping rules.',
   },
-  { id: 'branding', label: 'Branding', description: 'Logo, colours and public site identity.' },
+  { id: 'branding', label: 'Branding' },
   {
     id: 'email',
     label: 'Email',
-    description: 'Transactional email provider and sender configuration.',
   },
   {
     id: 'notifications',
     label: 'Notifications',
-    description: 'Control which operational events generate notifications.',
   },
   {
     id: 'orders',
     label: 'Orders',
-    description: 'Order numbering, cancellation and confirmation rules.',
   },
-  { id: 'customers', label: 'Customers', description: 'Parent account and multi-child behaviour.' },
+  { id: 'customers', label: 'Customers' },
   {
     id: 'checkout',
     label: 'Checkout',
-    description: 'Checkout fields, tax display and order options.',
   },
   {
     id: 'security',
     label: 'Security',
-    description: 'Administrative security and session controls.',
   },
   {
     id: 'advanced',
     label: 'Advanced',
-    description: 'System feature flags and maintenance controls.',
   },
 ]
 
