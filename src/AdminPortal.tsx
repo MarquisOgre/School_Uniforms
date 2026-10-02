@@ -486,6 +486,14 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
   const [tool, setTool] = useState<AdminTool>('home')
   const [productSlug, setProductSlug] = useState<string | null>(null)
   const [packageSlug, setPackageSlug] = useState<string | null>(null)
+
+  const handleAdminNavigate = (nextTool: AdminTool) => {
+    // Leaving an editor must clear its slug; otherwise the route-sync effect
+    // immediately sends the user back to the editor URL.
+    setProductSlug(null)
+    setPackageSlug(null)
+    setTool(nextTool)
+  }
   useEffect(() => {
     sessionStorage.removeItem('school_uniform_admin_demo_prefill')
   }, [])
@@ -724,19 +732,19 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
 
   if (tool === 'home')
     return (
-      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
         <HomepageEditor onBack={() => setTool('packages')} />
       </AdminLayout>
     )
   if (tool === 'change-password')
     return (
-      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
         <ChangeAdminPassword />
       </AdminLayout>
     )
   if (tool === 'support')
     return (
-      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
         <Suspense fallback={<div className="workspace-empty">Loading support...</div>}>
           <SupportChatAdmin />
         </Suspense>
@@ -744,7 +752,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     )
   if (tool === 'settings')
     return (
-      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
         <Suspense fallback={<div className="workspace-empty">Loading settings...</div>}>
           <AdminWorkspace module="settings" onBack={() => setTool('packages')} />
         </Suspense>
@@ -752,14 +760,14 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     )
   if (tool === 'media')
     return (
-      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
         <MediaLibrary />
       </AdminLayout>
     )
 
   if (tool === 'email-templates')
     return (
-      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
         <Suspense fallback={<div className="workspace-empty">Loading email templates...</div>}>
           <EmailTemplates />
         </Suspense>
@@ -767,7 +775,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     )
   if (tool === 'commerce')
     return (
-      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
         <Suspense fallback={<div className="workspace-empty">Loading commerce management...</div>}>
           <EnterpriseCommerce />
         </Suspense>
@@ -783,7 +791,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
     tool === 'reports'
   )
     return (
-      <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+      <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
         <Suspense fallback={<div className="workspace-empty">Loading admin module...</div>}>
           <AdminWorkspace
             module={tool}
@@ -799,7 +807,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       </AdminLayout>
     )
   return (
-    <AdminLayout tool={tool} onNavigate={setTool} onLogout={logoutAdmin}>
+    <AdminLayout tool={tool} onNavigate={handleAdminNavigate} onLogout={logoutAdmin}>
       <Suspense fallback={<div className="workspace-empty">Loading admin module...</div>}>
         <AdminWorkspace
           module="packages"
