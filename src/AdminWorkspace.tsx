@@ -3287,8 +3287,8 @@ function Packages({
         .eq('status', 'active')
         .order('name'),
       dbFrom('package_items')
-        .select('package_id,product_id,quantity,sort_order')
-        .order('sort_order'),
+        .select('package_id,product_id,quantity')
+        .order('created_at'),
       dbFrom('product_categories').select('id,name').eq('status', 'active').order('name'),
     ])
 
@@ -3452,10 +3452,7 @@ function Packages({
               package_id: packageId,
               product_id: match.data.id,
               quantity: 1,
-              is_required: true,
               requires_size: true,
-              selection_group: null,
-              sort_order: itemIndex,
               variant_ids: (variantsResult.data || []).map((v: any) => v.id),
             })
             basePrice += Number(match.data.base_price || 0)
@@ -3764,10 +3761,7 @@ function Packages({
       package_id: itemEditing.package_id,
       product_id: itemEditing.product_id,
       quantity: Number(itemEditing.quantity || 1),
-      is_required: itemEditing.is_required !== false,
       requires_size: itemEditing.requires_size !== false,
-      selection_group: itemEditing.selection_group || null,
-      sort_order: Number(itemEditing.sort_order || 0),
       variant_ids: Array.isArray(itemEditing.variant_ids) ? itemEditing.variant_ids : [],
     }
     const r = itemEditing.id
@@ -3984,10 +3978,7 @@ function Packages({
                       package_id: editing.id,
                       product_id: products[0]?.id || '',
                       quantity: 1,
-                      is_required: true,
                       requires_size: true,
-                      selection_group: '',
-                      sort_order: items.length,
                       variant_ids: [],
                     })
                     setItemVariants([])
@@ -4064,10 +4055,7 @@ function Packages({
               package_id: editing.id,
               product_id: products[0]?.id || '',
               quantity: 1,
-              is_required: true,
               requires_size: true,
-              selection_group: '',
-              sort_order: items.length,
               variant_ids: [],
             })
             setItemVariants([])
@@ -4213,8 +4201,8 @@ function OrdersAdmin({ search }: { search: string }) {
         )
         .order('created_at'),
       dbFrom('package_items')
-        .select('package_id,product_id,quantity,sort_order')
-        .order('sort_order'),
+        .select('package_id,product_id,quantity')
+        .order('created_at'),
       dbFrom('products').select('id,name'),
       dbFrom('payments')
         .select('id,order_id,provider_payment_id,provider,amount,status,paid_at,created_at')
