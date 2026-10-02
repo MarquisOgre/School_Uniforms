@@ -1994,6 +1994,7 @@ function PackageEditorScreen({
   editing,
   setEditing,
   products,
+  categories,
   items,
   onBack,
   onSave,
