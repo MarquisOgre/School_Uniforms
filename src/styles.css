@@ -11027,9 +11027,9 @@ a {
 
 .reports-toolbar {
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: clamp(12px, 2vw, 28px);
+  gap: 24px;
   margin-bottom: 18px;
 }
 
@@ -11088,6 +11088,7 @@ a {
 
 .reports-date-controls {
   justify-content: flex-start;
+  align-items: center;
   gap: 18px;
 }
 
@@ -11102,8 +11103,19 @@ a {
   color: var(--su-ink);
 }
 
+.reports-date-controls label:last-child {
+  grid-template-columns: auto 140px;
+}
+
 .reports-date-controls label select {
   width: 180px;
+  min-height: 48px;
+  border-radius: 9px;
+  padding: 8px 34px 8px 11px;
+}
+
+.reports-date-controls label:last-child select {
+  width: 140px;
 }
 
 .reports-kpis {
