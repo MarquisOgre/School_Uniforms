@@ -3978,8 +3978,12 @@ function Packages({
                         <span className="package-list-items">
                           {x.item_details.map((item: any, index: number) => (
                             <span key={`${x.id}-product-${index}`}>
-                              <strong>{item.category_name}</strong> · {item.product_name}
-                              {item.quantity > 1 ? ` × ${item.quantity}` : ''}
+                              <strong>
+                                {item.quantity > 1 ? `${item.quantity} × ` : ''}
+                                {item.category_name}
+                              </strong>
+                              {' - '}
+                              {item.product_name}
                             </span>
                           ))}
                         </span>
