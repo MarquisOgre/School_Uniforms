@@ -155,8 +155,8 @@ export default function AdminWorkspace({
                     description="Download a package template, export current packages, or upload package records in bulk."
                     demoLabel="Download Package Template"
                     exportLabel="Download Packages"
-                    importing={false}
-                    canExport={true}
+                    importing={bulkImporting}
+                    canExport={rows.length > 0}
                     onDemo={downloadPackageTemplate}
                     onExport={exportPackages}
                     onImport={(file) => void importPackages(file)}
