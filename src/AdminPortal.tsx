@@ -998,82 +998,84 @@ function HomepageEditor({ onBack }: { onBack: () => void }) {
         {error && <p className="login-error">{error}</p>}
 
         <section className="home-edit-section homepage-slider-settings">
-          <CmsSectionHeading
-            title="Hero Slider"
-            enabled={content.sections?.hero !== false}
-            onChange={(v) =>
-              edit((c) => {
-                c.sections = c.sections || {}
-                c.sections.hero = v
-              })
-            }
-          />
+          <div className="cms-section-heading homepage-slider-heading">
+            <h2>Hero Slider</h2>
+            <div className="homepage-slider-inline">
+              <button
+                type="button"
+                className="homepage-slider-arrow"
+                disabled={!content.hero?.slides?.length || activeSlide <= 0}
+                onClick={() => setActiveSlide((current) => Math.max(0, current - 1))}
+                aria-label="Previous slider"
+              >
+                <ChevronLeft size={18} />
+              </button>
 
-          <div className="homepage-slider-tabs">
-            <button
-              type="button"
-              className="homepage-slider-arrow"
-              disabled={!content.hero?.slides?.length || activeSlide <= 0}
-              onClick={() => setActiveSlide((current) => Math.max(0, current - 1))}
-              aria-label="Previous slider"
-            >
-              <ChevronLeft size={18} />
-            </button>
+              <div className="homepage-slider-tab-list">
+                {(content.hero?.slides || []).map((x: any, i: number) => (
+                  <button
+                    type="button"
+                    key={i}
+                    className={activeSlide === i ? 'active' : ''}
+                    onClick={() => setActiveSlide(i)}
+                  >
+                    <span>Slider {i + 1}</span>
+                    <small>{x.enabled === false ? 'Disabled' : 'Enabled'}</small>
+                  </button>
+                ))}
 
-            <div className="homepage-slider-tab-list">
-              {(content.hero?.slides || []).map((x: any, i: number) => (
                 <button
                   type="button"
-                  key={i}
-                  className={activeSlide === i ? 'active' : ''}
-                  onClick={() => setActiveSlide(i)}
+                  className="homepage-slider-add"
+                  onClick={() => {
+                    const slides = content.hero?.slides || []
+                    edit((c) => {
+                      c.hero = c.hero || {}
+                      c.hero.slides = c.hero.slides || []
+                      c.hero.slides.push({
+                        eyebrow: 'NEW SCHOOL UNIFORMS',
+                        title: ['New Slider', 'Headline', 'Goes Here.'],
+                        text: 'Add your slider description here.',
+                        image: '/hero-slide-1.jpg',
+                        button: 'Shop Uniforms',
+                        secondary: 'View Packages',
+                        enabled: true,
+                      })
+                    })
+                    setActiveSlide(slides.length)
+                  }}
                 >
-                  <span>Slider {i + 1}</span>
-                  <small>{x.enabled === false ? 'Disabled' : 'Enabled'}</small>
+                  <span>+ Add New Slider</span>
                 </button>
-              ))}
+              </div>
 
               <button
                 type="button"
-                className="homepage-slider-add"
-                onClick={() => {
-                  const slides = content.hero?.slides || []
-                  edit((c) => {
-                    c.hero = c.hero || {}
-                    c.hero.slides = c.hero.slides || []
-                    c.hero.slides.push({
-                      eyebrow: 'NEW SCHOOL UNIFORMS',
-                      title: ['New Slider', 'Headline', 'Goes Here.'],
-                      text: 'Add your slider description here.',
-                      image: '/hero-slide-1.jpg',
-                      button: 'Shop Uniforms',
-                      secondary: 'View Packages',
-                      enabled: true,
-                    })
-                  })
-                  setActiveSlide(slides.length)
-                }}
+                className="homepage-slider-arrow"
+                disabled={
+                  !content.hero?.slides?.length ||
+                  activeSlide >= (content.hero?.slides?.length || 1) - 1
+                }
+                onClick={() =>
+                  setActiveSlide((current) =>
+                    Math.min((content.hero?.slides?.length || 1) - 1, current + 1),
+                  )
+                }
+                aria-label="Next slider"
               >
-                <span>+ Add New Slider</span>
+                <ChevronRight size={18} />
               </button>
             </div>
-
-            <button
-              type="button"
-              className="homepage-slider-arrow"
-              disabled={
-                !content.hero?.slides?.length ||
-                activeSlide >= (content.hero?.slides?.length || 1) - 1
+            <CmsToggle
+              enabled={content.sections?.hero !== false}
+              onChange={(v) =>
+                edit((c) => {
+                  c.sections = c.sections || {}
+                  c.sections.hero = v
+                })
               }
-              onClick={() =>
-                setActiveSlide((current) =>
-                  Math.min((content.hero?.slides?.length || 1) - 1, current + 1),
-                )
-              }
-              aria-label="Next slider"
-            >
-              <ChevronRight size={18} />
-            </button>
+              label={content.sections?.hero === false ? 'Disabled' : 'Enabled'}
+            />
           </div>
 
           {content.hero?.slides?.length ? (
