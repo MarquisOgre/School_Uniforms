@@ -3976,10 +3976,10 @@ function Packages({
                       {x.item_details?.length ? (
                         <span className="package-list-items">
                           {Array.from(
-                             new Set<string>(
-                               x.item_details.map((item: any) => String(item.category_name || '')),
-                             ),
-                           ).map((category: string) => (
+                            new Set<string>(
+                              x.item_details.map((item: any) => String(item.category_name || '')),
+                            ),
+                          ).map((category: string) => (
                             <span key={`${x.id}-category-${category}`}>{category}</span>
                           ))}
                         </span>
