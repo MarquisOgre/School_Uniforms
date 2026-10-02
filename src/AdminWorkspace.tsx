@@ -132,7 +132,9 @@ export default function AdminWorkspace({
                     exportLabel="Download Packages"
                     importing={false}
                     canExport={true}
-                    onDemo={() => window.dispatchEvent(new CustomEvent('packages:download-template'))}
+                    onDemo={() =>
+                      window.dispatchEvent(new CustomEvent('packages:download-template'))
+                    }
                     onExport={() => window.dispatchEvent(new CustomEvent('packages:export'))}
                     onImport={(file) => {
                       window.dispatchEvent(new CustomEvent('packages:import', { detail: file }))
