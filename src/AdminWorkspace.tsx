@@ -1386,7 +1386,7 @@ function Products({
     const productId = String(editing.id)
     const productName = String(editing.name || 'this product').trim()
     const confirmed = window.confirm(
-      `Permanently delete "${productName}"?\\n\\nThis cannot be undone. The product, its variants, and branch assignments will be deleted. Historical orders, inventory transactions, and package records are protected and will prevent deletion.`,
+      `Permanently delete "${productName}"?\\n\\nThis cannot be undone. The product, its variants, branch assignments, and any remaining current inventory records will be deleted. Historical orders, inventory transactions, and package records are protected and will prevent deletion.`,
     )
     if (!confirmed) return false
 
@@ -1406,7 +1406,7 @@ function Products({
         [
           dbFrom('order_items').select('id').eq('product_id', productId),
           dbFrom('package_items').select('id').eq('product_id', productId),
-          dbFrom('branch_inventory').select('id,product_id,variant_id').eq('product_id', productId),
+          dbFrom('branch_inventory').select('product_id,variant_id').eq('product_id', productId),
           variantIds.length
             ? dbFrom('inventory_transactions').select('id,variant_id').in('variant_id', variantIds)
             : Promise.resolve({ data: [], error: null }),
