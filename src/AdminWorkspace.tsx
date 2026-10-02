@@ -121,7 +121,7 @@ export default function AdminWorkspace({
             >
               <div>
                 <h1>{m.title}</h1>
-                <p>{m.description}</p>
+                {module !== 'products' ? <p>{m.description}</p> : null}
               </div>
               {module === 'packages' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
@@ -1820,6 +1820,7 @@ function Products({
             </div>
             <Select
               label="Status"
+              hideLabel
               value={productStatusFilter}
               options={['active', 'inactive', 'all']}
               labels={{ active: 'Active', inactive: 'Inactive', all: 'All' }}
@@ -6637,16 +6638,18 @@ function Select({
   options,
   labels,
   onChange,
+  hideLabel = false,
 }: {
   label: string
   value: string
   options: string[]
   labels?: Record<string, string>
   onChange: (v: string) => void
+  hideLabel?: boolean
 }) {
   return (
-    <label className="workspace-field">
-      <span>{label}</span>
+    <label className="workspace-field" style={hideLabel ? { gap: 0 } : undefined}>
+      {!hideLabel ? <span>{label}</span> : null}
       <select value={value} onChange={(e) => onChange(e.target.value)}>
         {options.map((x) => (
           <option key={x} value={x}>
