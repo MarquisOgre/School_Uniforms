@@ -3502,7 +3502,7 @@ function Packages({
     const r = await dbFrom('package_items')
       .select('*')
       .eq('package_id', packageId)
-      .order('sort_order')
+      .order('created_at')
     setItems(r.data ?? [])
     if (r.data && editing?.id === packageId) {
       const basePrice = r.data.reduce((total: number, item: any) => {
@@ -3605,7 +3605,7 @@ function Packages({
       const itemsResult = await dbFrom('package_items')
         .select('*')
         .eq('package_id', pkg.id)
-        .order('sort_order')
+        .order('created_at')
 
       if (cancelled) return
 
