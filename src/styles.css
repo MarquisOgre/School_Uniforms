@@ -5277,6 +5277,18 @@ a {
 }
 .product-editor-heading {
   margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+.product-editor-heading > div:first-child {
+  min-width: 0;
+}
+.product-editor-heading .product-editor-back {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 .product-editor-heading h1 {
   font-family: 'Playfair Display', Georgia, serif;
