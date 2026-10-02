@@ -1087,6 +1087,7 @@ function Products({
         .select('*')
         .in('id', productIds)
         .eq('slug', productSlug)
+        .limit(1)
         .maybeSingle()
 
       if (cancelled) return
@@ -1103,6 +1104,7 @@ function Products({
           .select('*')
           .in('id', productIds)
           .eq('id', productSlug)
+          .limit(1)
           .maybeSingle()
 
         if (cancelled) return
@@ -1121,6 +1123,7 @@ function Products({
           .select('*')
           .in('id', productIds)
           .ilike('name', nameFromSlug)
+          .limit(1)
           .maybeSingle()
 
         if (cancelled) return
