@@ -1403,15 +1403,16 @@ function Products({
 
       const variantIds = (variantsResult.data || []).map((row: any) => row.id)
 
-      const [ordersResult, packagesResult, inventoryResult, transactionsResult] =
-        await Promise.all([
+      const [ordersResult, packagesResult, inventoryResult, transactionsResult] = await Promise.all(
+        [
           dbFrom('order_items').select('id').eq('product_id', productId),
           dbFrom('package_items').select('id').eq('product_id', productId),
           dbFrom('branch_inventory').select('id,product_id,variant_id').eq('product_id', productId),
           variantIds.length
             ? dbFrom('inventory_transactions').select('id,variant_id').in('variant_id', variantIds)
             : Promise.resolve({ data: [], error: null }),
-        ])
+        ],
+      )
 
       if (ordersResult.error) throw new Error(ordersResult.error.message)
       if (packagesResult.error) throw new Error(packagesResult.error.message)
@@ -1445,9 +1446,7 @@ function Products({
       if (branchResult.error) throw new Error(branchResult.error.message)
 
       if (variantIds.length) {
-        const variantDeleteResult = await dbFrom('product_variants')
-          .delete()
-          .in('id', variantIds)
+        const variantDeleteResult = await dbFrom('product_variants').delete().in('id', variantIds)
         if (variantDeleteResult.error) throw new Error(variantDeleteResult.error.message)
       }
 
