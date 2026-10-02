@@ -125,21 +125,12 @@ export default function AdminWorkspace({
               </div>
               {module === 'packages' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                  <BulkTools
-                    title="Excel Bulk Import / Export — Uniform Packages"
-                    description="Download a package template, export current packages, or upload package records in bulk."
-                    demoLabel="Download Package Template"
-                    exportLabel="Download Packages"
-                    importing={false}
-                    canExport={true}
-                    onDemo={() =>
-                      window.dispatchEvent(new CustomEvent('packages:download-template'))
-                    }
-                    onExport={() => window.dispatchEvent(new CustomEvent('packages:export'))}
-                    onImport={(file) => {
-                      window.dispatchEvent(new CustomEvent('packages:import', { detail: file }))
-                    }}
-                  />
+                  <button
+                    className="secondary-button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('packages:bulk-open'))}
+                  >
+                    <Upload size={15} /> Import / Export
+                  </button>
                   <button
                     className="primary-button"
                     onClick={() => window.dispatchEvent(new CustomEvent('packages:add'))}
@@ -810,6 +801,8 @@ type BulkToolsProps = {
   onDemo: () => void
   onExport: () => void
   onImport: (file: File) => void
+  openEvent?: string
+  hideTrigger?: boolean
 }
 
 function BulkTools({
@@ -823,8 +816,17 @@ function BulkTools({
   onDemo,
   onExport,
   onImport,
+  openEvent,
+  hideTrigger = false,
 }: BulkToolsProps) {
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!openEvent) return
+    const handler = () => setOpen(true)
+    window.addEventListener(openEvent, handler)
+    return () => window.removeEventListener(openEvent, handler)
+  }, [openEvent])
 
   const handleFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -834,9 +836,11 @@ function BulkTools({
 
   return (
     <>
-      <button className="secondary-button" onClick={() => setOpen(true)}>
-        <Upload size={15} /> Import / Export
-      </button>
+      {!hideTrigger ? (
+        <button className="secondary-button" onClick={() => setOpen(true)}>
+          <Upload size={15} /> Import / Export
+        </button>
+      ) : null}
 
       {open ? (
         <div className="workspace-modal">
@@ -1692,6 +1696,19 @@ function Products({
     <>
       {isProductPage && !editing?.id ? (
         <>
+          <BulkTools
+            title="Excel Bulk Import / Export — Uniform Packages"
+            description="Download a package template, export current packages, or upload package records in bulk."
+            demoLabel="Download Package Template"
+            exportLabel="Download Packages"
+            importing={bulkImporting}
+            canExport={rows.length > 0}
+            onDemo={downloadPackageTemplate}
+            onExport={exportPackages}
+            onImport={(file) => void importPackages(file)}
+            openEvent="packages:bulk-open"
+            hideTrigger
+          />
           <ErrorBox text={error} />
           {loading ? (
             <Panel>
@@ -3549,23 +3566,11 @@ function Packages({
         status: 'active',
       })
     const refreshHandler = () => void load()
-    const downloadTemplateHandler = () => downloadPackageTemplate()
-    const exportHandler = () => exportPackages()
-    const importHandler = (event: Event) => {
-      const file = (event as CustomEvent<File>).detail
-      if (file) void importPackages(file)
-    }
     window.addEventListener('packages:add', addHandler)
     window.addEventListener('packages:refresh', refreshHandler)
-    window.addEventListener('packages:download-template', downloadTemplateHandler)
-    window.addEventListener('packages:export', exportHandler)
-    window.addEventListener('packages:import', importHandler)
     return () => {
       window.removeEventListener('packages:add', addHandler)
       window.removeEventListener('packages:refresh', refreshHandler)
-      window.removeEventListener('packages:download-template', downloadTemplateHandler)
-      window.removeEventListener('packages:export', exportHandler)
-      window.removeEventListener('packages:import', importHandler)
     }
   }, [branchId])
   useEffect(() => {
