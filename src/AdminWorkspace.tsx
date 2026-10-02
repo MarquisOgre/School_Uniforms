@@ -932,6 +932,7 @@ function Products({
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('active')
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [categorySaving, setCategorySaving] = useState(false)
@@ -949,7 +950,7 @@ function Products({
       dbFrom('branch_products')
         .select('product_id,branch_price,is_visible,sort_order')
         .eq('branch_id', branchId)
-        .eq('is_visible', true),
+,
       dbFrom('product_categories').select('*').eq('status', 'active').order('name'),
       dbFrom('branches').select('id,name,code,status').order('name'),
     ])
@@ -1050,7 +1051,7 @@ function Products({
 
   useEffect(() => {
     void load()
-  }, [branchId])
+  }, [branchId, productStatusFilter])
 
   useEffect(() => {
     if (!productSlug || !branchId || !supabase) return
@@ -1064,7 +1065,7 @@ function Products({
       const linksResult = await dbFrom('branch_products')
         .select('product_id')
         .eq('branch_id', branchId)
-        .eq('is_visible', true)
+
 
       if (cancelled) return
       if (linksResult.error) {
@@ -1160,7 +1161,6 @@ function Products({
         discount_percentage: product.discount_percentage ?? '',
         offer_price: product.offer_price ?? product.base_price ?? '',
         assigned_branch_ids: (assignmentResult.data || [])
-          .filter((x: any) => x.is_visible)
           .map((x: any) => x.branch_id),
       })
 
@@ -1701,11 +1701,16 @@ function Products({
     }
   }
 
-  const visible = rows.filter((product) =>
-    String(product.name || '')
+  const visible = rows.filter((product) => {
+    const matchesSearch = String(product.name || '')
       .toLowerCase()
-      .includes(search.toLowerCase()),
-  )
+      .includes(search.toLowerCase())
+    const matchesStatus =
+      productStatusFilter === 'all' ||
+      (productStatusFilter === 'active' && product.status === 'active') ||
+      (productStatusFilter === 'inactive' && product.status !== 'active')
+    return matchesSearch && matchesStatus
+  })
 
   const moveProduct = async (productId: string, direction: 'up' | 'down') => {
     const index = rows.findIndex((product) => product.id === productId)
@@ -1818,6 +1823,13 @@ function Products({
                 placeholder="Search products"
               />
             </div>
+            <Select
+              label="Status"
+              value={productStatusFilter}
+              options={['active', 'inactive', 'all']}
+              labels={{ active: 'Active', inactive: 'Inactive', all: 'All' }}
+              onChange={(v) => setProductStatusFilter(v as 'all' | 'active' | 'inactive')}
+            />
             <BulkTools
               title="Excel Bulk Import / Export — Products"
               description="Download a template, export your current products, or upload products in bulk."
@@ -1897,8 +1909,19 @@ function Products({
                 {visible.map((product) => {
                   const rowIndex = visible.findIndex((x) => x.id === product.id)
                   return (
-                    <div className="workspace-row product-row" key={product.id}>
-                      <strong>{product.name}</strong>
+                    <div
+                      className="workspace-row product-row"
+                      key={product.id}
+                      style={product.status !== 'active' ? { opacity: 0.72 } : undefined}
+                    >
+                      <strong>
+                        {product.name}
+                        {product.status !== 'active' ? (
+                          <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 600 }}>
+                            (Inactive)
+                          </span>
+                        ) : null}
+                      </strong>
                       <span>
                         {categories.find((c) => c.id === product.category_id)?.name ||
                           'Uncategorized'}
