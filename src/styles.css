@@ -1501,6 +1501,20 @@ a {
   margin: auto;
   padding: 50px 28px;
 }
+.admin-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+.admin-title > div:first-child {
+  min-width: 0;
+}
+.admin-title > button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
 .admin-title h1 {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 35px;
@@ -5028,6 +5042,18 @@ a {
 
 .workspace-heading {
   margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+.workspace-heading > div:first-child {
+  min-width: 0;
+}
+.workspace-heading > button,
+.workspace-heading > div:last-child {
+  flex: 0 0 auto;
 }
 .workspace-heading h1 {
   font-family: 'Playfair Display', Georgia, serif;
@@ -10973,7 +10999,7 @@ a {
 
 .reports-toolbar {
   display: grid;
-  grid-template-columns: minmax(230px, 1fr) auto minmax(190px, 1fr);
+  grid-template-columns: minmax(300px, 1fr) auto auto;
   align-items: center;
   gap: clamp(12px, 2vw, 28px);
   margin-bottom: 18px;
