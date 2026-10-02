@@ -59,7 +59,7 @@ const ADMIN_NAV: Array<{
   { key: 'settings', label: 'Settings', icon: Settings },
   { key: 'email-templates', label: 'Email Templates', icon: Mail },
   { key: 'media', label: 'Media Library', icon: Images },
-  { key: 'commerce', label: 'Commerce & CMS', icon: ShoppingBag },
+  { key: 'commerce', label: 'E-Commerce & CMS', icon: ShoppingBag },
 ]
 
 function AdminSidebar({
