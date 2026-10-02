@@ -11027,7 +11027,7 @@ a {
 
 .reports-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 24px;
   margin-bottom: 18px;
