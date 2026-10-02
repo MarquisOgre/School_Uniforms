@@ -2312,6 +2312,7 @@ function PackageEditorScreen({
         <button
           type="button"
           className="secondary-button"
+          style={{ background: '#b42318', borderColor: '#b42318', color: '#fff' }}
           onClick={() => void onDeleteProduct()}
         >
           Delete Permanently
