@@ -3786,6 +3786,21 @@ function Packages({
       ) : null}
       {!isPackagePage && (
         <>
+          <div className="workspace-toolbar">
+            <div>
+              <BulkTools
+                title="Excel Bulk Import / Export — Uniform Packages"
+                description="Download a package template, export current packages, or upload package records in bulk."
+                demoLabel="Download Package Template"
+                exportLabel="Download Packages"
+                importing={bulkImporting}
+                canExport={rows.length > 0}
+                onDemo={downloadPackageTemplate}
+                onExport={exportPackages}
+                onImport={(file) => void importPackages(file)}
+              />
+            </div>
+          </div>
           <ErrorBox text={error} />
           {loading ? (
             <Loading />
