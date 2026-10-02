@@ -553,9 +553,7 @@ function AdminPortal({ onBack }: { onBack: () => void }) {
       const path = window.location.pathname
       const nextTool = adminToolFromPath(path)
       const productMatch = path.match(/^\/admin\/products\/edit\/([^/]+)$/)
-      const packageMatch = path.match(
-        /^\/admin\/uniform-packages\/edit\/([^/]+)$/,
-      )
+      const packageMatch = path.match(/^\/admin\/uniform-packages\/edit\/([^/]+)$/)
 
       setProductSlug(productMatch ? decodeURIComponent(productMatch[1]) : null)
       setPackageSlug(packageMatch ? decodeURIComponent(packageMatch[1]) : null)
