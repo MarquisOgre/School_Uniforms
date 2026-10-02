@@ -47,6 +47,9 @@ const META: Record<ModuleKey, { title: string }> = {
   students: {
     title: 'Parents & Students',
   },
+  inventory: {
+    title: 'Inventory',
+  },
   reports: {
     title: 'Reports',
   },
@@ -129,12 +132,6 @@ export default function AdminWorkspace({
                   >
                     <Plus size={15} /> Add Package
                   </button>
-                  <button
-                    className="secondary-button"
-                    onClick={() => window.dispatchEvent(new CustomEvent('packages:refresh'))}
-                  >
-                    <RefreshCw size={15} /> Refresh
-                  </button>
                 </div>
               ) : module === 'orders' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
@@ -146,12 +143,6 @@ export default function AdminWorkspace({
                       placeholder="Search orders or payments"
                     />
                   </div>
-                  <button
-                    className="secondary-button"
-                    onClick={() => window.dispatchEvent(new CustomEvent('orders:refresh'))}
-                  >
-                    <RefreshCw size={15} /> Refresh
-                  </button>
                 </div>
               ) : null}
             </div>
@@ -209,9 +200,6 @@ function Toolbar({ children, onRefresh }: { children?: ReactNode; onRefresh: () 
   return (
     <div className="workspace-toolbar">
       <div>{children}</div>
-      <button className="secondary-button" onClick={onRefresh}>
-        <RefreshCw size={15} /> Refresh
-      </button>
     </div>
   )
 }
@@ -6302,9 +6290,6 @@ function Reports() {
           </label>
         </div>
         <div className="reports-actions">
-          <button className="secondary-button" onClick={() => void load()}>
-            <RefreshCw size={15} /> Refresh
-          </button>
           <button className="primary-button" onClick={exportCsv}>
             <Download size={15} /> Export CSV
           </button>
@@ -7312,9 +7297,6 @@ function Settings() {
           <h1>Settings</h1>
           <p>Configure secure payment gateway and application settings.</p>
         </div>
-        <button className="secondary-button" onClick={() => window.location.reload()}>
-          <RefreshCw size={15} /> Refresh
-        </button>
       </div>
       <div className="admin-module-tabs settings-module-tabs">
         {SETTINGS_SECTIONS.map((item) => (
