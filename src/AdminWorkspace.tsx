@@ -6176,10 +6176,7 @@ function Reports() {
         <div className="reports-date-controls">
           <label>
             Month
-            <select
-              value={reportMonth}
-              onChange={(e) => setReportMonth(e.target.value)}
-            >
+            <select value={reportMonth} onChange={(e) => setReportMonth(e.target.value)}>
               {monthOptions.map((month) => (
                 <option key={month.value} value={month.value}>
                   {month.label}
@@ -7486,69 +7483,69 @@ function Settings() {
         {section === 'security' && (
           <>
             <SystemConfigurationPanel
-            settingKey="security"
-            title="Security Settings"
-            description="Administrative session and password controls. Authentication itself remains managed by Supabase Auth."
-          >
-            {(v, update) => (
-              <>
-                <Field
-                  label="Session Timeout (minutes)"
-                  value={String(v.session_timeout_minutes)}
-                  onChange={(x) => update('session_timeout_minutes', Number(x) || 60)}
-                />
-                <Field
-                  label="Maximum Login Attempts"
-                  value={String(v.max_login_attempts)}
-                  onChange={(x) => update('max_login_attempts', Number(x) || 5)}
-                />
-                <label className="workspace-field settings-toggle-field">
-                  <span>Require strong passwords</span>
-                  <label className="admin-inline-check">
-                    <input
-                      type="checkbox"
-                      checked={!!v.require_strong_password}
-                      onChange={(e) => update('require_strong_password', e.target.checked)}
-                    />{' '}
-                    Enabled
+              settingKey="security"
+              title="Security Settings"
+              description="Administrative session and password controls. Authentication itself remains managed by Supabase Auth."
+            >
+              {(v, update) => (
+                <>
+                  <Field
+                    label="Session Timeout (minutes)"
+                    value={String(v.session_timeout_minutes)}
+                    onChange={(x) => update('session_timeout_minutes', Number(x) || 60)}
+                  />
+                  <Field
+                    label="Maximum Login Attempts"
+                    value={String(v.max_login_attempts)}
+                    onChange={(x) => update('max_login_attempts', Number(x) || 5)}
+                  />
+                  <label className="workspace-field settings-toggle-field">
+                    <span>Require strong passwords</span>
+                    <label className="admin-inline-check">
+                      <input
+                        type="checkbox"
+                        checked={!!v.require_strong_password}
+                        onChange={(e) => update('require_strong_password', e.target.checked)}
+                      />{' '}
+                      Enabled
+                    </label>
                   </label>
-                </label>
-                <label className="workspace-field settings-toggle-field">
-                  <span>Require admin 2FA</span>
-                  <label className="admin-inline-check">
-                    <input
-                      type="checkbox"
-                      checked={!!v.admin_2fa_required}
-                      onChange={(e) => update('admin_2fa_required', e.target.checked)}
-                    />{' '}
-                    Enabled
+                  <label className="workspace-field settings-toggle-field">
+                    <span>Require admin 2FA</span>
+                    <label className="admin-inline-check">
+                      <input
+                        type="checkbox"
+                        checked={!!v.admin_2fa_required}
+                        onChange={(e) => update('admin_2fa_required', e.target.checked)}
+                      />{' '}
+                      Enabled
+                    </label>
                   </label>
-                </label>
-              </>
-            )}
-          </SystemConfigurationPanel>
-          <Panel>
-            <div className="settings-security-password">
-              <div>
-                <strong>Change Password</strong>
-                <span>Update the administrator account password securely.</span>
+                </>
+              )}
+            </SystemConfigurationPanel>
+            <Panel>
+              <div className="settings-security-password">
+                <div>
+                  <strong>Change Password</strong>
+                  <span>Update the administrator account password securely.</span>
+                </div>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => {
+                    window.history.pushState(
+                      { schoolUniformApp: 'admin', tool: 'change-password' },
+                      '',
+                      '/admin/change-password',
+                    )
+                    window.dispatchEvent(new PopStateEvent('popstate'))
+                  }}
+                >
+                  Change Password
+                </button>
               </div>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => {
-                  window.history.pushState(
-                    { schoolUniformApp: 'admin', tool: 'change-password' },
-                    '',
-                    '/admin/change-password',
-                  )
-                  window.dispatchEvent(new PopStateEvent('popstate'))
-                }}
-              >
-                Change Password
-              </button>
-            </div>
-          </Panel>
+            </Panel>
           </>
         )}
 
