@@ -4111,23 +4111,6 @@ function Packages({
             onChange={(v) => setItemEditing({ ...itemEditing, quantity: v })}
             type="number"
           />
-          <Field
-            label="Selection Group"
-            value={itemEditing.selection_group || ''}
-            onChange={(v) => setItemEditing({ ...itemEditing, selection_group: v })}
-          />
-          <Field
-            label="Sort Order"
-            value={String(itemEditing.sort_order || 0)}
-            onChange={(v) => setItemEditing({ ...itemEditing, sort_order: v })}
-            type="number"
-          />
-          <Select
-            label="Required"
-            value={itemEditing.is_required ? 'yes' : 'no'}
-            options={['yes', 'no']}
-            onChange={(v) => setItemEditing({ ...itemEditing, is_required: v === 'yes' })}
-          />
           <Select
             label="Requires Size"
             value={itemEditing.requires_size ? 'yes' : 'no'}
