@@ -171,9 +171,14 @@ export default function EmailTemplates() {
               and status.
             </p>
           </div>
-          <button className="primary-button" onClick={startNew}>
-            <Plus size={15} /> Add Template
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+            <button className="primary-button" onClick={startNew}>
+              <Plus size={15} /> Add Template
+            </button>
+            <button className="secondary-button" onClick={() => void load()} disabled={loading}>
+              Refresh
+            </button>
+          </div>
         </div>
 
         {error && <div className="workspace-error">{error}</div>}
@@ -188,9 +193,6 @@ export default function EmailTemplates() {
                 placeholder="Search email templates"
               />
             </div>
-            <button className="secondary-button" onClick={() => void load()}>
-              Refresh
-            </button>
           </div>
 
           {loading ? (
