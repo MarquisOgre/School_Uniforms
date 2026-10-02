@@ -3869,7 +3869,7 @@ function Packages({
                         setError('')
                         setEditing({ ...x })
                         void loadItems(x.id)
-                      }}}
+                      }}
                     >
                       Edit
                     </button>
