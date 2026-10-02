@@ -5065,7 +5065,7 @@ a {
   position: absolute;
   top: 48px;
   left: auto;
-  right: 0;
+  right: clamp(18px, 4vw, 56px);
   z-index: 2;
   width: auto;
   margin: 0;
