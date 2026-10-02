@@ -8226,16 +8226,34 @@ a {
   }
 }
 
-/* Keep uniform package columns aligned with the Edit action on the same row. */
+/* Uniform packages: six explicit columns — package, gender, price, categories, products, actions. */
 .workspace-row.package-row {
   grid-template-columns:
-    minmax(260px, 2fr) minmax(100px, 0.8fr) minmax(120px, 0.9fr) minmax(180px, 1.25fr)
-    auto;
+    minmax(240px, 1.8fr)
+    minmax(90px, 0.75fr)
+    minmax(110px, 0.8fr)
+    minmax(150px, 1.05fr)
+    minmax(300px, 2.2fr)
+    minmax(82px, auto);
 }
 
 .workspace-row.package-row button {
   justify-self: end;
   min-width: 82px;
+}
+
+/* Show assigned package products vertically instead of running them together. */
+.workspace-row.package-row .package-list-items {
+  display: grid;
+  grid-auto-flow: row;
+  gap: 5px;
+  min-width: 0;
+}
+
+.workspace-row.package-row .package-list-items > span {
+  display: block;
+  white-space: normal;
+  line-height: 1.35;
 }
 
 @media (max-width: 760px) {
