@@ -7484,7 +7484,8 @@ function Settings() {
         )}
 
         {section === 'security' && (
-          <SystemConfigurationPanel
+          <>
+            <SystemConfigurationPanel
             settingKey="security"
             title="Security Settings"
             description="Administrative session and password controls. Authentication itself remains managed by Supabase Auth."
@@ -7548,6 +7549,7 @@ function Settings() {
               </button>
             </div>
           </Panel>
+          </>
         )}
 
         {section === 'advanced' && (
