@@ -1696,19 +1696,6 @@ function Products({
     <>
       {isProductPage && !editing?.id ? (
         <>
-          <BulkTools
-            title="Excel Bulk Import / Export — Uniform Packages"
-            description="Download a package template, export current packages, or upload package records in bulk."
-            demoLabel="Download Package Template"
-            exportLabel="Download Packages"
-            importing={bulkImporting}
-            canExport={rows.length > 0}
-            onDemo={downloadPackageTemplate}
-            onExport={exportPackages}
-            onImport={(file) => void importPackages(file)}
-            openEvent="packages:bulk-open"
-            hideTrigger
-          />
           <ErrorBox text={error} />
           {loading ? (
             <Panel>
@@ -3818,6 +3805,19 @@ function Packages({
       ) : null}
       {!isPackagePage && (
         <>
+          <BulkTools
+            title="Excel Bulk Import / Export — Uniform Packages"
+            description="Download a package template, export current packages, or upload package records in bulk."
+            demoLabel="Download Package Template"
+            exportLabel="Download Packages"
+            importing={bulkImporting}
+            canExport={rows.length > 0}
+            onDemo={downloadPackageTemplate}
+            onExport={exportPackages}
+            onImport={(file) => void importPackages(file)}
+            openEvent="packages:bulk-open"
+            hideTrigger
+          />
           <ErrorBox text={error} />
           {loading ? (
             <Loading />
