@@ -4711,7 +4711,12 @@ function InventoryAdmin() {
     }
   }
 
-  const deleteInventoryGroup = async (branchId: string, productId: string, branchName: string, productName: string) => {
+  const deleteInventoryGroup = async (
+    branchId: string,
+    productId: string,
+    branchName: string,
+    productName: string,
+  ) => {
     if (!supabase) return
     const confirmed = window.confirm(
       `Delete all inventory/stock records for "${productName}" at "${branchName}"?\\n\\nThis removes the current stock records for every size/variant at this branch. It does not delete the product, variants, orders, or inventory transaction history.`,
