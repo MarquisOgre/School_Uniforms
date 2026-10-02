@@ -1361,7 +1361,7 @@ function Products({
     const productId = String(editing.id)
     const productName = String(editing.name || 'this product').trim()
     const confirmed = window.confirm(
-      `Permanently delete "${productName}"?\\n\\nThis cannot be undone. The product, its variants, branch assignments, and any remaining current inventory records will be deleted. Historical orders, inventory transactions, and package records are protected and will prevent deletion.`,
+      `Permanently delete "${productName}"?\\n\\nThis cannot be undone. The product, its variants, branch assignments, current inventory records, and inventory transaction history will be permanently deleted. Orders and uniform package records are protected and will prevent deletion.`,
     )
     if (!confirmed) return false
 
@@ -1401,10 +1401,7 @@ function Products({
         protectedReasons.push(`${packagesResult.data.length} uniform package item(s)`)
       }
       if ((inventoryResult.data || []).length) {
-        protectedReasons.push(`${inventoryResult.data.length} inventory record(s)`)
-      }
-      if ((transactionsResult.data || []).length) {
-        protectedReasons.push(`${transactionsResult.data.length} inventory transaction(s)`)
+        protectedReasons.push(`${inventoryResult.data.length} current inventory record(s)`)
       }
 
       if (protectedReasons.length) {
@@ -1414,6 +1411,15 @@ function Products({
           )}. Remove or reassign these records first. The product has not been deleted.`,
         )
         return false
+      }
+
+      // Inventory transactions are historical stock movements. They must be
+      // removed before their referenced variants can be permanently deleted.
+      if ((transactionsResult.data || []).length && variantIds.length) {
+        const transactionDeleteResult = await dbFrom('inventory_transactions')
+          .delete()
+          .in('variant_id', variantIds)
+        if (transactionDeleteResult.error) throw new Error(transactionDeleteResult.error.message)
       }
 
       const branchResult = await dbFrom('branch_products').delete().eq('product_id', productId)
