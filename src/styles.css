@@ -12782,3 +12782,343 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+
+/* =========================================================
+   FINAL MOBILE RESPONSIVE PASS — CUSTOMER + ADMIN
+   ========================================================= */
+
+/* Customer mobile: the sidebar becomes a compact horizontal nav.
+   Never reserve desktop viewport height for it. */
+@media (max-width: 700px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-width: 0;
+    height: auto !important;
+    min-height: 100%;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .portal {
+    display: block !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .portal-layout,
+  .portal > .portal-layout {
+    display: block !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .portal > .portal-layout > .sidebar,
+  .portal .sidebar {
+    display: block !important;
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: none !important;
+    align-self: auto !important;
+    overflow: visible !important;
+    padding: 8px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .portal .sidebar .portal-brand,
+  .portal .sidebar .school-scope {
+    display: none !important;
+  }
+
+  .portal .sidebar nav {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 6px !important;
+    padding: 0 0 2px !important;
+    margin: 0 !important;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .portal .sidebar nav button {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: max-content !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0 13px !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+  }
+
+  .portal .sidebar-logout {
+    display: none !important;
+  }
+
+  .portal > .portal-layout > .portal-main,
+  .portal .portal-main {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .portal .portal-header {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 20px 18px !important;
+    min-height: 0 !important;
+  }
+
+  .portal .portal-header h1 {
+    font-size: clamp(30px, 8vw, 42px) !important;
+    line-height: 1.05 !important;
+    margin: 0 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .portal .portal-header .header-user {
+    max-width: 46%;
+  }
+
+  .portal-content,
+  .dashboard-content {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+    padding: 18px 14px 28px !important;
+    overflow: visible !important;
+  }
+
+  /* Dashboard */
+  .dashboard-family-offers-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .dashboard-family-offers-grid .parent-children-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .dashboard-content .portal-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .dashboard-content .shop-cards {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .dashboard-content .shop-card {
+    min-height: 0 !important;
+    padding: 18px !important;
+  }
+
+  .parent-family-heading,
+  .parent-child-card {
+    min-width: 0 !important;
+  }
+
+  /* Catalog / packages / products */
+  .catalog-grid,
+  .product-grid,
+  .package-grid,
+  .packages-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .catalog-toolbar,
+  .products-toolbar,
+  .packages-toolbar,
+  .orders-toolbar {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .catalog-toolbar > *,
+  .products-toolbar > *,
+  .packages-toolbar > *,
+  .orders-toolbar > * {
+    max-width: 100% !important;
+  }
+
+  /* Tables and wide content */
+  .workspace-scroll,
+  .table-scroll,
+  .orders-table-wrap,
+  .inventory-table-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 680px;
+  }
+
+  /* Forms */
+  .form-grid,
+  .form-row,
+  .checkout-grid,
+  .checkout-layout,
+  .profile-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-actions,
+  .checkout-actions {
+    flex-wrap: wrap !important;
+  }
+
+  /* Product/detail/cart pages */
+  .product-detail,
+  .product-detail-layout,
+  .detail-layout,
+  .cart-layout,
+  .checkout-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .product-detail > *,
+  .product-detail-layout > *,
+  .detail-layout > *,
+  .cart-layout > *,
+  .checkout-layout > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Fixed/floating UI must stay inside the mobile viewport. */
+  .chat-widget,
+  .chat-launcher,
+  .chat-button {
+    max-width: calc(100vw - 24px) !important;
+  }
+}
+
+/* Extra-small phones */
+@media (max-width: 420px) {
+  .portal .portal-header {
+    padding: 16px 14px !important;
+  }
+
+  .portal .portal-header h1 {
+    font-size: 29px !important;
+  }
+
+  .portal-content,
+  .dashboard-content {
+    padding: 14px 10px 24px !important;
+  }
+
+  .portal .sidebar {
+    padding: 7px 8px !important;
+  }
+
+  .portal .sidebar nav button {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 11px !important;
+    font-size: 10px !important;
+  }
+
+  table {
+    min-width: 620px;
+  }
+}
+
+/* Admin mobile */
+@media (max-width: 700px) {
+  .admin-portal-layout,
+  .admin-shell,
+  .admin-workspace,
+  .admin-portal-main {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .admin-portal-layout {
+    display: block !important;
+  }
+
+  .admin-sidebar {
+    position: relative !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .admin-sidebar nav,
+  .admin-sidebar .admin-nav {
+    display: flex !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-sidebar nav button,
+  .admin-sidebar .admin-nav button {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+
+  .admin-workspace,
+  .admin-portal-main {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .admin-workspace .workspace-header,
+  .admin-workspace .workspace-toolbar {
+    flex-wrap: wrap !important;
+  }
+
+  .admin-workspace .workspace-body {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+}
