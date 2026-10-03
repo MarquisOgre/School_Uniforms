@@ -13121,3 +13121,61 @@ body {
     overflow: visible !important;
   }
 }
+
+
+/* Small screens: wrap portal navigation into rows instead of horizontal scrolling. */
+@media (max-width: 700px) {
+  .portal .sidebar nav,
+  .portal .sidebar .sidebar-nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    gap: 6px !important;
+    padding: 0 !important;
+  }
+
+  .portal .sidebar nav button,
+  .portal .sidebar .sidebar-nav button {
+    flex: 1 1 calc(50% - 6px) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-sidebar nav,
+  .admin-sidebar .admin-nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    gap: 6px !important;
+  }
+
+  .admin-sidebar nav button,
+  .admin-sidebar .admin-nav button {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .portal .sidebar nav button,
+  .portal .sidebar .sidebar-nav button,
+  .admin-sidebar nav button,
+  .admin-sidebar .admin-nav button {
+    flex-basis: calc(50% - 6px) !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+  }
+}
