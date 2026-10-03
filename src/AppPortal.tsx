@@ -847,10 +847,9 @@ function Packages({
       const pi = await client
         .from('package_items')
         .select(
-          'id,package_id,product_id,quantity,is_required,requires_size,selection_group,sort_order',
+          'id,package_id,product_id,quantity,requires_size,variant_ids',
         )
         .in('package_id', packageIds)
-        .order('sort_order')
       if (pi.error) {
         setError(pi.error.message)
         setLoading(false)
@@ -871,10 +870,8 @@ function Packages({
           package_id: string
           product_id: string
           quantity: number
-          is_required: boolean
           requires_size: boolean
-          selection_group: string | null
-          sort_order: number
+          variant_ids: string[] | null
         }>,
         productIds = [...new Set(packageItems.map((x) => x.product_id))]
       const [pr, pv] = await Promise.all([
@@ -923,7 +920,7 @@ function Packages({
                 title: displayCatalogName(names[i.product_id] || 'Product'),
                 quantity: i.quantity,
                 requiresSize: i.requires_size,
-                required: i.is_required,
+                required: true,
                 variants: variantsByProduct[i.product_id] || [],
               }))
             return {
