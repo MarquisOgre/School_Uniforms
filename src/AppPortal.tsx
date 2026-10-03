@@ -78,6 +78,7 @@ function CustomerPortal({
   branchName,
   branchId,
   studentId,
+  customerName,
   page,
   setPage,
   onLogout,
@@ -85,6 +86,7 @@ function CustomerPortal({
   branchName: string
   branchId: string
   studentId: string
+  customerName: string
   page: CustomerPage
   setPage: (p: CustomerPage) => void
   onLogout: () => void
@@ -258,7 +260,7 @@ function CustomerPortal({
         cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
         onCart={() => setCheckout('cart')}
         branchName={branchName}
-        userLabel={studentId}
+        userLabel={customerName || studentId}
       >
         <Suspense fallback={<div className="workspace-empty">Loading checkout...</div>}>
           <CheckoutFlow
@@ -291,7 +293,7 @@ function CustomerPortal({
           cartCount={cart.reduce((s, x) => s + x.quantity, 0)}
           onCart={() => setCheckout('cart')}
           branchName={branchName}
-          userLabel={studentId}
+          userLabel={customerName || studentId}
         />
         <div className="portal-layout">
           <aside className="sidebar">
