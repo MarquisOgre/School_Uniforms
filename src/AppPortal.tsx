@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import type React from 'react'
 import {
   ArrowRight,
-  Building2,
   Heart,
   Ban,
   CheckCircle2,
