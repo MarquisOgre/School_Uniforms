@@ -12285,3 +12285,360 @@ a {
     margin: 0 auto;
   }
 }
+
+
+/* =========================================================
+   FINAL RESPONSIVE OVERFLOW SAFETY
+   Keep all /app and /admin pages fully reachable.
+   Content grows naturally; scrolling is enabled when needed.
+   ========================================================= */
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.portal,
+.admin-portal-layout,
+.admin-portal-main,
+.admin-shell,
+.admin-workspace,
+.admin-import-page {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.portal-layout {
+  min-height: calc(100vh - 76px);
+  height: auto;
+  overflow: visible;
+}
+
+.portal .portal-main {
+  height: auto;
+  min-height: calc(100vh - 76px);
+  overflow: visible;
+}
+
+.portal .sidebar {
+  height: auto;
+  min-height: calc(100vh - 76px);
+  overflow-y: auto;
+}
+
+/* Admin: desktop/laptop keeps the side navigation; the document itself scrolls. */
+.admin-portal-layout {
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.admin-portal-main {
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
+}
+
+.admin-portal-main .admin-shell,
+.admin-portal-main .admin-workspace {
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
+}
+
+.admin-content,
+.workspace-body,
+.admin-workspace .workspace-body {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.workspace-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tablet: keep navigation usable and give content the full remaining width. */
+@media (max-width: 900px) {
+  .admin-portal-main {
+    margin-left: 78px;
+    width: calc(100% - 78px);
+  }
+
+  .admin-content {
+    padding: 32px 20px 50px;
+  }
+
+  .workspace-body {
+    padding: 26px 20px 60px;
+  }
+
+  .admin-title,
+  .workspace-heading {
+    flex-wrap: wrap;
+  }
+
+  .admin-scope-card,
+  .admin-selector-grid,
+  .admin-action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile: convert the fixed admin rail into a horizontal, scrollable nav.
+   This prevents the 64px rail from squeezing/clipping every page. */
+@media (max-width: 720px) {
+  .admin-portal-layout {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .admin-sidebar {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding: 10px 12px;
+    overflow: visible;
+    border-bottom: 1px solid #31474e;
+  }
+
+  .admin-sidebar-brand {
+    justify-content: flex-start;
+    padding: 0 4px 9px;
+    border-bottom: 1px solid #31474e;
+  }
+
+  .admin-sidebar-brand img {
+    width: 150px;
+    height: auto;
+    max-height: 48px;
+  }
+
+  .admin-sidebar-brand div,
+  .admin-sidebar-nav button span,
+  .admin-sidebar-change-password span,
+  .admin-sidebar-logout span {
+    display: block;
+  }
+
+  .admin-sidebar-nav {
+    display: flex;
+    gap: 6px;
+    margin-top: 9px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+
+  .admin-sidebar-nav button,
+  .admin-sidebar-change-password,
+  .admin-sidebar-logout {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: max-content;
+    height: 40px;
+    padding: 0 12px;
+    justify-content: flex-start;
+    margin: 0;
+  }
+
+  .admin-sidebar-change-password {
+    display: none;
+  }
+
+  .admin-sidebar-logout {
+    margin-left: 4px;
+  }
+
+  .admin-portal-main {
+    margin-left: 0;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .admin-content {
+    width: 100%;
+    max-width: none;
+    padding: 24px 14px 50px;
+  }
+
+  .workspace-body {
+    width: 100%;
+    max-width: none;
+    padding: 22px 14px 50px;
+  }
+
+  .admin-title h1,
+  .workspace-heading h1 {
+    font-size: clamp(27px, 8vw, 38px);
+  }
+
+  .admin-title,
+  .workspace-heading,
+  .panel-heading,
+  .cms-section-heading,
+  .cms-item-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-title > button,
+  .workspace-heading > button,
+  .workspace-heading > div:last-child {
+    width: 100%;
+  }
+
+  .admin-title > button {
+    white-space: normal;
+  }
+
+  .admin-branch-context {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .admin-branch-context select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .workspace-toolbar {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .workspace-toolbar > div,
+  .toolbar-search {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .toolbar-search {
+    flex: 1 1 100%;
+  }
+
+  .toolbar-search input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .workspace-panel {
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .workspace-row {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .workspace-row button {
+    width: 100%;
+  }
+
+  .workspace-scroll {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .package-include-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  /* Customer /app */
+  .portal-layout {
+    display: block;
+    min-height: 0;
+  }
+
+  .portal .sidebar {
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    position: relative;
+    overflow: visible;
+    padding: 10px 12px;
+  }
+
+  .portal .sidebar nav {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 6px;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+
+  .portal .sidebar nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .portal .portal-main {
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+  }
+
+  .portal .portal-header {
+    width: 100%;
+  }
+
+  .portal-content,
+  .dashboard-content {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+}
+
+/* Very small phones: reduce gutters rather than clipping content. */
+@media (max-width: 480px) {
+  .admin-content,
+  .workspace-body,
+  .portal-content,
+  .dashboard-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .admin-sidebar {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .admin-sidebar-brand img {
+    width: 135px;
+  }
+
+  .portal .portal-header {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .portal-header h1 {
+    font-size: 25px;
+  }
+}
