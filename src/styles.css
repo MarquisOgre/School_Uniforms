@@ -7566,11 +7566,11 @@ a {
   flex: 0 0 260px;
   min-height: calc(100vh - 76px);
   height: auto;
-  overflow-y: auto;
+  overflow: visible;
   overflow-x: hidden;
-  position: sticky;
-  top: 0;
-  align-self: flex-start;
+  position: relative;
+  top: auto;
+  align-self: stretch;
 }
 .portal .portal-main {
   min-height: calc(100vh - 76px);
@@ -12741,7 +12741,7 @@ body {
   min-width: 0;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 700px) {
   .dashboard-family-offers-grid {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -12755,5 +12755,31 @@ body {
 @media (max-width: 560px) {
   .dashboard-family-offers-grid .parent-children-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* Final customer sidebar/document height correction.
+   Keep the dark sidebar stretched for the full portal content height. */
+.portal > .portal-layout {
+  align-items: stretch !important;
+}
+
+.portal > .portal-layout > .sidebar {
+  align-self: stretch !important;
+  height: auto !important;
+  min-height: calc(100vh - 76px) !important;
+  overflow: visible !important;
+}
+
+/* Keep the two dashboard panels side-by-side on laptop/tablet.
+   Stack only on genuinely narrow/mobile screens. */
+.dashboard-family-offers-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+@media (max-width: 700px) {
+  .dashboard-family-offers-grid {
+    grid-template-columns: 1fr !important;
   }
 }
