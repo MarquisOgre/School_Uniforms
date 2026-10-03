@@ -159,6 +159,22 @@ function App() {
           setBranch(b)
           setStudentId(id)
           setBranchName(bn)
+          setCustomerName(id)
+          void (async () => {
+            const { data: auth } = await supabase?.auth.getUser()
+            if (!auth?.user) return
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name,login_id')
+              .eq('id', auth.user.id)
+              .maybeSingle()
+            setCustomerName(
+              profile?.full_name ||
+                auth.user.user_metadata?.full_name ||
+                profile?.login_id ||
+                id,
+            )
+          })()
           setCustomerPage('dashboard')
           void import('./AppPortal')
           window.history.pushState(
