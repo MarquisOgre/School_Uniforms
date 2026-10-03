@@ -797,8 +797,7 @@ a {
   min-width: 20px;
   height: 20px;
   border-radius: 99px;
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--gold);  color: var(--ink);
   font-size: 9px;
   display: grid;
   place-items: center;
@@ -1597,8 +1596,7 @@ a {
 .admin-action-grid strong,
 .admin-action-grid span {
   display: block;
-}
-.admin-action-grid strong {
+}.admin-action-grid strong {
   font-size: 12px;
 }
 .admin-action-grid span {
@@ -2397,8 +2395,7 @@ a {
   margin: auto;
   padding: 0 30px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: center;  justify-content: space-between;
   gap: 24px;
 }
 .store-header nav {
@@ -3197,8 +3194,7 @@ a {
   .benefit-item {
     border-right: 0 !important;
     border-bottom: 1px solid #e9dfce;
-  }
-  .benefit-item:last-child {
+  }  .benefit-item:last-child {
     border-bottom: 0;
   }
   .footer-nav {
@@ -3997,8 +3993,7 @@ a {
   }
   .exact-header nav.nav-open a {
     padding: 9px;
-  }
-  .exact-header-icons {
+  }  .exact-header-icons {
     gap: 7px;
   }
   .exact-header-icons button:not(.mini-cart) {
@@ -4797,8 +4792,7 @@ a {
 }
 @media (max-width: 760px) {
   .homepage-slider-tabs {
-    gap: 6px;
-    padding: 6px;
+    gap: 6px;    padding: 6px;
   }
   .homepage-slider-tab-list > button {
     min-width: 92px;
@@ -5597,8 +5591,7 @@ a {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid #ecdcb5;
-  background: #fff9ed;
+  border: 1px solid #ecdcb5;  background: #fff9ed;
   border-radius: 9px;
   font-size: 11px;
   font-weight: 700;
@@ -6397,7 +6390,6 @@ a {
   max-height: 90px;
   object-fit: contain;
 }
-
 /* Login branding: no box behind logo, centered login copy */
 .login-card-large .brand-mark {
   background: transparent !important;
@@ -7197,8 +7189,7 @@ a {
   justify-content: space-between;
   gap: 20px;
 }
-.global-footer img {
-  width: 120px;
+.global-footer img {  width: 120px;
   max-height: 34px;
   object-fit: contain;
   filter: brightness(0) invert(1);
@@ -7997,8 +7988,7 @@ a {
 }
 
 .admin-workspace .workspace-header {
-  background: rgba(255, 253, 248, 0.94);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 253, 248, 0.94);  backdrop-filter: blur(12px);
 }
 
 .admin-workspace .workspace-table,
@@ -8797,8 +8787,7 @@ a {
     minmax(95px, 0.8fr) auto;
 }
 
-.admin-workspace .payment-settings-row {
-  display: grid;
+.admin-workspace .payment-settings-row {  display: grid;
   grid-template-columns:
     minmax(150px, 1.3fr) minmax(105px, 1fr) minmax(65px, 0.65fr) minmax(80px, 0.8fr)
     minmax(115px, 1fr) minmax(125px, 1fr) minmax(95px, 0.8fr) minmax(100px, 0.9fr) auto;
@@ -9597,8 +9586,7 @@ a {
   background: transparent;
   padding: 0;
   color: inherit;
-  cursor: pointer;
-}
+  cursor: pointer;}
 
 .review-rating-picker button.selected,
 .review-rating-picker button.selected svg {
@@ -10397,8 +10385,7 @@ a {
   flex-direction: column;
 }
 
-.school-order-item {
-  display: grid;
+.school-order-item {  display: grid;
   grid-template-columns: 48px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
@@ -11198,7 +11185,6 @@ a {
   gap: 18px;
   min-width: 0;
 }
-
 .reports-date-controls label {
   display: grid;
   grid-template-columns: auto 140px;
@@ -11997,8 +11983,7 @@ a {
   border: 1px solid var(--border, #e5e7eb);
   border-radius: 12px;
 }
-.admin-module-tabs button {
-  border: 0;
+.admin-module-tabs button {  border: 0;
   background: transparent;
   padding: 9px 13px;
   border-radius: 8px;
@@ -12253,4 +12238,34 @@ a {
 }
 .cms-public-nav a:hover {
   text-decoration: underline;
+}
+
+/* Mobile login modal: allow the complete login screen to scroll on small displays. */
+@media (max-width: 640px) {
+  .login-overlay {
+    display: block;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 100dvh;
+    height: 100dvh;
+    padding: 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .login-overlay::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .login-overlay::-webkit-scrollbar-thumb {
+    background: rgba(23, 39, 45, 0.45);
+    border-radius: 999px;
+  }
+
+  .login-card-large {
+    width: min(100%, 560px);
+    max-height: none;
+    overflow: visible;
+    margin: 0 auto;
+  }
 }
