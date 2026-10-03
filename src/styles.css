@@ -13248,7 +13248,6 @@ body {
   }
 }
 
-
 /* Ensure customer profile/logout controls remain visible on mobile.
    A legacy mobile rule hides all direct children of .global-brand;
    these controls are intentionally an exception. */
