@@ -619,7 +619,33 @@ function Dashboard({
 
   return (
     <div className="portal-content dashboard-content">
-      <CustomerPromotions branchId={branchId} />
+      <div className="dashboard-family-offers-grid">
+        {students.length ? (
+          <section className="parent-children-section dashboard-family-section">
+            <div className="parent-children-grid">
+              <article className="parent-family-heading">
+                <p className="eyebrow">FAMILY ACCOUNT</p>
+                <h2>My Children</h2>
+              </article>
+              {students.map((student) => (
+                <article className="parent-child-card" key={student.id}>
+                  <div className="parent-child-avatar">
+                    {(student.full_name || '?').slice(0, 1).toUpperCase()}
+                  </div>
+                  <div>
+                    <strong>{student.full_name || 'Student'}</strong>
+                    <span>
+                      {student.class_name || 'Class'}
+                      {student.section ? ` • ${student.section}` : ''}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        <CustomerPromotions branchId={branchId} />
+      </div>
       {/* <div className="welcome-banner">
         <div>
           {<p className="eyebrow">YOUR SCHOOL STORE</p>}
@@ -650,30 +676,6 @@ function Dashboard({
         <p className="eyebrow">SHOP</p>
         <h2>Start with what you need</h2>
       </div> */}
-      {students.length ? (
-        <section className="parent-children-section">
-          <div className="parent-children-grid">
-            <article className="parent-family-heading">
-              <p className="eyebrow">FAMILY ACCOUNT</p>
-              <h2>My Children</h2>
-            </article>
-            {students.map((student) => (
-              <article className="parent-child-card" key={student.id}>
-                <div className="parent-child-avatar">
-                  {(student.full_name || '?').slice(0, 1).toUpperCase()}
-                </div>
-                <div>
-                  <strong>{student.full_name || 'Student'}</strong>
-                  <span>
-                    {student.class_name || 'Class'}
-                    {student.section ? ` • ${student.section}` : ''}
-                  </span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      ) : null}
       <div className="shop-cards">
         <ShopCard
           icon={<Package />}
