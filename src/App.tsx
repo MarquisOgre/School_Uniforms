@@ -12,6 +12,7 @@ function App() {
   const [mode, setMode] = useState<PortalMode>('home')
   const [branch, setBranch] = useState(''),
     [studentId, setStudentId] = useState('')
+  const [customerName, setCustomerName] = useState('')
   const [branchName, setBranchName] = useState('Your Branch')
   const [customerPage, setCustomerPage] = useState<CustomerPage>('dashboard'),
     [sessionRestoring, setSessionRestoring] = useState(true)
@@ -53,6 +54,21 @@ function App() {
               setBranch(ctx.branch)
               setStudentId(ctx.studentId || '')
               setBranchName(ctx.branchName || 'Your Branch')
+
+              // Restore the parent display name from the authenticated profile
+              // on hard refresh instead of relying on the login ID in context.
+              const { data: profile } = await client
+                .from('profiles')
+                .select('full_name,login_id')
+                .eq('id', data.session.user.id)
+                .maybeSingle()
+              const restoredName =
+                profile?.full_name ||
+                data.session.user.user_metadata?.full_name ||
+                profile?.login_id ||
+                ctx.studentId ||
+                ''
+              setCustomerName(restoredName)
               const page =
                 path === '/app/packages'
                   ? 'packages'
@@ -105,6 +121,7 @@ function App() {
             branchName={branchName}
             branchId={branch}
             studentId={studentId}
+            customerName={customerName}
             page={customerPage}
             setPage={setCustomerPage}
             onLogout={() => {
