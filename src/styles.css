@@ -12716,3 +12716,45 @@ body {
     overflow: visible !important;
   }
 }
+
+
+/* Dashboard: family account and available offers share the first row. */
+.dashboard-family-offers-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.dashboard-family-offers-grid > .parent-children-section,
+.dashboard-family-offers-grid > .parent-children-section[aria-label='Available offers'] {
+  margin: 0 !important;
+  min-width: 0;
+}
+
+.dashboard-family-offers-grid .parent-children-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-family-offers-grid .parent-family-heading,
+.dashboard-family-offers-grid .parent-child-card {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .dashboard-family-offers-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dashboard-family-offers-grid .parent-children-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-family-offers-grid .parent-children-grid {
+    grid-template-columns: 1fr;
+  }
+}
