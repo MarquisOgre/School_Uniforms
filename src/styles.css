@@ -13122,7 +13122,6 @@ body {
   }
 }
 
-
 /* Small screens: wrap portal navigation into rows instead of horizontal scrolling. */
 @media (max-width: 700px) {
   .portal .sidebar nav,
