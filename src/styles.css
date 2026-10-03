@@ -13287,3 +13287,50 @@ body {
     flex: 0 0 34px !important;
   }
 }
+
+
+/* Customer mobile header: keep account icons at the far right,
+   separate from the logo block. */
+@media (max-width: 700px) {
+  .global-header-customer .global-header-inner {
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .global-header-customer .global-brand {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 88px) !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .global-header-customer .global-brand img {
+    flex: 0 1 auto !important;
+    width: 180px !important;
+    max-width: 100% !important;
+  }
+
+  .global-header-customer .global-brand .customer-header-account-actions {
+    position: fixed !important;
+    right: 10px !important;
+    top: 20px !important;
+    z-index: 20 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
+  .global-header-customer .global-header-actions {
+    margin-left: auto !important;
+    flex: 0 0 auto !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .global-header-customer .global-brand .customer-header-account-actions {
+    right: 8px !important;
+    top: 20px !important;
+  }
+}
