@@ -13334,7 +13334,6 @@ body {
   }
 }
 
-
 /* Mobile customer account actions: compact yellow buttons, side-by-side. */
 @media (max-width: 700px) {
   .global-header-customer .global-brand .customer-header-account-actions {
