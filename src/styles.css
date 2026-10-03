@@ -12641,3 +12641,79 @@ body {
     font-size: 25px;
   }
 }
+
+
+/* =========================================================
+   CUSTOMER /app — DOCUMENT SCROLL FIX
+   The customer portal must grow with dashboard/page content.
+   Do not let the flex layout constrain the page to viewport height.
+   ========================================================= */
+.portal {
+  display: block !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow: visible !important;
+}
+
+.portal > .portal-layout {
+  display: flex !important;
+  flex: none !important;
+  width: 100%;
+  height: auto !important;
+  min-height: calc(100vh - 76px) !important;
+  overflow: visible !important;
+}
+
+.portal > .portal-layout > .sidebar {
+  position: relative !important;
+  inset: auto !important;
+  flex: 0 0 260px !important;
+  height: auto !important;
+  min-height: calc(100vh - 76px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.portal > .portal-layout > .portal-main {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: calc(100vh - 76px) !important;
+  overflow: visible !important;
+}
+
+.portal .dashboard-content {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+/* Small screens: stack everything and let the document scroll naturally. */
+@media (max-width: 720px) {
+  .portal {
+    display: block !important;
+  }
+
+  .portal > .portal-layout {
+    display: block !important;
+    flex: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .portal > .portal-layout > .sidebar {
+    width: 100% !important;
+    flex: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .portal > .portal-layout > .portal-main {
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
