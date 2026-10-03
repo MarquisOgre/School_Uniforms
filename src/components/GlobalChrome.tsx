@@ -58,6 +58,30 @@ export function GlobalHeader({
       <div className="global-header-inner">
         <div className="global-brand">
           <img src="/Narayana-Logo.png" alt="Narayana Schools" />
+          {portal === 'customer' && (
+            <div className="customer-header-account-actions">
+              <button
+                type="button"
+                className="customer-header-icon"
+                aria-label="Profile"
+                title="Profile"
+                onClick={() => {
+                  window.location.href = '/app/profile'
+                }}
+              >
+                <UserRound size={18} />
+              </button>
+              <button
+                type="button"
+                className="customer-header-icon"
+                aria-label="Logout"
+                title="Logout"
+                onClick={onLogout}
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          )}
           {portal === 'admin' && (
             <div>
               <strong>{title}</strong>
