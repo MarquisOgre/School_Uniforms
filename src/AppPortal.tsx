@@ -646,7 +646,6 @@ function Dashboard({
             </div>
           </section>
         ) : null}
-        <CustomerPromotions branchId={branchId} />
       </div>
       {/* <div className="welcome-banner">
         <div>
@@ -672,7 +671,7 @@ function Dashboard({
           value={savedItems === null ? '—' : String(savedItems)}
           icon={<Heart />}
         />
-        <Stat title="School branch" value="Active" icon={<Building2 />} />
+        <CustomerPromotions branchId={branchId} />
       </div>
       {/* <div className="section-row">
         <p className="eyebrow">SHOP</p>
@@ -699,6 +698,7 @@ function Dashboard({
 }
 function CustomerPromotions({ branchId }: { branchId: string }) {
   const [promotions, setPromotions] = useState<any[]>([])
+
   useEffect(() => {
     const client = supabase as any
     if (!client || !branchId) return
@@ -718,40 +718,22 @@ function CustomerPromotions({ branchId }: { branchId: string }) {
 
   if (!promotions.length) return null
 
+  const promotion = promotions[0]
+  const description =
+    promotion.description ||
+    (promotion.promotion_type === 'free_shipping'
+      ? 'Free shipping on eligible orders.'
+      : promotion.promotion_type === 'percentage'
+        ? `${Number(promotion.value || 0)}% off eligible orders.`
+        : `₹${Number(promotion.value || 0).toLocaleString('en-IN')} off eligible orders.`)
+
   return (
-    <section
-      className="parent-children-section"
-      style={{ marginBottom: 20 }}
-      aria-label="Available offers"
-    >
-      <div className="parent-children-grid">
-        <article className="parent-family-heading">
-          <p className="eyebrow">AVAILABLE OFFERS</p>
-          <h2>Current Promotions</h2>
-        </article>
-        {promotions.map((promotion) => (
-          <article className="parent-child-card" key={promotion.id}>
-            <div className="parent-child-avatar">%</div>
-            <div>
-              <strong>{promotion.name}</strong>
-              <span>
-                {promotion.description ||
-                  (promotion.promotion_type === 'free_shipping'
-                    ? 'Free shipping on eligible orders.'
-                    : promotion.promotion_type === 'percentage'
-                      ? `${Number(promotion.value || 0)}% off eligible orders.`
-                      : `₹${Number(promotion.value || 0).toLocaleString('en-IN')} off eligible orders.`)}
-              </span>
-              {Number(promotion.min_order_value || 0) > 0 && (
-                <small>
-                  Minimum order ₹{Number(promotion.min_order_value).toLocaleString('en-IN')}
-                </small>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
+    <div className="stat promotion-stat" aria-label="Current promotions">
+      <div>%</div>
+      <span>Current Promotions</span>
+      <strong>{promotion.name || 'Available offer'}</strong>
+      <small>{description}</small>
+    </div>
   )
 }
 function Stat({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
