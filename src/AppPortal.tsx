@@ -846,9 +846,7 @@ function Packages({
       }
       const pi = await client
         .from('package_items')
-        .select(
-          'id,package_id,product_id,quantity,requires_size,variant_ids',
-        )
+        .select('id,package_id,product_id,quantity,requires_size,variant_ids')
         .in('package_id', packageIds)
       if (pi.error) {
         setError(pi.error.message)
