@@ -552,6 +552,7 @@ function Dashboard({
 }) {
   const [activeOrders, setActiveOrders] = useState<number | null>(null)
   const [savedItems, setSavedItems] = useState<number | null>(null)
+  const [hasPromotion, setHasPromotion] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -659,7 +660,7 @@ function Dashboard({
           <ShoppingBag size={58} />
         </div>
       </div> */}
-      <div className="portal-grid">
+      <div className={`portal-grid dashboard-stats-grid ${hasPromotion ? 'has-promotion' : 'two-stats'}`}>
         <Stat
           title="Active orders"
           value={activeOrders === null ? '—' : String(activeOrders)}
@@ -670,7 +671,7 @@ function Dashboard({
           value={savedItems === null ? '—' : String(savedItems)}
           icon={<Heart />}
         />
-        <CustomerPromotions branchId={branchId} />
+        <CustomerPromotions branchId={branchId} onAvailability={setHasPromotion} />
       </div>
       {/* <div className="section-row">
         <p className="eyebrow">SHOP</p>
@@ -695,7 +696,13 @@ function Dashboard({
     </div>
   )
 }
-function CustomerPromotions({ branchId }: { branchId: string }) {
+function CustomerPromotions({
+  branchId,
+  onAvailability,
+}: {
+  branchId: string
+  onAvailability?: (available: boolean) => void
+}) {
   const [promotions, setPromotions] = useState<any[]>([])
 
   useEffect(() => {
@@ -714,6 +721,10 @@ function CustomerPromotions({ branchId }: { branchId: string }) {
       cancelled = true
     }
   }, [branchId])
+
+  useEffect(() => {
+    onAvailability?.(promotions.length > 0)
+  }, [promotions.length, onAvailability])
 
   if (!promotions.length) return null
 
