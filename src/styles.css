@@ -13247,3 +13247,44 @@ body {
     display: none !important;
   }
 }
+
+
+/* Ensure customer profile/logout controls remain visible on mobile.
+   A legacy mobile rule hides all direct children of .global-brand;
+   these controls are intentionally an exception. */
+@media (max-width: 820px) {
+  .global-header-customer .global-brand .customer-header-account-actions {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .global-header-customer .global-brand .customer-header-icon {
+    display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .global-header-customer .global-header-inner {
+    display: flex !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .global-header-customer .global-brand .customer-header-account-actions {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .global-header-customer .global-brand .customer-header-icon {
+    display: grid !important;
+    place-items: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    flex: 0 0 34px !important;
+  }
+}
